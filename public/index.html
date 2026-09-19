@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1220">
+  <title>Online Rating Control Center</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark" aria-hidden="true">RC</div>
+    <div class="brand-copy">
+      <h1>Online Rating Control Center</h1>
+      <p>Local marketplace rating intelligence</p>
+    </div>
+    <div class="refresh-state" id="refreshState">
+      <span class="live-dot"></span>
+      <span>Loading data…</span>
+    </div>
+  </header>
+
+  <nav class="platform-tabs" id="platformTabs" aria-label="Platforms">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="talabat">Talabat <span class="tab-state">Checking…</span></button>
+    <button class="tab" data-tab="keeta">Keeta <span class="tab-state">Not Connected</span></button>
+    <button class="tab" data-tab="noon">Noon <span class="tab-state">Not Connected</span></button>
+    <button class="tab" data-tab="careem">Careem <span class="tab-state">Not Connected</span></button>
+    <button class="tab" data-tab="deliveroo">Deliveroo <span class="tab-state">Not Connected</span></button>
+  </nav>
+
+  <main id="mainContent" tabindex="-1">
+    <section class="loading-card">Reading the local database…</section>
+  </main>
+
+  <aside class="detail-panel" id="detailPanel" aria-hidden="true" aria-labelledby="detailTitle">
+    <div class="detail-backdrop" data-close-detail></div>
+    <section class="detail-sheet">
+      <button class="close-button" data-close-detail aria-label="Close details">×</button>
+      <div id="detailContent"></div>
+    </section>
+  </aside>
+</body>
+</html>

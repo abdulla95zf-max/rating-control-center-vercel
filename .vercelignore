@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+.secrets/
+artifacts/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+*.zip
+*.log
+node_modules/
+dist/
+.git/

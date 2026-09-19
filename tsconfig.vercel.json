@@ -1,0 +1,5 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {"rootDir": ".", "noEmit": true},
+  "include": ["api/**/*.ts", "src/cloud-api.ts", "src/services/latest-ratings-proxy.ts"]
+}
