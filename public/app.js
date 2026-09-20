@@ -2,12 +2,14 @@ const state = {
   tab: 'overview',
   platforms: [],
   search: '',
+  brand: '',
   status: '',
   sort: 'name_asc',
   refreshSeconds: 60,
   timer: null,
   busy: false,
-  cloudRatings: false
+  cloudRatings: false,
+  cloudResponse: null
 };
 
 const main = document.getElementById('mainContent');
@@ -45,6 +47,55 @@ function redrawCharts() {
 new ResizeObserver(redrawCharts).observe(detailContent);
 const changeHtml = value => value === null ? '—' : `<span class="${value < 0 ? 'negative' : value > 0 ? 'positive' : ''}">${value > 0 ? '+' : ''}${Number(value).toFixed(1)}</span>`;
 const statusHtml = status => `<span class="status status-${String(status).toLowerCase()}">${escapeHtml(status)}</span>`;
+
+const brandRules = [
+  { brand: 'FRB Shawarma', patterns: [/^FRB\s+Shawarma\b/i] },
+  { brand: 'FRB Kabab', patterns: [/^FRB\s+Kabab\b/i] },
+  { brand: 'Kabab Al Sham', patterns: [/^Kabab\s+Al\s+Sham\b/i] },
+  { brand: 'Kabab Fareej', patterns: [/^Kabab\s+Fareej\b/i, /^KF\s*[-–—]/i] },
+  { brand: 'Marwareed', patterns: [/^(?:Al\s+)?Morwarid\s+Restaurant\b/i, /^(?:Al\s+)?Marwareed\b/i] },
+  { brand: 'Leekh', patterns: [/^Al\s+Leekh\s+Emirati\b/i, /^Leekh\b/i] },
+  { brand: 'Tanoorna Ghyr', patterns: [/^TANOORNA\s+GHYR\b/i] }
+];
+const branchAliases = new Map([
+  ['al warqa 1', 'Al Warqa'], ['al warqa', 'Al Warqa'],
+  ['al twar 1', 'Al Twar'], ['twar', 'Al Twar'],
+  ['al hamidiya', 'Ajman'], ['al hamidiya 2', 'Al Hamidiya 2'], ['ajman', 'Ajman'],
+  ['international city', 'Dragon Mart'], ['dragon mart', 'Dragon Mart'],
+  ['al qusais 2', 'Al Qusais'], ['qusais', 'Al Qusais'],
+  ['al kharan', 'RAK'], ['rak', 'RAK'],
+  ["mleha al bdai'a suburb", 'Hay Hoshi'], ["al bdai'a suburb", "Al Bdai'a Suburb"], ['hay hoshi', 'Hay Hoshi'],
+  ['al barsha 2', 'Al Barsha'], ['al barsha', 'Al Barsha'],
+  ['fujairah city center', 'Fujairah'], ['fujairah', 'Fujairah'],
+  ['umm al daman', 'Umm Al Daman'], ['um aldaman', 'Umm Al Daman']
+]);
+const cleanWords = value => String(value || '').replace(/\(\s*DH\s+Kitchen\s*\)/ig, '').replace(/\bIndsutrial\b/ig, 'Industrial')
+  .replace(/\bSubrub\b/ig, 'Suburb').replace(/\s*,\s*/g, ', ').replace(/\s+/g, ' ').replace(/^[-,\s]+|[-,\s]+$/g, '').trim();
+const keyWords = value => cleanWords(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+function storeIdentity(row) {
+  const raw = cleanWords(row.storeName || 'Unknown store');
+  const rule = brandRules.find(item => item.patterns.some(pattern => pattern.test(raw)));
+  const brand = rule?.brand || 'Other';
+  let branch = raw;
+  if (rule) for (const pattern of rule.patterns) branch = branch.replace(pattern, '');
+  branch = cleanWords(branch.replace(/^\s*Al\s*,/i, '').replace(/^\s*[-–—,]+/, '')) || 'Unknown branch';
+  const alias = branchAliases.get(keyWords(branch));
+  branch = alias || branch.replace(/\bAl Dhait south\b/i, 'Al Dhait South');
+  return { brand, branch, key: `${keyWords(brand)}|${keyWords(branch)}`, displayName: `${brand} — ${branch}` };
+}
+function groupCloudRows(rows) {
+  const groups = new Map();
+  for (const row of rows) {
+    const identity = storeIdentity(row);
+    const group = groups.get(identity.key) || { ...identity, rows: [] };
+    group.rows.push({ ...row, displayName: identity.displayName, brand: identity.brand, branch: identity.branch });
+    groups.set(identity.key, group);
+  }
+  return [...groups.values()].map(group => ({ ...group, rows: group.rows.sort((a,b) => a.platform.localeCompare(b.platform)) }));
+}
+const severity = {CRITICAL:0,WARNING:1,ACCEPTABLE:2,HEALTHY:3,UNKNOWN:4};
+const groupStatus = group => group.rows.reduce((status,row) => severity[row.status] < severity[status] ? row.status : status, 'UNKNOWN');
+const groupRating = group => { const values=group.rows.map(row=>row.rating).filter(value=>value!==null);return values.length?Math.min(...values):null; };
 
 async function api(path) {
   const response = await fetch(path, { headers: { accept: 'application/json' }, cache: 'no-store' });
@@ -144,7 +195,7 @@ async function renderOverview() {
 
 function rankPanel(title, subtitle, stores, valueRenderer) {
   return `<article class="panel"><header class="panel-header"><h3>${escapeHtml(title)}</h3><span>${escapeHtml(subtitle)}</span></header>
-    ${stores.length ? `<ol class="rank-list">${stores.map(store => `<li class="rank-item" data-store-id="${escapeHtml(store.storeId)}"><div><div class="rank-name">${escapeHtml(store.storeName)}</div><div class="rank-meta">ID ${escapeHtml(store.storeId)} · ${escapeHtml(store.status)}</div></div>${valueRenderer(store)}</li>`).join('')}</ol>` : '<div class="empty">No matching data</div>'}
+    ${stores.length ? `<ol class="rank-list">${stores.map(store => `<li class="rank-item" data-store-id="${escapeHtml(store.storeId)}"><div><div class="rank-name">${escapeHtml(store.storeName)}</div><div class="rank-meta">${escapeHtml(store.status)}</div></div>${valueRenderer(store)}</li>`).join('')}</ol>` : '<div class="empty">No matching data</div>'}
   </article>`;
 }
 
@@ -157,7 +208,7 @@ async function renderTalabat() {
     <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div></div>
     ${healthBanner(platform)}
     <div class="toolbar">
-      <input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name or ID" autocomplete="off">
+      <input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name" autocomplete="off">
       <select class="select" id="storeSort" aria-label="Sort stores">
         ${[['name_asc','Name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['change_asc','Change · biggest drop'],['change_desc','Change · biggest gain']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}
       </select>
@@ -166,8 +217,8 @@ async function renderTalabat() {
     <div class="status-filters">
       ${[['','All statuses'],['HEALTHY','Healthy'],['ACCEPTABLE','Acceptable'],['WARNING','Warning only'],['CRITICAL','Critical only'],['UNKNOWN','Unknown']].map(([value,label]) => `<button class="filter-chip ${state.status === value ? 'active' : ''}" data-status="${value}">${label}</button>`).join('')}
     </div>
-    <div class="table-wrap"><table><thead><tr><th>Store name</th><th>Store ID</th><th>Current rating</th><th>Previous</th><th>Change</th><th>Reviews</th><th>One-star</th><th>Status</th><th>Last updated</th></tr></thead>
-      <tbody>${stores.length ? stores.map(store => `<tr data-store-id="${escapeHtml(store.storeId)}"><td class="store-name">${escapeHtml(store.storeName)}</td><td class="store-id">${escapeHtml(store.storeId)}</td><td><strong>${formatRating(store.currentRating)}</strong></td><td>${formatRating(store.previousRating)}</td><td>${changeHtml(store.ratingChange)}</td><td>${formatNumber(store.reviewCount)}</td><td>${formatNumber(store.oneStarCount)}</td><td>${statusHtml(store.status)}</td><td>${escapeHtml(formatTime(store.lastUpdated))}</td></tr>`).join('') : '<tr><td colspan="9" class="empty">No stores match these filters</td></tr>'}</tbody>
+    <div class="table-wrap"><table class="compact-table"><thead><tr><th>Store name</th><th>Current rating</th><th>Previous</th><th>Change</th><th>Status</th><th>Last updated</th></tr></thead>
+      <tbody>${stores.length ? stores.map(store => `<tr data-store-id="${escapeHtml(store.storeId)}"><td class="store-name">${escapeHtml(store.storeName)}</td><td><strong>${formatRating(store.currentRating)}</strong></td><td>${formatRating(store.previousRating)}</td><td>${changeHtml(store.ratingChange)}</td><td>${statusHtml(store.status)}</td><td>${escapeHtml(formatTime(store.lastUpdated))}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">No stores match these filters</td></tr>'}</tbody>
     </table></div>`;
   attachTalabatControls();
   attachStoreClicks();
@@ -193,6 +244,7 @@ function cloudPlatformCards(platforms) {
 }
 async function renderCloudRatings() {
   const response = await api('/api/dashboard/ratings/latest');
+  state.cloudResponse = response;
   const platformResults = response.platforms;
   state.platforms = state.platforms.map(platform => {
     const result = platformResults.find(item => item.platform === platform.id);
@@ -202,27 +254,43 @@ async function renderCloudRatings() {
   updatePlatformTabs();
   const selectedPlatform = state.tab === 'talabat' || state.tab === 'keeta' ? state.tab : null;
   const sourceRows = selectedPlatform ? response.ratings.filter(row => row.platform === selectedPlatform) : response.ratings;
-  const counts = Object.fromEntries(['HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => [status, sourceRows.filter(row => row.status === status).length]));
-  const filtered = sourceRows.filter(row => (!state.status || row.status === state.status) &&
-    [row.storeName || '',row.storeIdentityKey,row.platform].some(value => value.toLowerCase().includes(state.search.toLowerCase())));
-  const severity={CRITICAL:0,WARNING:1,ACCEPTABLE:2,HEALTHY:3,UNKNOWN:4};
-  filtered.sort((a,b) => state.sort === 'rating_asc' ? (a.rating ?? 6) - (b.rating ?? 6) || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey) :
-    state.sort === 'rating_desc' ? (b.rating ?? 0) - (a.rating ?? 0) || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey) :
-    state.sort === 'severity_asc' ? severity[a.status]-severity[b.status] || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey) :
-    (a.storeName || a.storeIdentityKey).localeCompare(b.storeName || b.storeIdentityKey) || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey));
+  const allGroups = groupCloudRows(response.ratings);
+  const viewGroups = selectedPlatform ? groupCloudRows(sourceRows) : allGroups;
+  const brands = [...new Set(allGroups.map(group => group.brand))].sort((a,b)=>a.localeCompare(b));
+  const search = state.search.toLowerCase();
+  const filteredGroups = viewGroups.filter(group => (!state.brand || group.brand === state.brand) &&
+    (!state.status || (selectedPlatform ? group.rows.some(row=>row.status===state.status) : groupStatus(group)===state.status)) &&
+    [group.displayName,group.brand,group.branch,...group.rows.map(row=>row.storeName||'')].some(value=>value.toLowerCase().includes(search)));
+  filteredGroups.sort((a,b) => state.sort === 'rating_asc' ? (groupRating(a) ?? 6)-(groupRating(b) ?? 6)||a.displayName.localeCompare(b.displayName) :
+    state.sort === 'rating_desc' ? (groupRating(b) ?? 0)-(groupRating(a) ?? 0)||a.displayName.localeCompare(b.displayName) :
+    state.sort === 'severity_asc' ? severity[groupStatus(a)]-severity[groupStatus(b)]||a.displayName.localeCompare(b.displayName) :
+    a.displayName.localeCompare(b.displayName));
+  const counted = selectedPlatform ? sourceRows.map(row=>row.status) : viewGroups.map(group=>groupStatus(group));
+  const counts = Object.fromEntries(['HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => [status, counted.filter(value=>value===status).length]));
   const title=selectedPlatform ? selectedPlatform[0].toUpperCase()+selectedPlatform.slice(1)+' latest ratings' : 'Portfolio overview';
   const active=selectedPlatform ? platformResults.filter(item=>item.platform===selectedPlatform) : platformResults;
   const overallHealth=active.some(item=>item.state==='ERROR')?'ERROR':active.some(item=>cloudHealth(item)==='STALE')?'STALE':active.some(item=>cloudHealth(item)==='DELAYED')?'DELAYED':'LIVE';
   refreshState.querySelector('.live-dot').dataset.health=overallHealth;
-  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · Cloud History is not available in this phase · ${formatNumber(sourceRows.length)} stores</p></div></div>
+  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div></div>
     ${cloudPlatformCards(platformResults)}
     <section class="kpi-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
-    <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name, identity or platform" autocomplete="off">
-    <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Store name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · most severe first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
+    <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
+    <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
+    <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Branch name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · most severe first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
     <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
-    <div class="table-wrap"><table><thead><tr><th>Store / branch</th><th>Platform</th><th>Rating</th><th>Review count</th><th>One-star count</th><th>Status</th><th>Observed</th></tr></thead>
-    <tbody>${filtered.length ? filtered.map(row => `<tr data-row-key="${escapeHtml(row.platform+':'+row.storeIdentityKey)}"><td><div class="store-name">${escapeHtml(row.storeName || row.storeIdentityKey)}</div><div class="store-id">${escapeHtml(row.storeIdentityKey)}</div></td><td><span class="platform-badge platform-${escapeHtml(row.platform)}">${escapeHtml(row.platform)}</span></td><td><strong>${formatRating(row.rating)}</strong></td><td>${formatNumber(row.reviewCount)}</td><td>${formatNumber(row.oneStarCount)}</td><td>${statusHtml(row.status)}</td><td><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward ? '<span class="carried-forward">Carried forward</span>' : ''}</td></tr>`).join('') : '<tr><td colspan="7" class="empty">No stored ratings match this view</td></tr>'}</tbody></table></div>`;
+    ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
+  attachCloudStoreClicks(filteredGroups);
+}
+
+function renderPlatformTable(groups) {
+  const rows=groups.flatMap(group=>group.rows.map(row=>({group,row})));
+  return `<div class="table-wrap"><table class="compact-table"><thead><tr><th>Brand / branch</th><th>Rating</th><th>Status</th><th>Observed</th></tr></thead>
+    <tbody>${rows.length?rows.map(({group,row})=>`<tr data-branch-key="${escapeHtml(group.key)}"><td><div class="store-name">${escapeHtml(group.displayName)}</div></td><td><strong>${formatRating(row.rating)}</strong></td><td>${statusHtml(row.status)}</td><td><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward?'<span class="carried-forward">Carried forward</span>':''}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
+}
+function renderOverviewTable(groups) {
+  return `<div class="table-wrap"><table class="overview-table"><thead><tr><th>Brand / branch</th><th>Platform ratings</th><th>Overall status</th><th>Latest observation</th></tr></thead>
+    <tbody>${groups.length?groups.map(group=>{const latest=group.rows.map(row=>row.timestamp).sort().at(-1);return `<tr data-branch-key="${escapeHtml(group.key)}"><td><div class="store-name">${escapeHtml(group.displayName)}</div></td><td><div class="platform-rating-list">${group.rows.map(row=>`<span class="platform-rating"><span class="platform-badge platform-${escapeHtml(row.platform)}">${escapeHtml(row.platform)}</span><strong>${formatRating(row.rating)}</strong>${statusHtml(row.status)}</span>`).join('')}</div></td><td>${statusHtml(groupStatus(group))}</td><td>${escapeHtml(formatTime(latest))}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 
 function attachTalabatControls() {
@@ -232,8 +300,35 @@ function attachTalabatControls() {
     window.clearTimeout(debounce);
     debounce = window.setTimeout(() => { state.search = event.target.value.trim(); renderCurrent(); }, 280);
   });
+  document.getElementById('brandFilter')?.addEventListener('change', event => { state.brand = event.target.value; renderCurrent(); });
   document.getElementById('storeSort')?.addEventListener('change', event => { state.sort = event.target.value; renderCurrent(); });
   for (const button of main.querySelectorAll('[data-status]')) button.addEventListener('click', () => { state.status = button.dataset.status || ''; renderCurrent(); });
+}
+
+function attachCloudStoreClicks(groups) {
+  const lookup=new Map(groups.map(group=>[group.key,group]));
+  for(const row of main.querySelectorAll('[data-branch-key]')) {
+    row.tabIndex=0;
+    row.setAttribute('role','button');
+    const open=()=>{const group=lookup.get(row.dataset.branchKey);if(group)openCloudStore(group);};
+    row.addEventListener('click',open);
+    row.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open();}});
+  }
+}
+
+function openCloudStore(group) {
+  selectedStore=group.key;
+  detailPanel.classList.add('open');
+  detailPanel.setAttribute('aria-hidden','false');
+  detailContent.innerHTML=`<h2 class="detail-title" id="detailTitle">${escapeHtml(group.displayName)}</h2>
+    <p class="detail-subtitle">Latest ratings by platform</p>
+    <section class="cloud-detail-platforms">${group.rows.map(row=>`<article class="cloud-detail-card">
+      <header><span class="platform-badge platform-${escapeHtml(row.platform)}">${escapeHtml(row.platform)}</span>${statusHtml(row.status)}</header>
+      <div class="cloud-detail-rating">${formatRating(row.rating)}</div>
+      <dl><div><dt>Reviews</dt><dd>${formatNumber(row.reviewCount)}</dd></div><div><dt>One-star</dt><dd>${formatNumber(row.oneStarCount)}</dd></div>
+      <div><dt>Observed</dt><dd>${escapeHtml(formatTime(row.timestamp))}</dd></div><div><dt>Freshness</dt><dd>${row.carriedForward?'Carried forward':'Latest observation'}</dd></div></dl>
+    </article>`).join('')}</section>
+    <section class="history-placeholder"><strong>Rating history</strong><p>Cloud History is not available yet. It will appear here after the historical API is added.</p></section>`;
 }
 
 function renderDisconnected(platformId) {
@@ -266,7 +361,7 @@ async function openStore(storeId, range = '24h') {
     if (request !== detailRequest) return;
     chartData = history.filter(p => Number.isFinite(timestamp(p.recordedAt)));
     detailContent.innerHTML = `
-      <h2 class="detail-title" id="detailTitle">${escapeHtml(store.storeName)}</h2><div class="detail-id">Store ID ${escapeHtml(store.storeId)}</div>
+      <h2 class="detail-title" id="detailTitle">${escapeHtml(store.storeName)}</h2>
       ${healthBanner(platform)}
       <section class="detail-kpis">
         <div class="mini-kpi"><span>Previous rating</span><strong>${formatRating(store.previousRating)}</strong></div>

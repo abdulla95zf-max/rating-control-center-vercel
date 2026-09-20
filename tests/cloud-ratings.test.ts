@@ -70,18 +70,34 @@ test('partial failure and empty platform remain projected without hiding success
   assert.equal((await fetchLatestRatings(config,async()=>Response.json(empty))).platforms[1].state,'EMPTY');
 });
 
-test('cloud UI renders combined and isolated tabs, badges, nullable counts and no fabricated History',async()=>{
-  const main:any={innerHTML:'',querySelectorAll:()=>[]};const node:any={querySelectorAll:()=>[],addEventListener:()=>{},querySelector:()=>({dataset:{}})};
+test('cloud UI groups matching branches, filters brands and keeps counts in the detail drawer',async()=>{
+  const talabatBranch={...talabat,storeIdentityKey:'TB_AE;fareej',storeName:'Kabab Fareej, Al Warqa 1'};
+  const keetaBranch={...keeta,storeIdentityKey:'KEETA;fareej',storeName:'KF - Al Warqa'};
+  const grouped={...projected,ratings:[{...talabatBranch,status:'HEALTHY'},{...keetaBranch,status:'ACCEPTABLE'}],
+    platforms:[{...projected.platforms[0],ratings:[{...talabatBranch,status:'HEALTHY'}]},
+      {...projected.platforms[1],ratings:[{...keetaBranch,status:'ACCEPTABLE'}]}]};
+  const main:any={innerHTML:'',querySelectorAll:()=>[]};
+  const detail:any={innerHTML:'',querySelectorAll:()=>[]};
+  const panel:any={classList:{add:()=>{},remove:()=>{},contains:()=>false},setAttribute:()=>{}};
+  const node:any={querySelectorAll:()=>[],addEventListener:()=>{},querySelector:()=>({dataset:{}})};
   const urls:string[]=[];const context=vm.createContext({Intl,Date,URLSearchParams,console,
-    document:{getElementById:(id:string)=>id==='mainContent'?main:node,querySelectorAll:()=>[],addEventListener:()=>{}},
+    document:{getElementById:(id:string)=>id==='mainContent'?main:id==='detailContent'?detail:id==='detailPanel'?panel:node,querySelectorAll:()=>[],addEventListener:()=>{}},
     ResizeObserver:class{observe(){}},location:{hash:''},history:{replaceState(){}},window:{setInterval(){},clearTimeout(){},setTimeout(fn:any){fn();}},
-    fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>projected};}});
+    fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>grouped};}});
   const source=fs.readFileSync('public/app.js','utf8').replace(/initialize\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
+  assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),
+    {brand:'Kabab Fareej',branch:'Fujairah',key:'kabab fareej|fujairah',displayName:'Kabab Fareej — Fujairah'});
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Kabab Fareej, International City"}).branch',context),'Dragon Mart');
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Kabab Fareej, Al Hamidiya"}).branch',context),'Ajman');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
-  for(const text of ['TB_AE;one','KEETA;one','platform-talabat','platform-keeta','Carried forward','Cloud History is not available','>—<','UNKNOWN'])assert.ok(main.innerHTML.includes(text),text);
-  await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('TB_AE;one'));assert.ok(!main.innerHTML.includes('KEETA;one'));
-  await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('KEETA;one'));assert.ok(!main.innerHTML.includes('TB_AE;one'));
+  for(const text of ['Kabab Fareej — Al Warqa','platform-talabat','platform-keeta','All brands'])assert.ok(main.innerHTML.includes(text),text);
+  for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
+  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,1);
+  await vm.runInContext('openCloudStore(groupCloudRows(state.cloudResponse.ratings)[0])',context);
+  for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
+  await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('platform-keeta'));
+  await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('platform-talabat'));
   assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
 });
 

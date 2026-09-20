@@ -61,7 +61,7 @@ main { width: min(1500px, 100%); margin: 0 auto; padding: 30px clamp(18px, 4vw, 
 .negative { color: var(--critical); }
 .positive { color: var(--healthy); }
 
-.toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 15px 15px 0 0; background: var(--panel); }
+.toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) minmax(150px, auto) minmax(180px, auto); gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 15px 15px 0 0; background: var(--panel); }
 .input, .select { height: 42px; border: 1px solid var(--line); border-radius: 10px; background: #0b1321; color: var(--text); padding: 0 13px; outline: none; }
 .input:focus, .select:focus { border-color: #61789d; box-shadow: 0 0 0 3px rgb(97 120 157 / 14%); }
 .status-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0 17px; }
@@ -69,6 +69,7 @@ main { width: min(1500px, 100%); margin: 0 auto; padding: 30px clamp(18px, 4vw, 
 .filter-chip.active { background: #26334a; border-color: #516788; color: var(--text); }
 .table-wrap { overflow: auto; border: 1px solid var(--line); border-top: 0; border-radius: 0 0 15px 15px; background: var(--panel); }
 table { width: 100%; min-width: 1040px; border-collapse: collapse; }
+.compact-table, .overview-table { min-width: 720px; }
 th { position: sticky; top: 0; background: #151f31; color: var(--muted); text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: .075em; padding: 13px 15px; border-bottom: 1px solid var(--line); }
 td { padding: 14px 15px; border-bottom: 1px solid rgb(38 50 71 / 65%); font-size: 13px; }
 tbody tr { cursor: pointer; }
@@ -87,6 +88,9 @@ tbody tr:hover { background: #172235; }
 .platform-talabat { color: #ff8b73; background: rgb(255 139 115 / 10%); }
 .platform-keeta { color: #ffd166; background: rgb(255 209 102 / 10%); }
 .carried-forward { display: block; width: max-content; margin-top: 5px; color: var(--warning); font-size: 10px; }
+.platform-rating-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.platform-rating { display: inline-flex; align-items: center; gap: 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 10px; background: #0b1321; }
+.platform-rating .status { padding: 4px 7px; }
 
 .not-connected, .error-card, .loading-card { padding: 42px; text-align: center; border: 1px dashed var(--line); background: var(--panel); border-radius: 18px; color: var(--muted); }
 .not-connected strong, .error-card strong { display: block; color: var(--text); font-size: 22px; margin-bottom: 8px; }
@@ -100,6 +104,7 @@ tbody tr:hover { background: #172235; }
 .detail-panel.open .detail-sheet { transform: translateX(0); }
 .close-button { position: sticky; top: 0; float: right; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel-2); cursor: pointer; font-size: 24px; z-index: 2; }
 .detail-title { margin: 10px 55px 4px 0; font-size: 25px; letter-spacing: -.035em; }
+.detail-subtitle { margin: 0; color: var(--muted); }
 .detail-id { color: var(--muted); font-family: Consolas, monospace; }
 .detail-kpis { clear: both; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding-top: 25px; }
 .mini-kpi { padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
@@ -108,6 +113,17 @@ tbody tr:hover { background: #172235; }
 .chart-card { margin-top: 16px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
 .chart-card h4 { margin: 0 0 15px; font-size: 13px; }
 .chart { display: block; width: 100%; height: 190px; }
+.cloud-detail-platforms { clear: both; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; padding-top: 24px; }
+.cloud-detail-card { padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
+.cloud-detail-card header { display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+.cloud-detail-rating { margin: 20px 0; font-size: 42px; font-weight: 800; letter-spacing: -.05em; }
+.cloud-detail-card dl { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0; }
+.cloud-detail-card dl div { min-width: 0; }
+.cloud-detail-card dt { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+.cloud-detail-card dd { margin: 5px 0 0; overflow-wrap: anywhere; font-size: 13px; }
+.history-placeholder { margin-top: 16px; padding: 20px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); }
+.history-placeholder strong { color: var(--text); }
+.history-placeholder p { margin-bottom: 0; }
 
 @media (max-width: 1050px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 760px) {
