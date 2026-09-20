@@ -14,6 +14,7 @@ No collector, session, database, Redis, alert, schedule, migration, or environme
 - Removes technical store identities and rating-count columns from the main tables.
 - Groups Overview rows by a deterministic brand/branch identity and shows Talabat and Keeta ratings under the same branch.
 - Normalizes Keeta `KF` to `Kabab Fareej` and applies explicit operational aliases for cross-platform branch names.
+- Matches Talabat `Mleha, Al Bdai'a Suburb` with Keeta `Hay Hoshi` as one physical branch.
 - Adds a dynamic brand filter derived from the connected platform rows.
 - Keeps aggregator tabs isolated and opens review/one-star details in the existing side drawer.
 - Leaves Cloud History explicitly unavailable until a historical API is introduced.

@@ -90,6 +90,9 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
     {brand:'Kabab Fareej',branch:'Fujairah',key:'kabab fareej|fujairah',displayName:'Kabab Fareej — Fujairah'});
   assert.equal(vm.runInContext('storeIdentity({storeName:"Kabab Fareej, International City"}).branch',context),'Dragon Mart');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Kabab Fareej, Al Hamidiya"}).branch',context),'Ajman');
+  assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).branch`,context),'Hay Hoshi');
+  assert.equal(vm.runInContext(`storeIdentity({storeName:"KF - Hay Hoshi"}).branch`,context),'Hay Hoshi');
+  assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).key===storeIdentity({storeName:"KF - Hay Hoshi"}).key`,context),true);
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
   for(const text of ['Kabab Fareej — Al Warqa','platform-talabat','platform-keeta','All brands'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);

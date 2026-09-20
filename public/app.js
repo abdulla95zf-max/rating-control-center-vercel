@@ -64,7 +64,7 @@ const branchAliases = new Map([
   ['international city', 'Dragon Mart'], ['dragon mart', 'Dragon Mart'],
   ['al qusais 2', 'Al Qusais'], ['qusais', 'Al Qusais'],
   ['al kharan', 'RAK'], ['rak', 'RAK'],
-  ["mleha al bdai'a suburb", 'Hay Hoshi'], ["al bdai'a suburb", "Al Bdai'a Suburb"], ['hay hoshi', 'Hay Hoshi'],
+  ['mleha al bdai a suburb', 'Hay Hoshi'], ['al bdai a suburb', "Al Bdai'a Suburb"], ['hay hoshi', 'Hay Hoshi'],
   ['al barsha 2', 'Al Barsha'], ['al barsha', 'Al Barsha'],
   ['fujairah city center', 'Fujairah'], ['fujairah', 'Fujairah'],
   ['umm al daman', 'Umm Al Daman'], ['um aldaman', 'Umm Al Daman']
