@@ -1,5 +1,5 @@
 export type PlatformId = 'talabat' | 'keeta' | 'noon' | 'careem' | 'deliveroo';
-export type RatingStatus = 'HEALTHY' | 'ACCEPTABLE' | 'WARNING' | 'CRITICAL' | 'UNRATED';
+export type RatingStatus = 'HEALTHY' | 'ACCEPTABLE' | 'WARNING' | 'CRITICAL' | 'UNKNOWN';
 
 export interface PlatformState {
   id: PlatformId;
@@ -20,8 +20,8 @@ export interface StoreSummary {
   currentRating: number | null;
   previousRating: number | null;
   ratingChange: number | null;
-  reviewCount: number;
-  oneStarCount: number;
+  reviewCount: number | null;
+  oneStarCount: number | null;
   status: RatingStatus;
   eventStatus: string;
   lastUpdated: string | null;
@@ -41,7 +41,7 @@ export interface StatusCounts {
   ACCEPTABLE: number;
   WARNING: number;
   CRITICAL: number;
-  UNRATED: number;
+  UNKNOWN: number;
 }
 
 export interface OverviewData {

@@ -8,7 +8,13 @@ import {createCloudHandler} from '../src/cloud-api.ts';
 
 const token='PRIVATE-UPSTREAM-TOKEN-'.repeat(3);
 const env={RATINGS_API_URL:'https://talabat-rating-monitor-vercel-poc.vercel.app/api/ratings/latest',RATINGS_API_TOKEN:token};
-const payload={ok:true,storeCount:1,ratings:[{storeName:'Synthetic Marina',storeIdentityKey:'TB_AE;123',rating:4.4,reviewCount:22,oneStarCount:1,status:'ACCEPTABLE',timestamp:'2026-09-17T12:00:00.000Z'}]};
+const sourceRow={platform:'talabat',storeName:'Synthetic Marina',storeIdentityKey:'TB_AE;123',rating:4.4,reviewCount:22,oneStarCount:1,
+  timestamp:'2026-09-17T12:00:00.000Z',syncTimestamp:'2026-09-17T12:00:00.000Z',carriedForward:false};
+const emptyKeeta={platform:'keeta',state:'EMPTY',storeCount:0,syncTimestamp:null,emptyReason:'NO_RUN',errorCode:null,ratings:[]};
+const payload={ok:true,selector:'all',storeCount:1,ratings:[sourceRow],platforms:[
+  {platform:'talabat',state:'SUCCESS',storeCount:1,syncTimestamp:sourceRow.syncTimestamp,emptyReason:null,errorCode:null,ratings:[sourceRow]},emptyKeeta]};
+const projected={...payload,ratings:[{...sourceRow,status:'HEALTHY'}],platforms:[
+  {...payload.platforms[0],ratings:[{...sourceRow,status:'HEALTHY'}]},emptyKeeta]};
 async function call(route:'config'|'health'|'ratings',fetcher:typeof fetch,settings:NodeJS.ProcessEnv=env,method='GET'){
   const handler=createCloudHandler(route,settings,fetcher);
   let body:any;const headers:Record<string,string>={};
@@ -19,10 +25,10 @@ async function call(route:'config'|'health'|'ratings',fetcher:typeof fetch,setti
 test('Cloud ratings proxy retains names and fields with server-only authorization',async()=>{
   let count=0;
   const result=await call('ratings',async(url,options)=>{
-    count++;assert.equal(url,env.RATINGS_API_URL);assert.equal((options?.headers as any).Authorization,'Bearer '+token);
+    count++;assert.equal(url,env.RATINGS_API_URL+'?platform=all');assert.equal((options?.headers as any).Authorization,'Bearer '+token);
     assert.equal(options?.redirect,'error');return Response.json(payload);
   });
-  assert.equal(result.status,200);assert.equal(count,1);assert.deepEqual(result.body,payload);
+  assert.equal(result.status,200);assert.equal(count,1);assert.deepEqual(result.body,projected);
   assert.ok(!JSON.stringify(result).includes(token));
 });
 test('Cloud mode remains selected without configuration and missing token fails safely',async()=>{
@@ -69,6 +75,6 @@ test('Cloud dashboard HTML and API load through HTTP without local server entry 
     const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
     const page=await fetch(base);assert.equal(page.status,200);assert.match(await page.text(),/Online Rating Control Center/);
     const config=await fetch(base+'/api/config').then(r=>r.json()) as any;assert.equal(config.cloudRatings,true);
-    assert.deepEqual(await fetch(base+'/api/dashboard/ratings/latest').then(r=>r.json()),payload);
+    assert.deepEqual(await fetch(base+'/api/dashboard/ratings/latest').then(r=>r.json()),projected);
   }finally{await new Promise<void>(resolve=>server.close(()=>resolve()));}
 });

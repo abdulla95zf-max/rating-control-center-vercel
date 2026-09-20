@@ -18,7 +18,7 @@ export class DataSourceRegistry {
 
   overview(): OverviewData {
     const overviews = [...this.sources.values()].filter(source => source.state.connected).map(source => source.getOverview());
-    const counts = { HEALTHY: 0, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 0, UNRATED: 0 };
+    const counts = { HEALTHY: 0, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 0, UNKNOWN: 0 };
     for (const overview of overviews) {
       for (const status of Object.keys(counts) as Array<keyof typeof counts>) counts[status] += overview.counts[status];
     }

@@ -18,7 +18,7 @@ const detailContent = document.getElementById('detailContent');
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 const formatRating = value => value === null ? '—' : Number(value).toFixed(1);
-const formatNumber = value => new Intl.NumberFormat('en-US').format(value ?? 0);
+const formatNumber = value => value === null || value === undefined ? '—' : new Intl.NumberFormat('en-US').format(value);
 const timestamp = value => { const v = String(value || '').trim().replace(' ', 'T'); return Date.parse(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(v) ? v : v + 'Z'); };
 const formatTime = value => Number.isFinite(timestamp(value)) ? new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' }).format(timestamp(value)) : 'No data';
 const ago = value => { const minutes = Math.floor((Date.now() - timestamp(value)) / 60000); return !Number.isFinite(minutes) ? 'Unknown' : minutes < 0 ? 'Future timestamp' : minutes < 60 ? minutes + ' min ago' : Math.floor(minutes / 60) + 'h ' + minutes % 60 + 'm ago'; };
@@ -57,7 +57,7 @@ async function initialize() {
   try {
     const config = await api('/api/config');
     state.cloudRatings = config.cloudRatings === true;
-    state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: id === 'talabat' ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
+    state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: ['talabat','keeta'].includes(id) ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
     state.refreshSeconds = config.autoRefreshSeconds;
     updatePlatformTabs();
     await renderCurrent();
@@ -83,7 +83,7 @@ async function renderCurrent() {
   refreshState.querySelector('span:last-child').textContent = 'Refreshing…';
   try {
     if (state.cloudRatings) {
-      if (state.tab === 'overview' || state.tab === 'talabat') await renderCloudRatings();
+      if (state.tab === 'overview' || state.tab === 'talabat' || state.tab === 'keeta') await renderCloudRatings();
       else renderDisconnected(state.tab);
       refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       return;
@@ -97,7 +97,7 @@ async function renderCurrent() {
     if (selectedStore && detailPanel.classList.contains('open')) await openStore(selectedStore, selectedRange);
     refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (error) {
-    state.platforms = state.platforms.map(p => p.id === 'talabat' ? { ...p, health: 'ERROR' } : p);
+    state.platforms = state.platforms.map(p => ['talabat','keeta'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
     updatePlatformTabs();
     refreshState.querySelector('.live-dot').dataset.health = 'ERROR';
     renderError(error);
@@ -114,7 +114,7 @@ async function renderOverview() {
   catch (error) {
     state.platforms = state.platforms.map(p => p.id === 'talabat' ? { ...p, connected: false, health: 'ERROR', message: error.message } : p);
     updatePlatformTabs();
-    overview = { totalStores: 0, counts: {HEALTHY:0,ACCEPTABLE:0,WARNING:0,CRITICAL:0,UNRATED:0}, recentRapidDrops:0, lastUpdated:null, worstRatedStores:[], biggestRatingDrops:[] };
+    overview = { totalStores: 0, counts: {HEALTHY:0,ACCEPTABLE:0,WARNING:0,CRITICAL:0,UNKNOWN:0}, recentRapidDrops:0, lastUpdated:null, worstRatedStores:[], biggestRatingDrops:[] };
     main.innerHTML = healthBanner(state.platforms[0]) + platformCards(overview);
     return;
   }
@@ -124,7 +124,7 @@ async function renderOverview() {
     ['Acceptable', overview.counts.ACCEPTABLE, 'acceptable'],
     ['Warning', overview.counts.WARNING, 'warning'],
     ['Critical', overview.counts.CRITICAL, 'critical'],
-    ['Unrated', overview.counts.UNRATED, 'unrated'],
+    ['Unknown', overview.counts.UNKNOWN, 'unknown'],
     ['Rapid drops · 24h', overview.recentRapidDrops, 'critical']
   ];
   main.innerHTML = `
@@ -164,7 +164,7 @@ async function renderTalabat() {
       <button class="filter-chip ${state.status === 'CRITICAL' ? 'active' : ''}" data-status="CRITICAL">Critical only</button>
     </div>
     <div class="status-filters">
-      ${[['','All statuses'],['HEALTHY','Healthy'],['ACCEPTABLE','Acceptable'],['WARNING','Warning only'],['CRITICAL','Critical only'],['UNRATED','Unrated']].map(([value,label]) => `<button class="filter-chip ${state.status === value ? 'active' : ''}" data-status="${value}">${label}</button>`).join('')}
+      ${[['','All statuses'],['HEALTHY','Healthy'],['ACCEPTABLE','Acceptable'],['WARNING','Warning only'],['CRITICAL','Critical only'],['UNKNOWN','Unknown']].map(([value,label]) => `<button class="filter-chip ${state.status === value ? 'active' : ''}" data-status="${value}">${label}</button>`).join('')}
     </div>
     <div class="table-wrap"><table><thead><tr><th>Store name</th><th>Store ID</th><th>Current rating</th><th>Previous</th><th>Change</th><th>Reviews</th><th>One-star</th><th>Status</th><th>Last updated</th></tr></thead>
       <tbody>${stores.length ? stores.map(store => `<tr data-store-id="${escapeHtml(store.storeId)}"><td class="store-name">${escapeHtml(store.storeName)}</td><td class="store-id">${escapeHtml(store.storeId)}</td><td><strong>${formatRating(store.currentRating)}</strong></td><td>${formatRating(store.previousRating)}</td><td>${changeHtml(store.ratingChange)}</td><td>${formatNumber(store.reviewCount)}</td><td>${formatNumber(store.oneStarCount)}</td><td>${statusHtml(store.status)}</td><td>${escapeHtml(formatTime(store.lastUpdated))}</td></tr>`).join('') : '<tr><td colspan="9" class="empty">No stores match these filters</td></tr>'}</tbody>
@@ -173,25 +173,55 @@ async function renderTalabat() {
   attachStoreClicks();
 }
 
+function cloudHealth(result) {
+  if (!result || result.state === 'ERROR') return 'ERROR';
+  if (result.state === 'EMPTY') return 'EMPTY';
+  const age = Date.now() - timestamp(result.syncTimestamp);
+  return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > 7200000 ? 'STALE' : age >= 5400000 ? 'DELAYED' : 'LIVE';
+}
+function cloudPlatformCards(platforms) {
+  return '<section class="platform-health-grid">' + state.platforms.map(platform => {
+    const result = platforms.find(item => item.platform === platform.id);
+    if (!result) return '<article class="kpi-card"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml('NOT CONNECTED') + '<p>Not Connected</p></article>';
+    const health = cloudHealth(result);
+    return '<article class="kpi-card"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml(result.state) +
+      '<p>Freshness: ' + statusHtml(health) + '</p><p>Total stores: ' + formatNumber(result.storeCount) + '</p>' +
+      '<p>Last sync<br>' + escapeHtml(formatTime(result.syncTimestamp)) + '</p>' +
+      (result.state === 'ERROR' ? '<p class="health-warning">Ratings source is unavailable.</p>' :
+       result.state === 'EMPTY' ? '<p>No ratings in the selected latest run.</p>' : '') + '</article>';
+  }).join('') + '</section>';
+}
 async function renderCloudRatings() {
-  const { ratings } = await api('/api/dashboard/ratings/latest');
-  const oldest = ratings.length ? Math.min(...ratings.map(row => timestamp(row.timestamp))) : NaN;
-  const age = Date.now() - oldest;
-  const health = !Number.isFinite(oldest) ? 'NO DATA' : age < 0 ? 'UNKNOWN' : age > 7200000 ? 'STALE' : age >= 5400000 ? 'DELAYED' : 'LIVE';
-  state.platforms = state.platforms.map(p => p.id === 'talabat' ? {...p, health} : p);
+  const response = await api('/api/dashboard/ratings/latest');
+  const platformResults = response.platforms;
+  state.platforms = state.platforms.map(platform => {
+    const result = platformResults.find(item => item.platform === platform.id);
+    return result ? {...platform, connected:result.state !== 'ERROR', state:result.state, health:cloudHealth(result),
+      lastSuccessfulSync:result.syncTimestamp, message:result.state === 'ERROR' ? 'Ratings source unavailable' : null} : platform;
+  });
   updatePlatformTabs();
-  refreshState.querySelector('.live-dot').dataset.health = health;
-  const counts = Object.fromEntries(['HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNRATED'].map(status => [status, ratings.filter(row => row.status === status).length]));
-  const filtered = ratings.filter(row => (!state.status || row.status === state.status) && [row.storeName || '', row.storeIdentityKey].some(value => value.toLowerCase().includes(state.search.toLowerCase())));
-  filtered.sort((a,b) => state.sort === 'rating_asc' ? (a.rating ?? 6) - (b.rating ?? 6) : state.sort === 'rating_desc' ? (b.rating ?? 0) - (a.rating ?? 0) : (a.storeName || a.storeIdentityKey).localeCompare(b.storeName || b.storeIdentityKey) || a.storeIdentityKey.localeCompare(b.storeIdentityKey));
-  main.innerHTML = `<div class="page-heading"><div><h2>Talabat latest ratings</h2><p>Latest stored snapshot per store · ${formatNumber(ratings.length)} stores</p></div></div>
-    <section class="health-banner">Talabat • ${statusHtml(health)}<p>Oldest displayed snapshot: ${Number.isFinite(oldest) ? escapeHtml(formatTime(new Date(oldest).toISOString())) : 'No data'}. Snapshot times can differ between stores.</p></section>
+  const selectedPlatform = state.tab === 'talabat' || state.tab === 'keeta' ? state.tab : null;
+  const sourceRows = selectedPlatform ? response.ratings.filter(row => row.platform === selectedPlatform) : response.ratings;
+  const counts = Object.fromEntries(['HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => [status, sourceRows.filter(row => row.status === status).length]));
+  const filtered = sourceRows.filter(row => (!state.status || row.status === state.status) &&
+    [row.storeName || '',row.storeIdentityKey,row.platform].some(value => value.toLowerCase().includes(state.search.toLowerCase())));
+  const severity={CRITICAL:0,WARNING:1,ACCEPTABLE:2,HEALTHY:3,UNKNOWN:4};
+  filtered.sort((a,b) => state.sort === 'rating_asc' ? (a.rating ?? 6) - (b.rating ?? 6) || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey) :
+    state.sort === 'rating_desc' ? (b.rating ?? 0) - (a.rating ?? 0) || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey) :
+    state.sort === 'severity_asc' ? severity[a.status]-severity[b.status] || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey) :
+    (a.storeName || a.storeIdentityKey).localeCompare(b.storeName || b.storeIdentityKey) || a.platform.localeCompare(b.platform) || a.storeIdentityKey.localeCompare(b.storeIdentityKey));
+  const title=selectedPlatform ? selectedPlatform[0].toUpperCase()+selectedPlatform.slice(1)+' latest ratings' : 'Portfolio overview';
+  const active=selectedPlatform ? platformResults.filter(item=>item.platform===selectedPlatform) : platformResults;
+  const overallHealth=active.some(item=>item.state==='ERROR')?'ERROR':active.some(item=>cloudHealth(item)==='STALE')?'STALE':active.some(item=>cloudHealth(item)==='DELAYED')?'DELAYED':'LIVE';
+  refreshState.querySelector('.live-dot').dataset.health=overallHealth;
+  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · Cloud History is not available in this phase · ${formatNumber(sourceRows.length)} stores</p></div></div>
+    ${cloudPlatformCards(platformResults)}
     <section class="kpi-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
-    <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name or identity" autocomplete="off">
-    <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Store name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
-    <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNRATED'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
-    <div class="table-wrap"><table><thead><tr><th>Store / branch</th><th>Rating</th><th>Review count</th><th>One-star count</th><th>Status</th><th>Timestamp</th></tr></thead>
-    <tbody>${filtered.length ? filtered.map(row => `<tr><td><div class="store-name">${escapeHtml(row.storeName || row.storeIdentityKey)}</div><div class="store-id">${escapeHtml(row.storeIdentityKey)}</div></td><td><strong>${formatRating(row.rating)}</strong></td><td>${formatNumber(row.reviewCount)}</td><td>${formatNumber(row.oneStarCount)}</td><td>${statusHtml(row.status)}</td><td><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time></td></tr>`).join('') : '<tr><td colspan="6" class="empty">No stored ratings match this view</td></tr>'}</tbody></table></div>`;
+    <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name, identity or platform" autocomplete="off">
+    <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Store name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · most severe first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
+    <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
+    <div class="table-wrap"><table><thead><tr><th>Store / branch</th><th>Platform</th><th>Rating</th><th>Review count</th><th>One-star count</th><th>Status</th><th>Observed</th></tr></thead>
+    <tbody>${filtered.length ? filtered.map(row => `<tr data-row-key="${escapeHtml(row.platform+':'+row.storeIdentityKey)}"><td><div class="store-name">${escapeHtml(row.storeName || row.storeIdentityKey)}</div><div class="store-id">${escapeHtml(row.storeIdentityKey)}</div></td><td><span class="platform-badge platform-${escapeHtml(row.platform)}">${escapeHtml(row.platform)}</span></td><td><strong>${formatRating(row.rating)}</strong></td><td>${formatNumber(row.reviewCount)}</td><td>${formatNumber(row.oneStarCount)}</td><td>${statusHtml(row.status)}</td><td><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward ? '<span class="carried-forward">Carried forward</span>' : ''}</td></tr>`).join('') : '<tr><td colspan="7" class="empty">No stored ratings match this view</td></tr>'}</tbody></table></div>`;
   attachTalabatControls();
 }
 

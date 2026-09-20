@@ -33,3 +33,8 @@ Validation: 33 tests passed, 0 failed; npm run build passed; cloud headless Chro
 References:
 https://vercel.com/docs/functions/runtimes/node-js
 https://vercel.com/docs/deployment-protection#all-deployments
+## Phase 2B live platforms
+
+The dashboard proxy calls the existing ratings endpoint with `platform=all`. Talabat and Keeta are rendered in the existing Overview and platform tabs. The browser still calls only the same-origin dashboard endpoint and never receives the upstream URL or bearer token.
+
+Display status is computed by the dashboard server from rating: HEALTHY at 4.4+, ACCEPTABLE at 4.3, WARNING above 4.0 and below 4.3, CRITICAL at 4.0 or below, and UNKNOWN for null. Cloud History remains unavailable; no history is inferred from latest data.

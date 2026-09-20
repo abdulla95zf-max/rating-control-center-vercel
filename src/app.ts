@@ -6,7 +6,7 @@ import { DataSourceRegistry } from './services/data-source-registry.ts';
 import type { RatingStatus, StoreQuery } from './types.ts';
 import { fetchLatestRatings, RatingsProxyError } from './services/latest-ratings-proxy.ts';
 
-const VALID_STATUSES = new Set<RatingStatus>(['HEALTHY', 'ACCEPTABLE', 'WARNING', 'CRITICAL', 'UNRATED']);
+const VALID_STATUSES = new Set<RatingStatus>(['HEALTHY', 'ACCEPTABLE', 'WARNING', 'CRITICAL', 'UNKNOWN']);
 const VALID_SORTS = new Set<NonNullable<StoreQuery['sort']>>(['name_asc', 'rating_asc', 'rating_desc', 'change_asc', 'change_desc']);
 
 export function createRegistry(config: AppConfig): DataSourceRegistry {
@@ -88,9 +88,8 @@ export function createApp(config: AppConfig, registry = createRegistry(config), 
   app.get('*path', (_request, response) => response.sendFile('index.html', { root: config.publicDirectory }));
 
   app.use((error: unknown, _request: Request, response: Response, _next: NextFunction) => {
-    const message = error instanceof Error ? error.message : 'Unexpected server error';
-    console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'request_failed', message }));
-    response.status(503).json({ error: message });
+    console.error(JSON.stringify({ timestamp: new Date().toISOString(), level: 'error', event: 'request_failed', code: 'DASHBOARD_DATA_UNAVAILABLE' }));
+    response.status(503).json({ error: 'Dashboard data is unavailable.' });
   });
   return app;
 }

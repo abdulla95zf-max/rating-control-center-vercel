@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import type { RatingDataSource } from './data-source.ts';
-import type { HistoryPoint, OverviewData, PlatformState, RatingStatus, StoreQuery, StoreSummary } from '../types.ts';
+import type { HistoryPoint, OverviewData, PlatformState, StoreQuery, StoreSummary } from '../types.ts';
+import {displayStatus} from '../services/rating-status.ts';
 
 function parseTimestamp(value: string): number {
   const normalized = value.trim().replace(' ', 'T');
@@ -57,7 +58,7 @@ function toStore(row: any): StoreSummary {
     ratingChange: row.rating_change === null ? null : Number(row.rating_change),
     reviewCount: Number(row.review_count),
     oneStarCount: Number(row.one_star_count),
-    status: String(row.health_status) as RatingStatus,
+    status: displayStatus(row.rating_value === null ? null : Number(row.rating_value)),
     eventStatus: String(row.event_status),
     lastUpdated: row.recorded_at === null ? null : String(row.recorded_at)
   };
@@ -133,14 +134,11 @@ export class TalabatDataSource implements RatingDataSource {
         const escaped = query.search.replace(/[\\%_]/g, value => `\\${value}`);
         parameters.push(`%${escaped}%`, `%${escaped}%`);
       }
-      if (query.status) {
-        conditions.push("COALESCE(l.health_status, 'UNRATED') = ?");
-        parameters.push(query.status);
-      }
       const additional = conditions.length ? ` AND ${conditions.join(' AND ')}` : '';
       const order = SORT_SQL[query.sort ?? 'name_asc'];
       const rows = database.prepare(`${LATEST_CTE}${STORE_SELECT}${additional} ORDER BY ${order}`).all(...parameters) as any[];
-      return rows.map(toStore);
+      const stores=rows.map(toStore);
+      return query.status?stores.filter(store=>store.status===query.status):stores;
     });
   }
 
@@ -170,7 +168,7 @@ export class TalabatDataSource implements RatingDataSource {
       rating: row.rating_value === null ? null : Number(row.rating_value),
       reviewCount: row.review_count === null ? null : Number(row.review_count),
       oneStarCount: row.one_star_count === null ? null : Number(row.one_star_count),
-      status: String(row.health_status) as RatingStatus,
+      status: displayStatus(row.rating_value === null ? null : Number(row.rating_value)),
       eventStatus: String(row.event_status)
     })));
   }
@@ -178,7 +176,7 @@ export class TalabatDataSource implements RatingDataSource {
   getOverview(): OverviewData {
     this.requireConnected();
     const stores = this.getStores({ sort: 'rating_asc' });
-    const counts = { HEALTHY: 0, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 0, UNRATED: 0 };
+    const counts = { HEALTHY: 0, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 0, UNKNOWN: 0 };
     for (const store of stores) counts[store.status] += 1;
     const recentRapidDrops = this.withDatabase(database => {
       const row = database.prepare(`

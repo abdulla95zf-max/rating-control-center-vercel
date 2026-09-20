@@ -6,7 +6,7 @@ const app = createApp(config);
 
 const server = app.listen(config.port, config.host, () => {
   console.log(`Online Rating Control Center: http://${config.host}:${config.port}`);
-  console.log(`Talabat database: ${config.talabatDatabasePath || 'not configured'}`);
+  console.log(`Talabat database configured: ${Boolean(config.talabatDatabasePath)}`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

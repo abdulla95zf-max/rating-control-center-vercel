@@ -3,7 +3,7 @@ import type { HistoryPoint, OverviewData, PlatformId, PlatformState, StoreQuery,
 
 const emptyOverview = (): OverviewData => ({
   totalStores: 0,
-  counts: { HEALTHY: 0, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 0, UNRATED: 0 },
+  counts: { HEALTHY: 0, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 0, UNKNOWN: 0 },
   recentRapidDrops: 0,
   lastUpdated: null,
   worstRatedStores: [],

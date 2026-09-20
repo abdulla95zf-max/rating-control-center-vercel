@@ -44,7 +44,7 @@ main { width: min(1500px, 100%); margin: 0 auto; padding: 30px clamp(18px, 4vw, 
 .kpi-card::after { content: ""; position: absolute; width: 52px; height: 52px; border-radius: 50%; right: -20px; top: -20px; background: var(--tone, var(--muted)); opacity: .14; }
 .kpi-label { display: block; min-height: 31px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
 .kpi-value { display: block; margin-top: 10px; font-size: 34px; line-height: 1; font-weight: 750; letter-spacing: -.05em; }
-.tone-healthy { --tone: var(--healthy); }.tone-acceptable { --tone: var(--acceptable); }.tone-warning { --tone: var(--warning); }.tone-critical { --tone: var(--critical); }.tone-unrated { --tone: var(--unrated); }
+.tone-healthy { --tone: var(--healthy); }.tone-acceptable { --tone: var(--acceptable); }.tone-warning { --tone: var(--warning); }.tone-critical { --tone: var(--critical); }.tone-unknown, .tone-unrated { --tone: var(--unrated); }
 
 .split-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .panel { border: 1px solid var(--line); border-radius: 16px; background: rgb(16 24 39 / 86%); overflow: hidden; }
@@ -81,7 +81,12 @@ tbody tr:hover { background: #172235; }
 .status-acceptable { color: var(--acceptable); background: rgb(86 165 255 / 10%); }
 .status-warning { color: var(--warning); background: rgb(255 173 66 / 10%); }
 .status-critical { color: var(--critical); background: rgb(255 93 112 / 10%); }
-.status-unrated { color: var(--unrated); background: rgb(135 147 166 / 10%); }
+.status-unknown, .status-unrated, .status-empty { color: var(--unrated); background: rgb(135 147 166 / 10%); }
+.status-success { color: var(--healthy); background: rgb(54 211 153 / 10%); }
+.platform-badge { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; font-size: 10px; font-weight: 750; text-transform: uppercase; letter-spacing: .05em; }
+.platform-talabat { color: #ff8b73; background: rgb(255 139 115 / 10%); }
+.platform-keeta { color: #ffd166; background: rgb(255 209 102 / 10%); }
+.carried-forward { display: block; width: max-content; margin-top: 5px; color: var(--warning); font-size: 10px; }
 
 .not-connected, .error-card, .loading-card { padding: 42px; text-align: center; border: 1px dashed var(--line); background: var(--panel); border-radius: 18px; color: var(--muted); }
 .not-connected strong, .error-card strong { display: block; color: var(--text); font-size: 22px; margin-bottom: 8px; }

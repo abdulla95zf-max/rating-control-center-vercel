@@ -16,20 +16,30 @@ test('Talabat adapter reads only latest snapshots from successful runs', () => {
     assert.equal(stores[0]?.currentRating, 4.0);
     assert.equal(stores[0]?.previousRating, 4.3);
     assert.equal(stores[0]?.ratingChange, -0.3);
-    assert.equal(stores[2]?.status, 'UNRATED');
+    assert.equal(stores[2]?.status, 'UNKNOWN');
   } finally { fs.rmSync(fixture.directory, { recursive: true }); }
 });
 
-test('Overview uses stored monitor statuses and reports rapid drops', () => {
+test('Overview uses normalized display statuses and reports rapid drops', () => {
   const fixture = createFixtureDatabase();
   try {
     const overview = new TalabatDataSource(fixture.databasePath).getOverview();
     assert.equal(overview.totalStores, 3);
-    assert.deepEqual(overview.counts, { HEALTHY: 1, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 1, UNRATED: 1 });
+    assert.deepEqual(overview.counts, { HEALTHY: 1, ACCEPTABLE: 0, WARNING: 0, CRITICAL: 1, UNKNOWN: 1 });
     assert.equal(overview.recentRapidDrops, 1);
     assert.equal(overview.worstRatedStores[0]?.storeId, '101');
     assert.equal(overview.biggestRatingDrops[0]?.ratingChange, -0.3);
   } finally { fs.rmSync(fixture.directory, { recursive: true }); }
+});
+
+test('Legacy stored status cannot override the rating-derived display status',()=>{
+  const fixture=createFixtureDatabase();
+  try{
+    const database=new DatabaseSync(fixture.databasePath);database.exec("UPDATE rating_snapshots SET health_status='CRITICAL' WHERE run_id='run-2' AND store_id='102'");database.close();
+    const source=new TalabatDataSource(fixture.databasePath);
+    assert.equal(source.getStore('102')?.status,'HEALTHY');
+    assert.equal(source.getHistory('102',100).at(-1)?.status,'HEALTHY');
+  }finally{fs.rmSync(fixture.directory,{recursive:true});}
 });
 
 test('Search, status filter, sorting and history work without changing the database', () => {

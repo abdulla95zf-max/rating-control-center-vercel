@@ -45,6 +45,9 @@ test('local API returns overview, stores, history and disconnected platforms', a
     assert.equal((await fetch(`http://127.0.0.1:${port}/api/stores`,{method:'POST'})).status,404);
     const invalid = await fetch(`http://127.0.0.1:${port}/api/stores?sort=rating_asc%3BDROP%20TABLE%20stores`);
     assert.equal(invalid.status, 400);
+    const disconnected = await fetch(`http://127.0.0.1:${port}/api/stores?platform=keeta`);
+    assert.equal(disconnected.status,503);
+    assert.deepEqual(await disconnected.json(),{error:'Dashboard data is unavailable.'});
   } finally {
     await new Promise<void>((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
     fs.rmSync(fixture.directory, { recursive: true });
