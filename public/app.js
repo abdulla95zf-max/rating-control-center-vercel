@@ -47,6 +47,8 @@ function redrawCharts() {
 new ResizeObserver(redrawCharts).observe(detailContent);
 const changeHtml = value => value === null ? '—' : `<span class="${value < 0 ? 'negative' : value > 0 ? 'positive' : ''}">${value > 0 ? '+' : ''}${Number(value).toFixed(1)}</span>`;
 const statusHtml = status => `<span class="status status-${String(status).toLowerCase()}">${escapeHtml(status)}</span>`;
+const platformLogoHtml = platform => `<span class="platform-identity"><img src="/platforms/${escapeHtml(platform)}.svg" alt=""><span>${escapeHtml(platform)}</span></span>`;
+const inlineStatusHtml = status => `<span class="inline-status inline-status-${String(status).toLowerCase()}"><i></i>${escapeHtml(status)}</span>`;
 
 const brandRules = [
   { brand: 'FRB Shawarma', patterns: [/^FRB\s+Shawarma\b/i] },
@@ -286,11 +288,11 @@ async function renderCloudRatings() {
 function renderPlatformTable(groups) {
   const rows=groups.flatMap(group=>group.rows.map(row=>({group,row})));
   return `<div class="table-wrap"><table class="compact-table"><thead><tr><th>Brand / branch</th><th>Rating</th><th>Status</th><th>Observed</th></tr></thead>
-    <tbody>${rows.length?rows.map(({group,row})=>`<tr data-branch-key="${escapeHtml(group.key)}"><td><div class="store-name">${escapeHtml(group.displayName)}</div></td><td><strong>${formatRating(row.rating)}</strong></td><td>${statusHtml(row.status)}</td><td><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward?'<span class="carried-forward">Carried forward</span>':''}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
+    <tbody>${rows.length?rows.map(({group,row})=>`<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Rating"><strong>${formatRating(row.rating)}</strong></td><td data-label="Status">${statusHtml(row.status)}</td><td data-label="Observed"><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward?'<span class="carried-forward">Carried forward</span>':''}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 function renderOverviewTable(groups) {
   return `<div class="table-wrap"><table class="overview-table"><thead><tr><th>Brand / branch</th><th>Platform ratings</th><th>Overall status</th><th>Latest observation</th></tr></thead>
-    <tbody>${groups.length?groups.map(group=>{const latest=group.rows.map(row=>row.timestamp).sort().at(-1);return `<tr data-branch-key="${escapeHtml(group.key)}"><td><div class="store-name">${escapeHtml(group.displayName)}</div></td><td><div class="platform-rating-list">${group.rows.map(row=>`<span class="platform-rating"><span class="platform-badge platform-${escapeHtml(row.platform)}">${escapeHtml(row.platform)}</span><strong>${formatRating(row.rating)}</strong>${statusHtml(row.status)}</span>`).join('')}</div></td><td>${statusHtml(groupStatus(group))}</td><td>${escapeHtml(formatTime(latest))}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
+    <tbody>${groups.length?groups.map(group=>{const latest=group.rows.map(row=>row.timestamp).sort().at(-1);return `<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Ratings"><div class="platform-rating-list">${group.rows.map(row=>`<span class="platform-rating">${platformLogoHtml(row.platform)}<strong>${formatRating(row.rating)}</strong>${inlineStatusHtml(row.status)}</span>`).join('')}</div></td><td data-label="Overall">${statusHtml(groupStatus(group))}</td><td data-label="Observed">${escapeHtml(formatTime(latest))}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 
 function attachTalabatControls() {
@@ -323,7 +325,7 @@ function openCloudStore(group) {
   detailContent.innerHTML=`<h2 class="detail-title" id="detailTitle">${escapeHtml(group.displayName)}</h2>
     <p class="detail-subtitle">Latest ratings by platform</p>
     <section class="cloud-detail-platforms">${group.rows.map(row=>`<article class="cloud-detail-card">
-      <header><span class="platform-badge platform-${escapeHtml(row.platform)}">${escapeHtml(row.platform)}</span>${statusHtml(row.status)}</header>
+      <header>${platformLogoHtml(row.platform)}${statusHtml(row.status)}</header>
       <div class="cloud-detail-rating">${formatRating(row.rating)}</div>
       <dl><div><dt>Reviews</dt><dd>${formatNumber(row.reviewCount)}</dd></div><div><dt>One-star</dt><dd>${formatNumber(row.oneStarCount)}</dd></div>
       <div><dt>Observed</dt><dd>${escapeHtml(formatTime(row.timestamp))}</dd></div><div><dt>Freshness</dt><dd>${row.carriedForward?'Carried forward':'Latest observation'}</dd></div></dl>

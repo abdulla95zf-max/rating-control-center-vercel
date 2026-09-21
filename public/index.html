@@ -4,7 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1220">
-  <title>Online Rating Control Center</title>
+  <title>Rating Control Center</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
 </head>
@@ -22,12 +25,12 @@
   </header>
 
   <nav class="platform-tabs" id="platformTabs" aria-label="Platforms">
-    <button class="tab active" data-tab="overview">Overview</button>
-    <button class="tab" data-tab="talabat">Talabat <span class="tab-state">Checking…</span></button>
-    <button class="tab" data-tab="keeta">Keeta <span class="tab-state">Not Connected</span></button>
-    <button class="tab" data-tab="noon">Noon <span class="tab-state">Not Connected</span></button>
-    <button class="tab" data-tab="careem">Careem <span class="tab-state">Not Connected</span></button>
-    <button class="tab" data-tab="deliveroo">Deliveroo <span class="tab-state">Not Connected</span></button>
+    <button class="tab active" data-tab="overview"><img class="tab-logo" src="/platforms/overview.svg" alt=""><span class="tab-label">Overview</span></button>
+    <button class="tab" data-tab="talabat"><img class="tab-logo" src="/platforms/talabat.svg" alt=""><span class="tab-label">Talabat</span><span class="tab-state">Checking…</span></button>
+    <button class="tab" data-tab="keeta"><img class="tab-logo" src="/platforms/keeta.svg" alt=""><span class="tab-label">Keeta</span><span class="tab-state">Not Connected</span></button>
+    <button class="tab" data-tab="noon"><img class="tab-logo" src="/platforms/noon.svg" alt=""><span class="tab-label">Noon</span><span class="tab-state">Not Connected</span></button>
+    <button class="tab" data-tab="careem"><img class="tab-logo" src="/platforms/careem.svg" alt=""><span class="tab-label">Careem</span><span class="tab-state">Not Connected</span></button>
+    <button class="tab" data-tab="deliveroo"><img class="tab-logo" src="/platforms/deliveroo.svg" alt=""><span class="tab-label">Deliveroo</span><span class="tab-state">Not Connected</span></button>
   </nav>
 
   <main id="mainContent" tabindex="-1">

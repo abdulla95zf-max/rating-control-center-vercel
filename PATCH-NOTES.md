@@ -18,3 +18,7 @@ No collector, session, database, Redis, alert, schedule, migration, or environme
 - Adds a dynamic brand filter derived from the connected platform rows.
 - Keeps aggregator tabs isolated and opens review/one-star details in the existing side drawer.
 - Leaves Cloud History explicitly unavailable until a historical API is introduced.
+- Adds a custom dashboard favicon and touch icon.
+- Keeps the platform navigation visible while scrolling and adds local platform identity artwork.
+- Separates platform identity from rating status so only semantic status uses status styling.
+- Reflows cloud rating tables into touch-friendly mobile cards without horizontal scrolling.

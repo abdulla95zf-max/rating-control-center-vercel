@@ -94,13 +94,13 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext(`storeIdentity({storeName:"KF - Hay Hoshi"}).branch`,context),'Hay Hoshi');
   assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).key===storeIdentity({storeName:"KF - Hay Hoshi"}).key`,context),true);
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
-  for(const text of ['Kabab Fareej — Al Warqa','platform-talabat','platform-keeta','All brands'])assert.ok(main.innerHTML.includes(text),text);
+  for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat.svg','/platforms/keeta.svg','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
   assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,1);
   await vm.runInContext('openCloudStore(groupCloudRows(state.cloudResponse.ratings)[0])',context);
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
-  await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('platform-keeta'));
-  await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('platform-talabat'));
+  await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
+  await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/talabat.svg'));
   assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
 });
 
@@ -110,4 +110,12 @@ test('missing token and public assets fail closed without exposing token or upst
   for(const name of fs.readdirSync('public'))if(fs.statSync(path.join('public',name)).isFile()){
     const text=fs.readFileSync(path.join('public',name),'utf8');assert.doesNotMatch(text,/RATINGS_API_TOKEN|PRIVATE-server-token|Bearer /);
   }
+});
+
+test('dashboard packages local identity artwork, sticky platform navigation and mobile cards',()=>{
+ const html=fs.readFileSync('public/index.html','utf8'),css=fs.readFileSync('public/styles.css','utf8');
+ for(const asset of ['favicon.svg','favicon.ico','apple-touch-icon.png','platforms/overview.svg','platforms/talabat.svg','platforms/keeta.svg','platforms/noon.svg','platforms/careem.svg','platforms/deliveroo.svg'])
+  assert.equal(fs.statSync(path.join('public',asset)).isFile(),true,asset);
+ assert.match(html,/rel="icon" href="\/favicon\.svg"/);assert.match(html,/class="tab-logo"/);
+ assert.match(css,/\.platform-tabs \{ position: sticky;/);assert.match(css,/@media \(max-width: 760px\)/);assert.match(css,/\.overview-table tr \{ display: grid;/);
 });
