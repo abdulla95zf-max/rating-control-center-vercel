@@ -93,6 +93,11 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).branch`,context),'Hay Hoshi');
   assert.equal(vm.runInContext(`storeIdentity({storeName:"KF - Hay Hoshi"}).branch`,context),'Hay Hoshi');
   assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).key===storeIdentity({storeName:"KF - Hay Hoshi"}).key`,context),true);
+  assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"Taazaa Mumbai, Al Dhait South"}))',context)),
+    {brand:'Taazaa Mumbai',branch:'Al Dhait South',key:'taazaa mumbai|al dhait south',displayName:'Taazaa Mumbai — Al Dhait South'});
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Noof"}).branch',context),'Al Noof');
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Qusais Industrial Area 1');
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Barsha, Al Barsha 2"}).branch',context),'Al Barsha 2');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
   for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat.svg','/platforms/keeta.svg','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);

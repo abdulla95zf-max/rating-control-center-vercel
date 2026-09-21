@@ -51,6 +51,7 @@ const platformLogoHtml = platform => `<span class="platform-identity"><img src="
 const inlineStatusHtml = status => `<span class="inline-status inline-status-${String(status).toLowerCase()}"><i></i>${escapeHtml(status)}</span>`;
 
 const brandRules = [
+  { brand: 'Taazaa Mumbai', patterns: [/^Taazaa\s+Mumbai\b/i] },
   { brand: 'FRB Shawarma', patterns: [/^FRB\s+Shawarma\b/i] },
   { brand: 'FRB Kabab', patterns: [/^FRB\s+Kabab\b/i] },
   { brand: 'Kabab Al Sham', patterns: [/^Kabab\s+Al\s+Sham\b/i] },
@@ -68,6 +69,7 @@ const branchAliases = new Map([
   ['al kharan', 'RAK'], ['rak', 'RAK'],
   ['mleha al bdai a suburb', 'Hay Hoshi'], ['al bdai a suburb', "Al Bdai'a Suburb"], ['hay hoshi', 'Hay Hoshi'],
   ['al barsha 2', 'Al Barsha'], ['al barsha', 'Al Barsha'],
+  ['barsha al barsha 2', 'Al Barsha 2'],
   ['fujairah city center', 'Fujairah'], ['fujairah', 'Fujairah'],
   ['umm al daman', 'Umm Al Daman'], ['um aldaman', 'Umm Al Daman']
 ]);
