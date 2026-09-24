@@ -187,10 +187,61 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 @media(max-width:1000px){.perf-controls{grid-template-columns:1fr 1fr;}}
 @media(max-width:640px){.perf-controls{grid-template-columns:1fr;}.perf-kpis{grid-template-columns:1fr 1fr;}.perf-context{display:grid;}.perf-table td:not(:first-child){text-align:right;}.perf-table td::before{text-align:left;}.perf-view-tabs .tab{font-size:12px;padding:8px;}.perf-table td:first-child{padding-bottom:10px;}}
 
-.talabat-view-tabs {position:sticky;top:143px;z-index:18;display:flex;gap:10px;padding:10px clamp(18px,4vw,56px);background:rgb(8 13 24 / 96%);border-bottom:1px solid var(--line);}
+.talabat-view-tabs {display:flex;gap:10px;padding:10px clamp(18px,4vw,56px);background:rgb(8 13 24 / 96%);border-bottom:1px solid var(--line);}
 .talabat-view-tabs[hidden]{display:none;}
 .talabat-view {min-width:118px;padding:10px 20px;border:1px solid var(--line);border-radius:11px;background:#0c1422;color:var(--muted);font-weight:750;cursor:pointer;}
 .talabat-view.active {color:#fff;background:#21304a;border-color:#4b6387;box-shadow:0 5px 18px rgb(0 0 0 / 22%);}
 .perf-view-tabs {gap:12px;}
 .perf-view-tabs .tab {padding:11px 18px;border:1px solid #34445e;background:#111c2e;color:#c9d8eb;font-size:14px;font-weight:800;box-shadow:0 4px 14px rgb(0 0 0 / 16%);}
 .perf-view-tabs .tab.active {background:#29405f;border-color:#6685ad;color:#fff;box-shadow:0 7px 20px rgb(0 0 0 / 28%);}
+
+/* Responsive density: mobile is an operational summary, not a scaled desktop. */
+@media (min-width: 761px) {
+  .platform-health-card { min-height: 170px; }
+  .toolbar, .perf-controls { box-shadow: 0 12px 30px rgb(0 0 0 / 10%); }
+}
+
+@media (max-width: 760px) {
+  main { padding: 16px 12px 36px; }
+  .page-heading { gap: 6px; margin-bottom: 14px; }
+  .page-heading h2 { font-size: 25px; }
+  .page-heading p { margin-top: 4px; font-size: 12px; }
+
+  .talabat-view-tabs { position: static; gap: 7px; padding: 8px 12px; background: var(--bg); }
+  .talabat-view { min-width: 0; flex: 1; padding: 9px 12px; font-size: 13px; box-shadow: none; }
+
+  .platform-health-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .platform-health-card.is-disconnected { display: none; }
+  .platform-health-card { min-height: 0; padding: 12px; border-radius: 12px; }
+  .platform-health-card::after { width: 34px; height: 34px; right: -13px; top: -13px; }
+  .platform-health-card h3 { margin: 0 0 9px; font-size: 15px; }
+  .platform-health-card p { margin: 8px 0 0; font-size: 10px; line-height: 1.35; }
+  .platform-health-card .status { padding: 4px 7px; font-size: 8px; }
+
+  .kpi-grid { display: flex; gap: 8px; overflow-x: auto; margin: 0 -12px 14px; padding: 0 12px 4px; scroll-snap-type: x proximity; scrollbar-width: none; }
+  .kpi-grid::-webkit-scrollbar { display: none; }
+  .kpi-grid .kpi-card { flex: 0 0 104px; min-height: 78px; padding: 12px; border-radius: 12px; scroll-snap-align: start; }
+  .kpi-grid .kpi-label { min-height: 0; font-size: 9px; }
+  .kpi-grid .kpi-value { margin-top: 11px; font-size: 25px; }
+
+  .toolbar { gap: 8px; padding: 10px; border-radius: 12px; }
+  .input, .select { height: 39px; font-size: 13px; }
+  .status-filters { flex-wrap: nowrap; overflow-x: auto; margin: 9px -12px 13px; padding: 0 12px 3px; scrollbar-width: none; }
+  .status-filters::-webkit-scrollbar { display: none; }
+  .filter-chip { flex: 0 0 auto; padding: 7px 10px; font-size: 10px; }
+
+  .compact-table tbody, .overview-table tbody { gap: 9px; }
+  .compact-table tr, .overview-table tr { gap: 8px; padding: 12px; border-radius: 12px; }
+  .compact-table td, .overview-table td { grid-template-columns: 72px minmax(0, 1fr); gap: 8px; font-size: 12px; }
+  .compact-table td:first-child, .overview-table td:first-child { padding-bottom: 8px; }
+  .store-name { font-size: 13px; }
+  .compact-table .status, .overview-table .status { width: max-content; padding: 5px 8px; }
+
+  .perf-controls { grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; margin-bottom: 14px; }
+  .perf-controls label:first-child { grid-column: 1 / -1; }
+  .perf-kpis { display: flex; }
+  .perf-view-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 13px 0 10px; }
+  .perf-view-tabs .tab { justify-content: center; min-width: 0; padding: 9px 5px; font-size: 10px; box-shadow: none; }
+  .perf-context, .perf-quality { margin-bottom: 12px; }
+  .perf-quality { padding: 10px 12px; }
+}

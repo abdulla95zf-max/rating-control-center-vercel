@@ -248,9 +248,9 @@ function cloudHealth(result) {
 function cloudPlatformCards(platforms) {
   return '<section class="platform-health-grid">' + state.platforms.map(platform => {
     const result = platforms.find(item => item.platform === platform.id);
-    if (!result) return '<article class="kpi-card"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml('NOT CONNECTED') + '<p>Not Connected</p></article>';
+    if (!result) return '<article class="kpi-card platform-health-card is-disconnected"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml('NOT CONNECTED') + '<p>Not Connected</p></article>';
     const health = cloudHealth(result);
-    return '<article class="kpi-card"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml(result.state) +
+    return '<article class="kpi-card platform-health-card is-connected"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml(result.state) +
       '<p>Freshness: ' + statusHtml(health) + '</p><p>Total stores: ' + formatNumber(result.storeCount) + '</p>' +
       '<p>Last sync<br>' + escapeHtml(formatTime(result.syncTimestamp)) + '</p>' +
       (result.state === 'ERROR' ? '<p class="health-warning">Ratings source is unavailable.</p>' :
