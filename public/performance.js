@@ -1,7 +1,7 @@
 /* Reads saved reports only. No collector, session or external portal access. */
 const performanceState={date:'',brand:'',branch:'',search:'',view:'sales',cache:null,cacheKey:null,checkedAt:0,generation:0};
 const performanceViews={
- sales:[['Successful Orders','Orders'],['Gross Sales','Gross sales · AED'],['Online Sales','Online · AED'],['Cash Sales','Cash · AED'],['Cancelled Orders','Cancelled']],
+ sales:[['Successful Orders','Orders'],['Gross Sales','Gross sales · AED'],['Cancelled Orders','Cancelled']],
  operations:[['Customer Complaint rate','Complaints · %'],['Avoidable cancellation rate','Avoidable cancellation · %'],['Unavailable Time Duration Rate','Offline · %'],['Average preparation time (minutes)','Prep · min'],['Total AWT Duration (Minutes)','Total avoidable wait · min']],
  funnel:[['Impressions','Impressions'],['Viewed your menu','Viewed menu'],['Added items to cart','Added to cart'],['Placed an order','Placed order']]
 };

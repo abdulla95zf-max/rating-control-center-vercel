@@ -186,3 +186,11 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 .perf-details dt {font-size:12px;color:var(--muted);}.perf-details dd {margin:0;text-align:right;font-size:13px;overflow-wrap:anywhere;}
 @media(max-width:1000px){.perf-controls{grid-template-columns:1fr 1fr;}}
 @media(max-width:640px){.perf-controls{grid-template-columns:1fr;}.perf-kpis{grid-template-columns:1fr 1fr;}.perf-context{display:grid;}.perf-table td:not(:first-child){text-align:right;}.perf-table td::before{text-align:left;}.perf-view-tabs .tab{font-size:12px;padding:8px;}.perf-table td:first-child{padding-bottom:10px;}}
+
+.talabat-view-tabs {position:sticky;top:143px;z-index:18;display:flex;gap:10px;padding:10px clamp(18px,4vw,56px);background:rgb(8 13 24 / 96%);border-bottom:1px solid var(--line);}
+.talabat-view-tabs[hidden]{display:none;}
+.talabat-view {min-width:118px;padding:10px 20px;border:1px solid var(--line);border-radius:11px;background:#0c1422;color:var(--muted);font-weight:750;cursor:pointer;}
+.talabat-view.active {color:#fff;background:#21304a;border-color:#4b6387;box-shadow:0 5px 18px rgb(0 0 0 / 22%);}
+.perf-view-tabs {gap:12px;}
+.perf-view-tabs .tab {padding:11px 18px;border:1px solid #34445e;background:#111c2e;color:#c9d8eb;font-size:14px;font-weight:800;box-shadow:0 4px 14px rgb(0 0 0 / 16%);}
+.perf-view-tabs .tab.active {background:#29405f;border-color:#6685ad;color:#fff;box-shadow:0 7px 20px rgb(0 0 0 / 28%);}
