@@ -1,5 +1,5 @@
 /* Reads saved reports only. No collector, session or external portal access. */
-const performanceState={date:'',brand:'',branch:'',search:'',view:'sales',cache:null,cacheKey:null,checkedAt:0,generation:0};
+const performanceState={date:'',brand:'',branch:'',search:'',view:'sales',sortKey:'branch',sortDirection:'asc',cache:null,cacheKey:null,checkedAt:0,generation:0};
 const performanceViews={
  sales:[['Successful Orders','Orders'],['Gross Sales','Gross sales · AED'],['Cancelled Orders','Cancelled']],
  operations:[['Customer Complaint rate','Complaints · %'],['Avoidable cancellation rate','Avoidable cancellation · %'],['Unavailable Time Duration Rate','Offline · %'],['Average preparation time (minutes)','Prep · min'],['Total AWT Duration (Minutes)','Total avoidable wait · min']],
@@ -9,7 +9,17 @@ function performanceNumber(v){if(v===null||v===undefined||typeof v!=='string'||!
 function performanceTotal(rows,key){const values=rows.filter(r=>r.present).map(r=>performanceNumber(r.values[key]));const usable=values.filter(v=>v!==null);return {value:usable.length?usable.reduce((a,b)=>a+b,0):null,populated:usable.length,total:values.length};}
 function performanceFormat(v){const n=performanceNumber(v);return n===null?(v===null||v===undefined||v===''?'—':escapeHtml(v)):new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(n);}
 function performanceRows(data){return data.rows.map(r=>({...r,...storeIdentity({storeName:r.storeName||'Unnamed branch'})}));}
-function performanceFiltered(data){return performanceRows(data).filter(r=>(!performanceState.brand||r.brand===performanceState.brand)&&(!performanceState.branch||r.storeId===performanceState.branch)&&(!performanceState.search||r.displayName.toLowerCase().includes(performanceState.search.toLowerCase()))).sort((a,b)=>a.displayName.localeCompare(b.displayName)||a.storeId.localeCompare(b.storeId));}
+function performanceFiltered(data){
+ const p=performanceState,rows=performanceRows(data).filter(r=>(!p.brand||r.brand===p.brand)&&(!p.branch||r.storeId===p.branch)&&(!p.search||r.displayName.toLowerCase().includes(p.search.toLowerCase())));
+ return rows.sort((a,b)=>{
+  if(p.sortKey==='branch')return (p.sortDirection==='asc'?1:-1)*(a.displayName.localeCompare(b.displayName)||a.storeId.localeCompare(b.storeId));
+  const av=performanceNumber(a.values[p.sortKey]),bv=performanceNumber(b.values[p.sortKey]);
+  if(av===null&&bv!==null)return 1;if(av!==null&&bv===null)return -1;
+  if(av!==bv)return (p.sortDirection==='asc'?1:-1)*((av??0)-(bv??0));
+  return a.displayName.localeCompare(b.displayName);
+ });
+}
+function performanceSortHeader(label,key){const p=performanceState,active=p.sortKey===key,arrow=active?(p.sortDirection==='asc'?'▲':'▼'):'↕';return `<button class="sort-button ${active?'active':''}" data-perf-sort="${escapeHtml(key)}" aria-label="Sort ${escapeHtml(label)} ${active&&p.sortDirection==='asc'?'descending':'ascending'}">${escapeHtml(label)} <span aria-hidden="true">${arrow}</span></button>`;}
 function performanceCoverage(rows){const keys=performanceViews.funnel.map(x=>x[0]);const present=rows.filter(r=>r.present);if(!present.length)return 'No report rows in this selection';const cells=present.flatMap(r=>keys.map(k=>performanceNumber(r.values[k])));const filled=cells.filter(v=>v!==null).length;return filled===0?'Funnel data unavailable from Talabat':filled===cells.length?'Funnel fields populated':'Funnel data partially available';}
 async function renderPerformance(force=false){
  const p=performanceState,key=p.date;const generation=++p.generation;
@@ -35,19 +45,22 @@ function paintPerformance(){
  <label>Report date<select class="select" id="performanceDate">${opt('','Latest available (two-day lag)',p.date)}${dates.map(d=>opt(d,d,p.date)).join('')}</select></label>
  <label>Brand<select class="select" id="performanceBrand">${opt('','All brands',p.brand)}${brands.map(b=>opt(b,b,p.brand)).join('')}</select></label>
  <label>Branch<select class="select" id="performanceBranch">${opt('','All branches',p.branch)}${branches.map(b=>opt(b.storeId,b.displayName,p.branch)).join('')}</select></label>
- <label>Search<input class="input" type="search" id="performanceSearch" value="${escapeHtml(p.search)}" placeholder="Brand or branch"></label></section>
+ <label>Search<input class="input" type="search" id="performanceSearch" value="${escapeHtml(p.search)}" placeholder="Brand or branch"></label>
+ <label class="perf-sort-control">Sort<select class="select" id="performanceSort">${[['branch','Branch name'],...performanceViews[p.view]].flatMap(([key,label])=>[['asc','lowest first'],['desc','highest first']].map(([direction,suffix])=>opt(key+'|'+direction,label+' · '+(key==='branch'?(direction==='asc'?'A to Z':'Z to A'):suffix),p.sortKey+'|'+p.sortDirection))).join('')}</select></label></section>
  ${data.state==='EMPTY'?'<section class="loading-card">No saved report for this date. Choose another available date.</section>':`
  <section class="kpi-grid perf-kpis">${cards.map(([key,label,unit])=>{const t=performanceTotal(rows,key);return `<article class="kpi-card"><span class="kpi-label">${label}</span><strong class="kpi-value">${t.value===null?'—':new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(t.value)}</strong><p class="perf-card-note">${unit} · ${t.populated}/${t.total} report rows${t.populated<t.total?' · partial':''}</p></article>`;}).join('')}</section>
  <div class="perf-quality"><span>${rows.filter(r=>r.present).length} reported / ${rows.length} scoped branches${missing?` · ${missing} absent from CSV`:''}</span><span>${coverage}</span></div>
  <p class="perf-note">Totals cover the filtered report rows. Missing values are shown as —, never zero. Rates and average times are shown per branch.</p>
  <nav class="perf-view-tabs" aria-label="Metric group">${Object.keys(performanceViews).map(v=>`<button class="tab ${p.view===v?'active':''}" data-perf-view="${v}" aria-pressed="${p.view===v}">${v==='sales'?'Sales & orders':v==='operations'?'Operations':'Customer funnel'}</button>`).join('')}</nav>
- <div class="table-wrap perf-table-wrap"><table class="compact-table perf-table"><thead><tr><th>Brand / branch</th>${performanceViews[p.view].map(c=>`<th>${c[1]}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td data-label="Branch"><button class="perf-branch" data-perf-id="${escapeHtml(r.storeId)}">${escapeHtml(r.displayName)}</button>${!r.present?'<span class="carried-forward">Not included in source CSV</span>':''}</td>${performanceViews[p.view].map(c=>`<td data-label="${c[1]}">${performanceFormat(r.values[c[0]])}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${performanceViews[p.view].length+1}" class="empty">No branches match these filters.</td></tr>`}</tbody></table></div>`}`;
+ <div class="table-wrap perf-table-wrap"><table class="compact-table perf-table"><thead><tr><th>${performanceSortHeader('Brand / branch','branch')}</th>${performanceViews[p.view].map(c=>`<th>${performanceSortHeader(c[1],c[0])}</th>`).join('')}</tr></thead><tbody>${rows.length?rows.map(r=>`<tr><td data-label="Branch"><button class="perf-branch" data-perf-id="${escapeHtml(r.storeId)}">${escapeHtml(r.displayName)}</button>${!r.present?'<span class="carried-forward">Not included in source CSV</span>':''}</td>${performanceViews[p.view].map(c=>`<td data-label="${c[1]}">${performanceFormat(r.values[c[0]])}</td>`).join('')}</tr>`).join(''):`<tr><td colspan="${performanceViews[p.view].length+1}" class="empty">No branches match these filters.</td></tr>`}</tbody></table></div>`}`;
  document.getElementById('performanceDate').onchange=e=>{p.date=e.target.value;renderPerformance();};
  document.getElementById('performanceBrand').onchange=e=>{p.brand=e.target.value;p.branch='';paintPerformance();};
  document.getElementById('performanceBranch').onchange=e=>{p.branch=e.target.value;paintPerformance();};
  document.getElementById('performanceSearch').oninput=e=>{const input=e.target,value=input.value,pos=input.selectionStart;p.search=value;paintPerformance();const replacement=document.getElementById('performanceSearch');replacement.focus();replacement.setSelectionRange(pos,pos);};
+ document.getElementById('performanceSort').onchange=e=>{[p.sortKey,p.sortDirection]=e.target.value.split('|');paintPerformance();};
  document.getElementById('performanceRefresh').onclick=()=>renderPerformance(true);
- for(const b of main.querySelectorAll('[data-perf-view]'))b.onclick=()=>{p.view=b.dataset.perfView;paintPerformance();};
+ for(const b of main.querySelectorAll('[data-perf-view]'))b.onclick=()=>{p.view=b.dataset.perfView;if(p.sortKey!=='branch'&&!performanceViews[p.view].some(c=>c[0]===p.sortKey)){p.sortKey='branch';p.sortDirection='asc';}paintPerformance();};
+ for(const b of main.querySelectorAll('[data-perf-sort]'))b.onclick=()=>{const key=b.dataset.perfSort;if(p.sortKey===key)p.sortDirection=p.sortDirection==='asc'?'desc':'asc';else{p.sortKey=key;p.sortDirection=key==='branch'?'asc':'desc';}paintPerformance();};
  for(const b of main.querySelectorAll('[data-perf-id]'))b.onclick=()=>performanceDetail(b.dataset.perfId);
  refreshState.querySelector('span:last-child').textContent='Saved reports · checked every 5 min';refreshState.querySelector('.live-dot').dataset.health=data.state==='SUCCESS'?'HEALTHY':'UNKNOWN';
 }

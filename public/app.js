@@ -50,6 +50,7 @@ const changeHtml = value => value === null ? '—' : `<span class="${value < 0 ?
 const statusHtml = status => `<span class="status status-${String(status).toLowerCase()}">${escapeHtml(status)}</span>`;
 const platformLogoHtml = platform => `<span class="platform-identity"><img src="/platforms/${escapeHtml(platform)}.svg" alt=""><span>${escapeHtml(platform)}</span></span>`;
 const inlineStatusHtml = status => `<span class="inline-status inline-status-${String(status).toLowerCase()}"><i></i>${escapeHtml(status)}</span>`;
+const ratingSortHeader=(label,key)=>{const active=state.sort.startsWith(key+'_'),direction=active&&state.sort.endsWith('_desc')?'desc':'asc',arrow=active?(direction==='asc'?'▲':'▼'):'↕';return `<button class="sort-button ${active?'active':''}" data-rating-sort="${key}" aria-label="Sort ${escapeHtml(label)} ${direction==='asc'?'descending':'ascending'}">${escapeHtml(label)} <span aria-hidden="true">${arrow}</span></button>`;};
 
 const brandRules = [
   { brand: 'Taazaa Mumbai', patterns: [/^Taazaa\s+Mumbai\b/i] },
@@ -278,10 +279,13 @@ async function renderCloudRatings() {
   const filteredGroups = viewGroups.filter(group => (!state.brand || group.brand === state.brand) &&
     (!state.status || (selectedPlatform ? group.rows.some(row=>row.status===state.status) : groupStatus(group)===state.status)) &&
     [group.displayName,group.brand,group.branch,...group.rows.map(row=>row.storeName||'')].some(value=>value.toLowerCase().includes(search)));
-  filteredGroups.sort((a,b) => state.sort === 'rating_asc' ? (groupRating(a) ?? 6)-(groupRating(b) ?? 6)||a.displayName.localeCompare(b.displayName) :
-    state.sort === 'rating_desc' ? (groupRating(b) ?? 0)-(groupRating(a) ?? 0)||a.displayName.localeCompare(b.displayName) :
-    state.sort === 'severity_asc' ? severity[groupStatus(a)]-severity[groupStatus(b)]||a.displayName.localeCompare(b.displayName) :
-    a.displayName.localeCompare(b.displayName));
+  filteredGroups.sort((a,b) => {
+    const direction=state.sort.endsWith('_desc')?-1:1,key=state.sort.replace(/_(?:asc|desc)$/,'');
+    if(key==='rating'){const av=groupRating(a),bv=groupRating(b);if(av===null&&bv!==null)return 1;if(av!==null&&bv===null)return -1;if(av!==bv)return direction*((av??0)-(bv??0));}
+    if(key==='severity'){const difference=severity[groupStatus(a)]-severity[groupStatus(b)];if(difference)return direction*difference;}
+    if(key==='observed'){const av=Math.max(...a.rows.map(row=>timestamp(row.timestamp)).filter(Number.isFinite)),bv=Math.max(...b.rows.map(row=>timestamp(row.timestamp)).filter(Number.isFinite));if(av!==bv)return direction*(av-bv);}
+    return direction*a.displayName.localeCompare(b.displayName);
+  });
   const counted = selectedPlatform ? sourceRows.map(row=>row.status) : viewGroups.map(group=>groupStatus(group));
   const counts = Object.fromEntries(['HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => [status, counted.filter(value=>value===status).length]));
   const title=selectedPlatform ? selectedPlatform[0].toUpperCase()+selectedPlatform.slice(1)+' latest ratings' : 'Portfolio overview';
@@ -293,7 +297,7 @@ async function renderCloudRatings() {
     <section class="kpi-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
     <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
     <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
-    <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Branch name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · most severe first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
+    <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Branch name · A to Z'],['name_desc','Branch name · Z to A'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · best first'],['severity_desc','Status · most severe first'],['observed_desc','Observed · newest first'],['observed_asc','Observed · oldest first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
     <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
@@ -302,11 +306,11 @@ async function renderCloudRatings() {
 
 function renderPlatformTable(groups) {
   const rows=groups.flatMap(group=>group.rows.map(row=>({group,row})));
-  return `<div class="table-wrap"><table class="compact-table"><thead><tr><th>Brand / branch</th><th>Rating</th><th>Status</th><th>Observed</th></tr></thead>
+  return `<div class="table-wrap"><table class="compact-table"><thead><tr><th>${ratingSortHeader('Brand / branch','name')}</th><th>${ratingSortHeader('Rating','rating')}</th><th>${ratingSortHeader('Status','severity')}</th><th>${ratingSortHeader('Observed','observed')}</th></tr></thead>
     <tbody>${rows.length?rows.map(({group,row})=>`<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Rating"><strong>${formatRating(row.rating)}</strong></td><td data-label="Status">${statusHtml(row.status)}</td><td data-label="Observed"><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward?'<span class="carried-forward">Carried forward</span>':''}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 function renderOverviewTable(groups) {
-  return `<div class="table-wrap"><table class="overview-table"><thead><tr><th>Brand / branch</th><th>Platform ratings</th><th>Overall status</th><th>Latest observation</th></tr></thead>
+  return `<div class="table-wrap"><table class="overview-table"><thead><tr><th>${ratingSortHeader('Brand / branch','name')}</th><th>${ratingSortHeader('Platform ratings','rating')}</th><th>${ratingSortHeader('Overall status','severity')}</th><th>${ratingSortHeader('Latest observation','observed')}</th></tr></thead>
     <tbody>${groups.length?groups.map(group=>{const latest=group.rows.map(row=>row.timestamp).sort().at(-1);return `<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Ratings"><div class="platform-rating-list">${group.rows.map(row=>`<span class="platform-rating">${platformLogoHtml(row.platform)}<strong>${formatRating(row.rating)}</strong>${inlineStatusHtml(row.status)}</span>`).join('')}</div></td><td data-label="Overall">${statusHtml(groupStatus(group))}</td><td data-label="Observed">${escapeHtml(formatTime(latest))}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 
@@ -319,6 +323,7 @@ function attachTalabatControls() {
   });
   document.getElementById('brandFilter')?.addEventListener('change', event => { state.brand = event.target.value; renderCurrent(); });
   document.getElementById('storeSort')?.addEventListener('change', event => { state.sort = event.target.value; renderCurrent(); });
+  for(const button of main.querySelectorAll('[data-rating-sort]'))button.addEventListener('click',()=>{const key=button.dataset.ratingSort,current=state.sort.startsWith(key+'_');state.sort=key+'_'+(current&&!state.sort.endsWith('_desc')?'desc':'asc');renderCurrent();});
   for (const button of main.querySelectorAll('[data-status]')) button.addEventListener('click', () => { state.status = button.dataset.status || ''; renderCurrent(); });
 }
 
