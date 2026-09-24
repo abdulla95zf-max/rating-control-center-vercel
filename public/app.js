@@ -133,6 +133,7 @@ function updatePlatformTabs() {
 }
 
 async function renderCurrent() {
+  if(state.tab==='performance'){await renderPerformance();return;}
   if (state.busy) return;
   state.busy = true;
   refreshState.querySelector('span:last-child').textContent = 'Refreshing…';
@@ -140,6 +141,7 @@ async function renderCurrent() {
     if (state.cloudRatings) {
       if (state.tab === 'overview' || state.tab === 'talabat' || state.tab === 'keeta') await renderCloudRatings();
       else renderDisconnected(state.tab);
+      if(state.tab==='performance')return;
       refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
       return;
     }
@@ -152,6 +154,7 @@ async function renderCurrent() {
     if (selectedStore && detailPanel.classList.contains('open')) await openStore(selectedStore, selectedRange);
     refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (error) {
+    if(state.tab==='performance')return;
     state.platforms = state.platforms.map(p => ['talabat','keeta'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
     updatePlatformTabs();
     refreshState.querySelector('.live-dot').dataset.health = 'ERROR';
@@ -247,7 +250,9 @@ function cloudPlatformCards(platforms) {
   }).join('') + '</section>';
 }
 async function renderCloudRatings() {
+  const requestedTab=state.tab;
   const response = await api('/api/dashboard/ratings/latest');
+  if(state.tab!==requestedTab)return;
   state.cloudResponse = response;
   const platformResults = response.platforms;
   state.platforms = state.platforms.map(platform => {
@@ -447,6 +452,7 @@ tabs.addEventListener('click', event => {
   const button = event.target.closest('[data-tab]');
   if (!button) return;
   state.tab = button.dataset.tab;
+  ++performanceState.generation;selectedStore=null;++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');
   for (const tab of tabs.querySelectorAll('.tab')) tab.classList.toggle('active', tab === button);
   history.replaceState(null, '', `#${state.tab}`);
   renderCurrent();
@@ -460,8 +466,9 @@ for (const closer of document.querySelectorAll('[data-close-detail]')) closer.ad
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedStore = null; ++detailRequest; detailPanel.classList.remove('open'); detailPanel.setAttribute('aria-hidden', 'true'); } });
 
 const initialTab = location.hash.slice(1);
-if (['overview', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo'].includes(initialTab)) {
+if (['overview', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance'].includes(initialTab)) {
   state.tab = initialTab;
   for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === state.tab);
 }
+if(state.tab==='performance')tabs.querySelector('[data-tab="performance"]')?.scrollIntoView({block:'nearest',inline:'nearest'});
 initialize();

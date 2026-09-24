@@ -166,3 +166,23 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 .mini-kpi strong > span:not(.status) { font-size: inherit; }
 .mini-kpi strong .status { display: inline-flex; }
 
+
+/* Daily Performance: saved data, separate from live rating badges. */
+.perf-eyebrow {color:#64c7cc;font-size:11px;font-weight:700;letter-spacing:.12em;margin-bottom:9px;}
+.perf-context,.perf-quality {display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px;margin-bottom:20px;}
+.perf-controls {display:grid;grid-template-columns:1.2fr 1fr 1.3fr 1fr;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:22px;}
+.perf-controls label {display:grid;gap:8px;font-size:11px;color:var(--muted);min-width:0;}
+.perf-controls .select,.perf-controls .input {width:100%;min-width:0;}
+.perf-kpis {grid-template-columns:repeat(4,minmax(0,1fr));}
+.perf-kpis .kpi-value {font-size:clamp(24px,3vw,34px);overflow-wrap:anywhere;}
+.perf-card-note,.perf-note {font-size:12px;color:var(--muted);line-height:1.6;}
+.perf-quality {border-left:3px solid #64c7cc;background:#10212b;padding:13px 16px;margin-bottom:10px;}
+.perf-view-tabs {display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 14px;}
+.perf-table td:not(:first-child),.perf-table th:not(:first-child) {text-align:right;font-variant-numeric:tabular-nums;}
+.perf-branch {background:none;border:0;padding:0;color:var(--text);text-align:left;font-weight:650;cursor:pointer;}
+.perf-branch:hover {color:#64c7cc;text-decoration:underline;}
+.perf-details {display:grid;gap:0;margin-top:24px;}
+.perf-details>div {display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;padding:13px 0;border-bottom:1px solid var(--line);}
+.perf-details dt {font-size:12px;color:var(--muted);}.perf-details dd {margin:0;text-align:right;font-size:13px;overflow-wrap:anywhere;}
+@media(max-width:1000px){.perf-controls{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.perf-controls{grid-template-columns:1fr;}.perf-kpis{grid-template-columns:1fr 1fr;}.perf-context{display:grid;}.perf-table td:not(:first-child){text-align:right;}.perf-table td::before{text-align:left;}.perf-view-tabs .tab{font-size:12px;padding:8px;}.perf-table td:first-child{padding-bottom:10px;}}

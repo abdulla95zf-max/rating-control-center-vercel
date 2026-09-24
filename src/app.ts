@@ -1,3 +1,4 @@
+import {fetchPerformance,PerformanceError,requestDate} from './services/performance-proxy.ts';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import type { AppConfig } from './config.ts';
 import { TalabatDataSource } from './adapters/talabat-data-source.ts';
@@ -39,6 +40,11 @@ export function createApp(config: AppConfig, registry = createRegistry(config), 
       return response.status(error instanceof RatingsProxyError ? error.status : 502)
         .json({ error: error instanceof RatingsProxyError ? error.message : 'Cloud ratings are unavailable.' });
     }
+  });
+  app.get('/api/dashboard/performance/latest',async(request,response)=>{
+    if(request.get('sec-fetch-site')==='cross-site')return response.status(403).json({error:'Forbidden'});
+    try{return response.json(await fetchPerformance(config,requestDate(request.originalUrl),ratingsFetch));}
+    catch(error){return response.status(error instanceof PerformanceError?error.status:502).json({error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
   });
   app.get('/api/platforms', (_request, response) => response.json({ platforms: registry.states() }));
 
