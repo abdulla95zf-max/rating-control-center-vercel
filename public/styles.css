@@ -117,7 +117,9 @@ tbody tr:hover { background: #172235; }
 .mini-kpi strong { display: block; margin-top: 7px; font-size: 19px; }
 .chart-card { margin-top: 16px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
 .chart-card h4 { margin: 0 0 15px; font-size: 13px; }
-.chart { display: block; width: 100%; height: 190px; }
+.chart-hint { margin: -7px 0 10px; color: var(--muted); font-size: 11px; }
+.chart-card > .chart-hint { margin-top: -8px; }
+.chart { display: block; width: 100%; height: 190px; cursor: crosshair; touch-action: pan-y; }
 .cloud-detail-platforms { clear: both; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; padding-top: 24px; }
 .cloud-detail-card { padding: 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--panel); }
 .cloud-detail-card header { display: flex; justify-content: space-between; gap: 10px; align-items: center; }

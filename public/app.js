@@ -41,9 +41,7 @@ let selectedRange = '24h';
 let detailRequest = 0;
 let chartData = [];
 function redrawCharts() {
-  drawChart(document.getElementById('ratingChart'), chartData, 'rating', '#56a5ff', { min: 1, max: 5, decimals: 1 });
-  drawChart(document.getElementById('reviewChart'), chartData, 'reviewCount', '#36d399', { min: 0, decimals: 0 });
-  drawChart(document.getElementById('oneStarChart'), chartData, 'oneStarCount', '#ffad42', { min: 0, decimals: 0 });
+  drawChart(document.getElementById('ratingChart'), chartData, 'rating', '#56a5ff', { min: 1, max: 5, decimals: 1, label: 'Rating' });
 }
 new ResizeObserver(()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();}).observe(detailContent);
 const changeHtml = value => value === null ? '—' : `<span class="${value < 0 ? 'negative' : value > 0 ? 'positive' : ''}">${value > 0 ? '+' : ''}${Number(value).toFixed(1)}</span>`;
@@ -356,7 +354,7 @@ async function openCloudStore(group,range='30d') {
   const replaceHistory=html=>{detailContent.innerHTML=detailContent.innerHTML.replace(/<section class="history-placeholder">[\s\S]*?<\/section>/,html);};
   if(!talabat){replaceHistory('<section class="history-placeholder"><strong>Rating history</strong><p>Talabat history is not available for this branch.</p></section>');return;}
   try{const result=await api(`/api/dashboard/ratings/history?storeIdentityKey=${encodeURIComponent(talabat.storeIdentityKey)}&range=${encodeURIComponent(range)}`);if(request!==detailRequest)return;chartData=result.points;
-    replaceHistory(`<div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>Rating history</h4><canvas class="chart" id="ratingChart"></canvas></div><div class="chart-card"><h4>Review count history</h4><canvas class="chart" id="reviewChart"></canvas></div><div class="chart-card"><h4>One-star count history</h4><canvas class="chart" id="oneStarChart"></canvas></div><p class="updated">${formatNumber(chartData.length)} saved snapshots</p>`);
+    replaceHistory(`<div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>Rating history</h4><p class="chart-hint">Hover or tap a point for its exact date and value.</p><canvas class="chart" id="ratingChart" aria-label="Rating history chart"></canvas></div><p class="updated">${formatNumber(chartData.length)} saved snapshots</p>`);
     for(const button of detailContent.querySelectorAll('[data-cloud-range]'))button.addEventListener('click',()=>openCloudStore(group,button.dataset.cloudRange));
     requestAnimationFrame(redrawCharts);
   }catch{if(request!==detailRequest)return;replaceHistory('<section class="history-placeholder"><strong>Rating history unavailable</strong><p>Cloud History is not available. Saved snapshots could not be loaded.</p></section>');}
@@ -404,14 +402,9 @@ async function openStore(storeId, range = '24h') {
       </section>
       <div class="status-filters" aria-label="History range">        ${[['24h','Last 24 Hours'],['7d','Last 7 Days'],['30d','Last 30 Days'],['all','All History']].map(([value,label]) => `<button class="filter-chip ${range === value ? 'active' : ''}" data-range="${value}" aria-pressed="${range === value}">${label}</button>`).join('')}
       </div>
-      <div class="chart-card"><h4>Rating history</h4><canvas class="chart" id="ratingChart"></canvas></div>
-      <div class="chart-card"><h4>Review count history</h4><canvas class="chart" id="reviewChart"></canvas></div>
-      <div class="chart-card"><h4>One-star count history</h4><canvas class="chart" id="oneStarChart"></canvas></div>
+      <div class="chart-card"><h4>Rating history</h4><p class="chart-hint">Hover or tap a point for its exact date and value.</p><canvas class="chart" id="ratingChart" aria-label="Rating history chart"></canvas></div>
       <p class="updated">${formatNumber(history.length)} successful snapshots · Last updated ${escapeHtml(formatTime(store.lastUpdated))}</p>`;
     for (const button of detailContent.querySelectorAll('[data-range]')) button.addEventListener('click', () => openStore(storeId, button.dataset.range));
-    for (const [id,key] of [['reviewChart','reviewCount'],['oneStarChart','oneStarCount']]) {
-      document.getElementById(id).parentElement.hidden = !chartData.some(p => p[key] !== null && Number.isFinite(p[key]));
-    }
     requestAnimationFrame(redrawCharts);
   } catch (error) {
     if (request !== detailRequest) return;
@@ -468,6 +461,12 @@ function drawChart(canvas, history, key, color, options) {
     const measure = context.measureText(label).width;
     context.fillText(label, width - pad.right - measure, height - 5);
   }
+  const valid=history.map((point,index)=>({point,index,value:point[key],px:x(index)})).filter(item=>item.value!==null&&Number.isFinite(item.value));
+  const redraw=()=>drawChart(canvas,history,key,color,options);
+  canvas.onpointermove=event=>{const bounds=canvas.getBoundingClientRect(),pointerX=event.clientX-bounds.left;let nearest=null;for(const item of valid)if(!nearest||Math.abs(item.px-pointerX)<Math.abs(nearest.px-pointerX))nearest=item;if(nearest&&canvas._hoverIndex!==nearest.index){canvas._hoverIndex=nearest.index;redraw();}};
+  canvas.onpointerleave=()=>{if(canvas._hoverIndex!==undefined){delete canvas._hoverIndex;redraw();}};
+  const hovered=valid.find(item=>item.index===canvas._hoverIndex);
+  if(hovered){const px=hovered.px,py=y(hovered.value),date=new Date(timestamp(hovered.point.recordedAt));const dateLabel=options.dateOnly?date.toLocaleDateString([], {year:'numeric',month:'short',day:'numeric'}):date.toLocaleString([], {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});const valueLabel=`${options.label||key}: ${Number(hovered.value).toLocaleString('en-US',{minimumFractionDigits:options.decimals,maximumFractionDigits:options.decimals})}`;context.save();context.strokeStyle='#d9e8ff';context.lineWidth=1;context.setLineDash([4,4]);context.beginPath();context.moveTo(px,pad.top);context.lineTo(px,height-pad.bottom);context.stroke();context.setLineDash([]);context.fillStyle=color;context.beginPath();context.arc(px,py,5,0,Math.PI*2);context.fill();context.font='11px Segoe UI';const boxWidth=Math.max(context.measureText(dateLabel).width,context.measureText(valueLabel).width)+20,boxHeight=46,boxX=Math.min(Math.max(4,px-boxWidth/2),width-boxWidth-4),boxY=Math.max(4,py-boxHeight-12);context.fillStyle='#07111f';context.strokeStyle='#40516a';context.lineWidth=1;context.beginPath();context.roundRect(boxX,boxY,boxWidth,boxHeight,8);context.fill();context.stroke();context.fillStyle='#dce8f7';context.fillText(dateLabel,boxX+10,boxY+17);context.fillStyle=color;context.fillText(valueLabel,boxX+10,boxY+35);context.restore();}
 }
 
 tabs.addEventListener('click', event => {
