@@ -45,7 +45,7 @@ function redrawCharts() {
   drawChart(document.getElementById('reviewChart'), chartData, 'reviewCount', '#36d399', { min: 0, decimals: 0 });
   drawChart(document.getElementById('oneStarChart'), chartData, 'oneStarCount', '#ffad42', { min: 0, decimals: 0 });
 }
-new ResizeObserver(redrawCharts).observe(detailContent);
+new ResizeObserver(()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();}).observe(detailContent);
 const changeHtml = value => value === null ? '—' : `<span class="${value < 0 ? 'negative' : value > 0 ? 'positive' : ''}">${value > 0 ? '+' : ''}${Number(value).toFixed(1)}</span>`;
 const statusHtml = status => `<span class="status status-${String(status).toLowerCase()}">${escapeHtml(status)}</span>`;
 const platformLogoHtml = platform => `<span class="platform-identity"><img src="/platforms/${escapeHtml(platform)}.svg" alt=""><span>${escapeHtml(platform)}</span></span>`;
@@ -338,7 +338,8 @@ function attachCloudStoreClicks(groups) {
   }
 }
 
-function openCloudStore(group) {
+async function openCloudStore(group,range='30d') {
+  const request=++detailRequest;
   selectedStore=group.key;
   detailPanel.classList.add('open');
   detailPanel.setAttribute('aria-hidden','false');
@@ -350,7 +351,15 @@ function openCloudStore(group) {
       <dl><div><dt>Reviews</dt><dd>${formatNumber(row.reviewCount)}</dd></div><div><dt>One-star</dt><dd>${formatNumber(row.oneStarCount)}</dd></div>
       <div><dt>Observed</dt><dd>${escapeHtml(formatTime(row.timestamp))}</dd></div><div><dt>Freshness</dt><dd>${row.carriedForward?'Carried forward':'Latest observation'}</dd></div></dl>
     </article>`).join('')}</section>
-    <section class="history-placeholder"><strong>Rating history</strong><p>Cloud History is not available yet. It will appear here after the historical API is added.</p></section>`;
+    <section class="history-placeholder"><strong>Rating history</strong><p>Loading saved snapshots…</p></section>`;
+  const talabat=group.rows.find(row=>row.platform==='talabat');
+  const replaceHistory=html=>{detailContent.innerHTML=detailContent.innerHTML.replace(/<section class="history-placeholder">[\s\S]*?<\/section>/,html);};
+  if(!talabat){replaceHistory('<section class="history-placeholder"><strong>Rating history</strong><p>Talabat history is not available for this branch.</p></section>');return;}
+  try{const result=await api(`/api/dashboard/ratings/history?storeIdentityKey=${encodeURIComponent(talabat.storeIdentityKey)}&range=${encodeURIComponent(range)}`);if(request!==detailRequest)return;chartData=result.points;
+    replaceHistory(`<div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>Rating history</h4><canvas class="chart" id="ratingChart"></canvas></div><div class="chart-card"><h4>Review count history</h4><canvas class="chart" id="reviewChart"></canvas></div><div class="chart-card"><h4>One-star count history</h4><canvas class="chart" id="oneStarChart"></canvas></div><p class="updated">${formatNumber(chartData.length)} saved snapshots</p>`);
+    for(const button of detailContent.querySelectorAll('[data-cloud-range]'))button.addEventListener('click',()=>openCloudStore(group,button.dataset.cloudRange));
+    requestAnimationFrame(redrawCharts);
+  }catch{if(request!==detailRequest)return;replaceHistory('<section class="history-placeholder"><strong>Rating history unavailable</strong><p>Cloud History is not available. Saved snapshots could not be loaded.</p></section>');}
 }
 
 function renderDisconnected(platformId) {

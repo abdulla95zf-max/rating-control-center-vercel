@@ -6,6 +6,7 @@ import { DisconnectedDataSource } from './adapters/disconnected-data-source.ts';
 import { DataSourceRegistry } from './services/data-source-registry.ts';
 import type { RatingStatus, StoreQuery } from './types.ts';
 import { fetchLatestRatings, RatingsProxyError } from './services/latest-ratings-proxy.ts';
+import {fetchPerformanceHistory,fetchRatingHistory,HistoryProxyError} from './services/history-proxy.ts';
 
 const VALID_STATUSES = new Set<RatingStatus>(['HEALTHY', 'ACCEPTABLE', 'WARNING', 'CRITICAL', 'UNKNOWN']);
 const VALID_SORTS = new Set<NonNullable<StoreQuery['sort']>>(['name_asc', 'rating_asc', 'rating_desc', 'change_asc', 'change_desc']);
@@ -46,6 +47,8 @@ export function createApp(config: AppConfig, registry = createRegistry(config), 
     try{return response.json(await fetchPerformance(config,requestDate(request.originalUrl),ratingsFetch));}
     catch(error){return response.status(error instanceof PerformanceError?error.status:502).json({error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
   });
+  app.get('/api/dashboard/ratings/history',async(request,response)=>{try{return response.json(await fetchRatingHistory(config,String(request.query.storeIdentityKey||''),String(request.query.range||'30d'),ratingsFetch));}catch(error){return response.status(error instanceof HistoryProxyError?error.status:502).json({error:'History is unavailable.'});}});
+  app.get('/api/dashboard/performance/history',async(request,response)=>{try{return response.json(await fetchPerformanceHistory(config,String(request.query.storeId||''),Number(request.query.days||30),ratingsFetch));}catch(error){return response.status(error instanceof HistoryProxyError?error.status:502).json({error:'History is unavailable.'});}});
   app.get('/api/platforms', (_request, response) => response.json({ platforms: registry.states() }));
 
   app.get('/api/overview', (request, response, next) => {

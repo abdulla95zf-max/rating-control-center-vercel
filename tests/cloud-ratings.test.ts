@@ -106,7 +106,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
   await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/talabat.svg'));
-  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
+  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
 });
 
 test('missing token and public assets fail closed without exposing token or upstream URL',async()=>{

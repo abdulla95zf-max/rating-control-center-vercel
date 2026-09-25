@@ -1,9 +1,10 @@
 import {fetchPerformance,PerformanceError,requestDate} from './services/performance-proxy.ts';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {fetchLatestRatings, RatingsProxyError} from './services/latest-ratings-proxy.ts';
+import {fetchPerformanceHistory,fetchRatingHistory,HistoryProxyError} from './services/history-proxy.ts';
 
 /** Cloud-only entry point: never imports local configuration, SQLite or the Windows server. */
-export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch) {
+export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance' | 'ratingHistory' | 'performanceHistory', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch) {
   return async (request: IncomingMessage, response: ServerResponse) => {
     response.setHeader('Cache-Control', 'no-store, private');
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -19,6 +20,10 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     if(route==='performance'){
       try{return send(200,await fetchPerformance({ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''},requestDate(request.url||''),fetcher));}
       catch(error){return send(error instanceof PerformanceError?error.status:502,{error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
+    }
+    if(route==='ratingHistory'||route==='performanceHistory'){
+      try{const url=new URL(request.url||'','https://dashboard.invalid');const config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};if(route==='ratingHistory')return send(200,await fetchRatingHistory(config,url.searchParams.get('storeIdentityKey')||'',url.searchParams.get('range')||'30d',fetcher));return send(200,await fetchPerformanceHistory(config,url.searchParams.get('storeId')||'',Number(url.searchParams.get('days')||30),fetcher));}
+      catch(error){return send(error instanceof HistoryProxyError?error.status:502,{error:error instanceof HistoryProxyError?error.message:'History is unavailable.'});}
     }
     try {
       const ratings = await fetchLatestRatings({
