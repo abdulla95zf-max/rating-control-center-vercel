@@ -49,6 +49,8 @@ const statusHtml = status => `<span class="status status-${String(status).toLowe
 const platformLogoHtml = platform => `<span class="platform-identity"><img src="/platforms/${escapeHtml(platform)}.svg" alt=""><span>${escapeHtml(platform)}</span></span>`;
 const inlineStatusHtml = status => `<span class="inline-status inline-status-${String(status).toLowerCase()}"><i></i>${escapeHtml(status)}</span>`;
 const ratingSortHeader=(label,key)=>{const active=state.sort.startsWith(key+'_'),direction=active&&state.sort.endsWith('_desc')?'desc':'asc',arrow=active?(direction==='asc'?'▲':'▼'):'↕';return `<button class="sort-button ${active?'active':''}" data-rating-sort="${key}" aria-label="Sort ${escapeHtml(label)} ${direction==='asc'?'descending':'ascending'}">${escapeHtml(label)} <span aria-hidden="true">${arrow}</span></button>`;};
+const actionNumber=value=>typeof value==='string'&&/^[-+]?\d+(?:\.\d+)?$/.test(value.trim())&&Number.isFinite(Number(value))?Number(value):null;
+let currentActions=[];
 
 const brandRules = [
   { brand: 'Taazaa Mumbai', patterns: [/^Taazaa\s+Mumbai\b/i] },
@@ -258,7 +260,7 @@ function cloudPlatformCards(platforms) {
 }
 async function renderCloudRatings() {
   const requestedTab=state.tab;
-  const response = await api('/api/dashboard/ratings/latest');
+  const [response,performance]=await Promise.all([api('/api/dashboard/ratings/latest'),state.tab==='overview'?api('/api/dashboard/performance/latest').catch(()=>null):Promise.resolve(null)]);
   if(state.tab!==requestedTab)return;
   state.cloudResponse = response;
   const platformResults = response.platforms;
@@ -290,7 +292,10 @@ async function renderCloudRatings() {
   const active=selectedPlatform ? platformResults.filter(item=>item.platform===selectedPlatform) : platformResults;
   const overallHealth=active.some(item=>item.state==='ERROR')?'ERROR':active.some(item=>cloudHealth(item)==='STALE')?'STALE':active.some(item=>cloudHealth(item)==='DELAYED')?'DELAYED':'LIVE';
   refreshState.querySelector('.live-dot').dataset.health=overallHealth;
+  if(performance?.rows&&typeof performanceState!=='undefined'){performanceState.cache=performance;performanceState.cacheKey='';performanceState.checkedAt=Date.now();}
+  const actionCenter=!selectedPlatform?renderActionCenter(allGroups,performance):'';
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div></div>
+    ${actionCenter}
     ${cloudPlatformCards(platformResults)}
     <section class="kpi-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
     <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
@@ -300,7 +305,21 @@ async function renderCloudRatings() {
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
   attachCloudStoreClicks(filteredGroups);
+  attachActionCenter(allGroups);
 }
+
+function buildActionCenter(groups,performance){
+ const actions=new Map(),levels={check:1,attention:2,critical:3};
+ const add=(key,name,level,issue,target={})=>{const existing=actions.get(key)||{key,name,level:'check',issues:[],ratingKey:null,performanceId:null,openKind:null};if(levels[level]>levels[existing.level]||!existing.openKind){existing.level=level;existing.openKind=target.performanceId?'performance':'rating';}existing.issues.push(issue);if(target.ratingKey)existing.ratingKey=target.ratingKey;if(target.performanceId)existing.performanceId=target.performanceId;actions.set(key,existing);};
+ for(const group of groups)for(const row of group.rows){if(row.status==='CRITICAL')add(group.key,group.displayName,'critical',`${row.platform} rating ${formatRating(row.rating)}`,{ratingKey:group.key});else if(row.status==='WARNING')add(group.key,group.displayName,'attention',`${row.platform} rating ${formatRating(row.rating)}`,{ratingKey:group.key});}
+ if(Array.isArray(performance?.rows))for(const raw of performance.rows){const identity=storeIdentity({storeName:raw.storeName||'Unnamed branch'}),target={performanceId:raw.storeId};if(!raw.present){add(identity.key,identity.displayName,'check','Absent from Performance CSV',target);continue;}const values=raw.values||{};const metric=(key,label,warning,critical)=>{const value=actionNumber(values[key]);if(value===null)return;if(value>critical)add(identity.key,identity.displayName,'critical',`${label} ${performanceFormat(values[key])}`,target);else if(value>warning)add(identity.key,identity.displayName,'attention',`${label} ${performanceFormat(values[key])}`,target);};metric('Customer Complaint rate','Complaints',.5,1);metric('Avoidable cancellation rate','Avoidable cancellation',.5,1);metric('Unavailable Time Duration Rate','Offline',.5,1);metric('Average preparation time (minutes)','Prep time',15,20);}
+ return [...actions.values()].sort((a,b)=>levels[b.level]-levels[a.level]||b.issues.length-a.issues.length||a.name.localeCompare(b.name));
+}
+function renderActionCenter(groups,performance){
+ currentActions=buildActionCenter(groups,performance);const critical=currentActions.filter(a=>a.level==='critical').length,attention=currentActions.filter(a=>a.level==='attention').length,checks=currentActions.filter(a=>a.level==='check').length,shown=currentActions.slice(0,12),reportDate=performance?.reportDate||null;
+ return `<section class="action-center"><header class="action-header"><div><span class="action-eyebrow">TODAY'S PRIORITIES</span><h3>Action Center</h3><p>${currentActions.length?`${currentActions.length} branches need review`:'No current exceptions detected'}${reportDate?` · Performance ${escapeHtml(reportDate)}`:' · Performance unavailable'}</p></div><div class="action-summary"><span class="action-count critical">${critical} critical</span><span class="action-count attention">${attention} attention</span><span class="action-count check">${checks} data checks</span></div></header>${shown.length?`<ol class="action-list">${shown.map((action,index)=>`<li class="action-row"><span class="action-priority ${action.level}">${action.level==='critical'?'Critical':action.level==='attention'?'Attention':'Check'}</span><div class="action-copy"><strong>${escapeHtml(action.name)}</strong><p>${action.issues.map(escapeHtml).join(' · ')}</p></div><button class="action-open" data-action-index="${index}">View</button></li>`).join('')}</ol>${currentActions.length>shown.length?`<p class="action-more">Showing the 12 highest-priority branches · ${currentActions.length-shown.length} more</p>`:''}`:'<div class="action-clear">No rating or operational threshold is currently breached.</div>'}<p class="action-rules">Attention: complaints, avoidable cancellation or offline rate above 0.5%; prep time above 15 min. Critical: above 1% or prep time above 20 min. Rating follows the dashboard status rules.</p></section>`;
+}
+function attachActionCenter(groups){const lookup=new Map(groups.map(group=>[group.key,group]));for(const button of main.querySelectorAll('[data-action-index]'))button.onclick=()=>{const action=currentActions[Number(button.dataset.actionIndex)];if(!action)return;if(action.openKind==='performance'&&action.performanceId&&typeof performanceDetail==='function')performanceDetail(action.performanceId);else if(action.ratingKey&&lookup.has(action.ratingKey))openCloudStore(lookup.get(action.ratingKey));else if(action.performanceId&&typeof performanceDetail==='function')performanceDetail(action.performanceId);};}
 
 function renderPlatformTable(groups) {
   const rows=groups.flatMap(group=>group.rows.map(row=>({group,row})));

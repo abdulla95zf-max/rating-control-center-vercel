@@ -80,10 +80,11 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   const detail:any={innerHTML:'',querySelectorAll:()=>[]};
   const panel:any={classList:{add:()=>{},remove:()=>{},contains:()=>false},setAttribute:()=>{}};
   const node:any={querySelectorAll:()=>[],addEventListener:()=>{},querySelector:()=>({dataset:{}})};
-  const urls:string[]=[];const context=vm.createContext({Intl,Date,URLSearchParams,console,
+  const performance={reportDate:'2026-09-20',rows:[{storeId:'1',storeName:'Kabab Fareej, Al Warqa',present:true,values:{'Customer Complaint rate':'1.2','Avoidable cancellation rate':'0','Unavailable Time Duration Rate':'0','Average preparation time (minutes)':'12'}}]};
+  const urls:string[]=[];const context=vm.createContext({Intl,Date,URLSearchParams,console,performanceState:{},performanceFormat:(value:any)=>String(value),performanceDetail:()=>{},
     document:{getElementById:(id:string)=>id==='mainContent'?main:id==='detailContent'?detail:id==='detailPanel'?panel:node,querySelectorAll:()=>[],addEventListener:()=>{}},
     ResizeObserver:class{observe(){}},location:{hash:''},history:{replaceState(){}},window:{setInterval(){},clearTimeout(){},setTimeout(fn:any){fn();}},
-    fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>grouped};}});
+    fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>url.includes('/performance/')?performance:grouped};}});
   const source=fs.readFileSync('public/app.js','utf8').replace(/initialize\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),
@@ -99,14 +100,15 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Qusais Industrial Area 1');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Barsha, Al Barsha 2"}).branch',context),'Al Barsha 2');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
+  for(const text of ['Action Center','Critical','Complaints 1.2','Performance 2026-09-20'])assert.ok(main.innerHTML.includes(text),text);
   for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat.svg','/platforms/keeta.svg','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
-  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,1);
+  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,2);
   await vm.runInContext('openCloudStore(groupCloudRows(state.cloudResponse.ratings)[0])',context);
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
   await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/talabat.svg'));
-  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
+  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/performance/latest','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
 });
 
 test('missing token and public assets fail closed without exposing token or upstream URL',async()=>{
