@@ -1,4 +1,4 @@
-import {fetchPerformance,PerformanceError,requestDate} from './services/performance-proxy.ts';
+import {fetchPerformance,fetchTstar,PerformanceError,requestPerformanceQuery} from './services/performance-proxy.ts';
 import express, { type NextFunction, type Request, type Response } from 'express';
 import type { AppConfig } from './config.ts';
 import { TalabatDataSource } from './adapters/talabat-data-source.ts';
@@ -44,7 +44,7 @@ export function createApp(config: AppConfig, registry = createRegistry(config), 
   });
   app.get('/api/dashboard/performance/latest',async(request,response)=>{
     if(request.get('sec-fetch-site')==='cross-site')return response.status(403).json({error:'Forbidden'});
-    try{return response.json(await fetchPerformance(config,requestDate(request.originalUrl),ratingsFetch));}
+    try{const query=requestPerformanceQuery(request.originalUrl);return response.json(query.dataset==='tstar'?await fetchTstar(config,ratingsFetch):await fetchPerformance(config,query.date,ratingsFetch,query.period));}
     catch(error){return response.status(error instanceof PerformanceError?error.status:502).json({error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
   });
   app.get('/api/dashboard/ratings/history',async(request,response)=>{try{return response.json(await fetchRatingHistory(config,String(request.query.storeIdentityKey||''),String(request.query.range||'30d'),ratingsFetch));}catch(error){return response.status(error instanceof HistoryProxyError?error.status:502).json({error:'History is unavailable.'});}});

@@ -1,4 +1,4 @@
-import {fetchPerformance,PerformanceError,requestDate} from './services/performance-proxy.ts';
+import {fetchPerformance,fetchTstar,PerformanceError,requestPerformanceQuery} from './services/performance-proxy.ts';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {fetchLatestRatings, RatingsProxyError} from './services/latest-ratings-proxy.ts';
 import {fetchPerformanceHistory,fetchRatingHistory,HistoryProxyError} from './services/history-proxy.ts';
@@ -18,7 +18,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     if (route === 'config') return send(200, {cloudRatings: true, autoRefreshSeconds: 60});
     if (route === 'health') return send(200, {ok: true, mode: 'cloud'});
     if(route==='performance'){
-      try{return send(200,await fetchPerformance({ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''},requestDate(request.url||''),fetcher));}
+      try{const query=requestPerformanceQuery(request.url||''),config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};return send(200,query.dataset==='tstar'?await fetchTstar(config,fetcher):await fetchPerformance(config,query.date,fetcher,query.period));}
       catch(error){return send(error instanceof PerformanceError?error.status:502,{error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
     }
     if(route==='ratingHistory'||route==='performanceHistory'){

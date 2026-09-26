@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 import {createServer} from 'node:http';
-import {PERFORMANCE_HEADERS,fetchPerformance,projectPerformance,requestDate} from '../src/services/performance-proxy.ts';
+import {PERFORMANCE_HEADERS,fetchPerformance,fetchTstar,projectPerformance,requestDate,requestPerformanceQuery} from '../src/services/performance-proxy.ts';
 import {createCloudHandler} from '../src/cloud-api.ts';
 const token='server-only-secret-'.repeat(4);
 const config={ratingsApiUrl:'https://example.vercel.app/api/ratings/latest',ratingsApiToken:token};
@@ -33,4 +33,10 @@ test('UI calculations exclude missing rows and empty cells, preserve zero and di
  assert.equal(total.value,12.5);assert.equal(total.populated,2);assert.equal(total.total,3);
  assert.equal(run("performanceTotal([{present:true,values:{x:null}}],'x').value"),null);
  assert.equal(run("performanceCoverage([{present:true,values:{}}])"),'Funnel data unavailable from Talabat');
+});
+
+test('period and tStar requests reuse the existing protected Performance route',async()=>{
+ assert.deepEqual(requestPerformanceQuery('/x?period=7d'),{period:'7d'});assert.deepEqual(requestPerformanceQuery('/x?dataset=tstar'),{dataset:'tstar'});assert.throws(()=>requestPerformanceQuery('/x?dataset=tstar&period=month'));
+ const tstar={ok:true,platform:'talabat',state:'SUCCESS',observedAt:'2026-09-26T10:00:00.000Z',receivedAt:'2026-09-26T10:00:01.000Z',scopeCount:1,activeCount:1,rows:[{storeId:'1',storeName:'Kabab Fareej, Test',tier:'ADVANCED',periodFrom:'2026-09-01',periodTo:'2026-09-30',metrics:{avoidableWaitingTime:1,inaccurateOrders:2,offlineRate:3,failRate:4}}]};
+ let requested='';const result=await fetchTstar(config,async url=>{requested=String(url);return Response.json(tstar);});assert.equal(requested,'https://example.vercel.app/api/performance/latest?dataset=tstar');assert.equal(result.rows[0]?.metrics.failRate,4);
 });

@@ -221,6 +221,9 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 .sort-button span {color:#64748b;font-size:10px;}
 .sort-button:hover,.sort-button.active {color:#fff;}
 .sort-button.active span {color:#64c7cc;}
+.period-tabs {display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;}
+.period-tabs .tab {border:1px solid #34445e;background:#0c1422;color:#aebdd0;font-weight:750;}
+.period-tabs .tab.active {background:#29405f;border-color:#6685ad;color:#fff;}
 
 /* Responsive density: mobile is an operational summary, not a scaled desktop. */
 @media (min-width: 761px) {
@@ -236,6 +239,8 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 
   .talabat-view-tabs { position: static; gap: 7px; padding: 8px 12px; background: var(--bg); }
   .talabat-view { min-width: 0; flex: 1; padding: 9px 12px; font-size: 13px; box-shadow: none; }
+  .period-tabs {display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+  .period-tabs .tab {justify-content:center;padding:8px 5px;font-size:10px;}
 
   .platform-health-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
   .platform-health-card.is-disconnected { display: none; }
