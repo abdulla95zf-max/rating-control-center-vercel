@@ -224,6 +224,25 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 .period-tabs {display:flex;gap:8px;margin:0 0 18px;flex-wrap:wrap;}
 .period-tabs .tab {border:1px solid #34445e;background:#0c1422;color:#aebdd0;font-weight:750;}
 .period-tabs .tab.active {background:#29405f;border-color:#6685ad;color:#fff;}
+.monthly-heading {border-bottom:1px solid var(--line);padding-bottom:18px;}
+.monthly-explainer {display:grid;gap:5px;margin:0 0 18px;padding:14px 16px;border:1px solid #244b63;border-left:4px solid #55c7d2;border-radius:12px;background:linear-gradient(120deg,#102533,#111a2b);color:#aebdd0;font-size:12px;line-height:1.5;}
+.monthly-explainer strong {color:#f3f7ff;font-size:14px;}
+.monthly-controls {grid-template-columns:1fr 1.4fr 1.2fr;}
+.monthly-quality {background:linear-gradient(90deg,#102837,#171d32);border-left-color:#7dd3fc;color:#c7d8ea;}
+.monthly-table {table-layout:fixed;min-width:1120px;}
+.monthly-table .branch-col {width:25%;}.monthly-table .tier-col {width:14%;}.monthly-table .metric-col {width:12.2%;}
+.monthly-table th {height:74px;padding:13px 14px;background:#17243a;color:#c6d8ec;font-size:11px;line-height:1.35;white-space:normal;vertical-align:middle;border-right:1px solid rgb(110 140 180 / 14%);}
+.monthly-table th:first-child,.monthly-table td:first-child {text-align:left;}
+.monthly-table td {padding:14px;border-right:1px solid rgb(110 140 180 / 10%);}
+.monthly-table tbody tr:nth-child(even) {background:rgb(33 48 74 / 27%);}
+.monthly-table tbody tr:hover {background:rgb(47 72 107 / 36%);}
+.monthly-table .sort-button {white-space:normal;line-height:1.35;}
+.tier-badge {display:inline-flex;align-items:center;justify-content:center;min-width:88px;padding:6px 9px;border:1px solid transparent;border-radius:999px;font-size:10px;font-weight:850;letter-spacing:.04em;text-transform:uppercase;}
+.tier-poor {color:#ff8797;background:rgb(255 93 112 / 13%);border-color:rgb(255 93 112 / 28%);}
+.tier-fair {color:#ffc56f;background:rgb(255 173 66 / 13%);border-color:rgb(255 173 66 / 28%);}
+.tier-good {color:#77b8ff;background:rgb(86 165 255 / 13%);border-color:rgb(86 165 255 / 28%);}
+.tier-exceptional {color:#62e1b1;background:rgb(54 211 153 / 13%);border-color:rgb(54 211 153 / 28%);}
+.tier-ineligible {color:#a8b4c5;background:rgb(148 163 184 / 10%);border-color:rgb(148 163 184 / 20%);}
 
 /* Responsive density: mobile is an operational summary, not a scaled desktop. */
 @media (min-width: 761px) {
@@ -276,6 +295,14 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
   .perf-view-tabs .tab { justify-content: center; min-width: 0; padding: 9px 5px; font-size: 10px; box-shadow: none; }
   .perf-context, .perf-quality { margin-bottom: 12px; }
   .perf-quality { padding: 10px 12px; }
+  .monthly-explainer {padding:12px;margin-bottom:12px;}
+  .monthly-controls {grid-template-columns:1fr 1fr;}
+  .monthly-table {min-width:0;table-layout:auto;}
+  .monthly-table colgroup {display:none;}
+  .monthly-table td {border-right:0;}
+  .monthly-table td:first-child {background:linear-gradient(90deg,rgb(86 165 255 / 8%),transparent);margin:-12px -12px 2px;padding:12px;}
+  .monthly-table td::before {font-size:9px;color:#8fa7c2;}
+  .tier-badge {min-width:94px;justify-self:end;}
   .action-center { margin-bottom: 14px; border-radius: 13px; }
   .action-header { display: grid; gap: 12px; padding: 15px 13px; }
   .action-header h3 { font-size: 18px; }
