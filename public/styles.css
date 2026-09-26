@@ -201,8 +201,11 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 .perf-card-note,.perf-note {font-size:12px;color:var(--muted);line-height:1.6;}
 .perf-quality {border-left:3px solid #64c7cc;background:#10212b;padding:13px 16px;margin-bottom:10px;}
 .perf-view-tabs {display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 14px;}
-.perf-table td:not(:first-child),.perf-table th:not(:first-child) {text-align:right;font-variant-numeric:tabular-nums;}
-.perf-branch {background:none;border:0;padding:0;color:var(--text);text-align:left;font-weight:650;cursor:pointer;}
+.perf-table {font-family:"Segoe UI Variable Display","Segoe UI",Tahoma,sans-serif;}
+.perf-table td:not(:first-child),.perf-table th:not(:first-child) {text-align:center;font-variant-numeric:tabular-nums;font-weight:650;}
+.perf-table th:not(:first-child) .sort-button {justify-content:center;text-align:center;}
+.perf-table td:first-child {font-weight:720;letter-spacing:-.01em;}
+.perf-branch {background:none;border:0;padding:0;color:var(--text);text-align:left;font-weight:720;letter-spacing:-.01em;cursor:pointer;}
 .perf-branch:hover {color:#64c7cc;text-decoration:underline;}
 .perf-details {display:grid;gap:0;margin-top:24px;}
 .perf-details>div {display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:16px;padding:13px 0;border-bottom:1px solid var(--line);}
@@ -227,13 +230,17 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
 .monthly-heading {border-bottom:1px solid var(--line);padding-bottom:18px;}
 .monthly-explainer {display:grid;gap:5px;margin:0 0 18px;padding:14px 16px;border:1px solid #244b63;border-left:4px solid #55c7d2;border-radius:12px;background:linear-gradient(120deg,#102533,#111a2b);color:#aebdd0;font-size:12px;line-height:1.5;}
 .monthly-explainer strong {color:#f3f7ff;font-size:14px;}
+.monthly-targets {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 18px;}
+.monthly-targets article {display:grid;gap:5px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#101a2a;}
+.monthly-targets strong {font-size:13px;}.monthly-targets span {color:var(--muted);font-size:10px;line-height:1.45;}
+.monthly-targets .target-fair {border-top:3px solid #ffad42}.monthly-targets .target-good {border-top:3px solid #56a5ff}.monthly-targets .target-exceptional {border-top:3px solid #36d399}
 .monthly-controls {grid-template-columns:1fr 1.4fr 1.2fr;}
 .monthly-quality {background:linear-gradient(90deg,#102837,#171d32);border-left-color:#7dd3fc;color:#c7d8ea;}
-.monthly-table {table-layout:fixed;min-width:1120px;}
-.monthly-table .branch-col {width:25%;}.monthly-table .tier-col {width:14%;}.monthly-table .metric-col {width:12.2%;}
-.monthly-table th {height:74px;padding:13px 14px;background:#17243a;color:#c6d8ec;font-size:11px;line-height:1.35;white-space:normal;vertical-align:middle;border-right:1px solid rgb(110 140 180 / 14%);}
+.monthly-table {table-layout:fixed;min-width:1280px;}
+.monthly-table .branch-col {width:22%;}.monthly-table .tier-col {width:12%;}.monthly-table .metric-col {width:10.8%;}
+.monthly-table th {height:78px;padding:13px 12px;background:#17243a;color:#d4e3f5;font-size:12px;font-weight:800;line-height:1.35;white-space:normal;vertical-align:middle;border-right:1px solid rgb(110 140 180 / 14%);}
 .monthly-table th:first-child,.monthly-table td:first-child {text-align:left;}
-.monthly-table td {padding:14px;border-right:1px solid rgb(110 140 180 / 10%);}
+.monthly-table td {padding:15px 12px;border-right:1px solid rgb(110 140 180 / 10%);font-size:13px;font-weight:680;}
 .monthly-table tbody tr:nth-child(even) {background:rgb(33 48 74 / 27%);}
 .monthly-table tbody tr:hover {background:rgb(47 72 107 / 36%);}
 .monthly-table .sort-button {white-space:normal;line-height:1.35;}
@@ -296,6 +303,7 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
   .perf-context, .perf-quality { margin-bottom: 12px; }
   .perf-quality { padding: 10px 12px; }
   .monthly-explainer {padding:12px;margin-bottom:12px;}
+  .monthly-targets {grid-template-columns:1fr;gap:7px;margin-bottom:12px;}
   .monthly-controls {grid-template-columns:1fr 1fr;}
   .monthly-table {min-width:0;table-layout:auto;}
   .monthly-table colgroup {display:none;}

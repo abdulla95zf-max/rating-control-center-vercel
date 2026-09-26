@@ -33,6 +33,9 @@ test('UI calculations exclude missing rows and empty cells, preserve zero and di
  assert.equal(total.value,12.5);assert.equal(total.populated,2);assert.equal(total.total,3);
  assert.equal(run("performanceTotal([{present:true,values:{x:null}}],'x').value"),null);
  assert.equal(run("performanceCoverage([{present:true,values:{}}])"),'Funnel data unavailable from Talabat');
+ assert.equal(run("JSON.stringify(projectedTier({rating:4.4,metrics:{failRate:0.4,offlineRate:4,inaccurateOrders:0.4,avoidableWaitingTime:2.9}}))"),'["Exceptional","exceptional",3]');
+ assert.equal(run("JSON.stringify(projectedTier({rating:4.2,metrics:{failRate:0.7,offlineRate:7,inaccurateOrders:0.8,avoidableWaitingTime:3.5}}))"),'["Good","good",2]');
+ assert.equal(run("JSON.stringify(projectedTier({rating:4.5,metrics:{failRate:2.1,offlineRate:1,inaccurateOrders:0.1,avoidableWaitingTime:1}}))"),'["Poor","poor",0]');
 });
 
 test('period and tStar requests reuse the existing protected Performance route',async()=>{
