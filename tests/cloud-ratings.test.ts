@@ -85,7 +85,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
     document:{getElementById:(id:string)=>id==='mainContent'?main:id==='detailContent'?detail:id==='detailPanel'?panel:node,querySelectorAll:()=>[],addEventListener:()=>{}},
     ResizeObserver:class{observe(){}},location:{hash:''},history:{replaceState(){}},window:{setInterval(){},clearTimeout(){},setTimeout(fn:any){fn();}},
     fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>url.includes('/performance/')?performance:grouped};}});
-  const source=fs.readFileSync('public/app.js','utf8').replace(/initialize\(\);\s*$/,'');vm.runInContext(source,context);
+  const source=fs.readFileSync('public/app.js','utf8').replace(/bootDashboard\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),
     {brand:'Kabab Fareej',branch:'Fujairah',key:'kabab fareej|fujairah',displayName:'Kabab Fareej — Fujairah'});

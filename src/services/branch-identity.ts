@@ -1,0 +1,16 @@
+import type {AuthUser} from '../auth.ts';
+import {canAccess} from '../auth.ts';
+
+const rules=[
+ ['Taazaa Mumbai',[/^Taazaa\s+Mumbai\b/i]],['FRB Shawarma',[/^FRB\s+Shawarma\b/i]],['FRB Kabab',[/^FRB\s+Kabab\b/i]],
+ ['Kabab Al Sham',[/^Kabab\s+Al\s+Sham\b/i]],['Kabab Fareej',[/^Kabab\s+Fareej\b/i,/^KF\s*[-–—]/i]],
+ ['Marwareed',[/^(?:Al\s+)?Morwarid\s+Restaurant\b/i,/^(?:Al\s+)?Marwareed\b/i]],['Leekh',[/^Al\s+Leekh\s+Emirati\b/i,/^Leekh\b/i]],
+ ['Tanoorna Ghyr',[/^TANOORNA\s+GHYR\b/i]]
+] as const;
+const aliases=new Map([['al warqa 1','Al Warqa'],['al warqa','Al Warqa'],['al twar 1','Al Twar'],['twar','Al Twar'],['al hamidiya','Ajman'],['al hamidiya 2','Al Hamidiya 2'],['ajman','Ajman'],['international city','Dragon Mart'],['dragon mart','Dragon Mart'],['al qusais 2','Al Qusais'],['qusais','Al Qusais'],['al kharan','RAK'],['rak','RAK'],['mleha al bdai a suburb','Hay Hoshi'],['al bdai a suburb',"Al Bdai'a Suburb"],['hay hoshi','Hay Hoshi'],['al barsha 2','Al Barsha'],['al barsha','Al Barsha'],['barsha al barsha 2','Al Barsha 2'],['fujairah city center','Fujairah'],['fujairah','Fujairah'],['umm al daman','Umm Al Daman'],['um aldaman','Umm Al Daman']]);
+const clean=(value:unknown)=>String(value||'').replace(/\(\s*DH\s+Kitchen\s*\)/ig,'').replace(/\bIndsutrial\b/ig,'Industrial').replace(/\bSubrub\b/ig,'Suburb').replace(/\s*,\s*/g,', ').replace(/\s+/g,' ').replace(/^[-,\s]+|[-,\s]+$/g,'').trim();
+const key=(value:unknown)=>clean(value).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+export function branchIdentity(storeName:unknown){const raw=clean(storeName||'Unknown store'),rule=rules.find(([,patterns])=>patterns.some(pattern=>pattern.test(raw))),brand=rule?.[0]||'Other';let branch=raw;if(rule)for(const pattern of rule[1])branch=branch.replace(pattern,'');branch=clean(branch.replace(/^\s*Al\s*,/i,'').replace(/^\s*[-–—,]+/,''))||'Unknown branch';branch=aliases.get(key(branch))||branch.replace(/\bAl Dhait south\b/i,'Al Dhait South');return {brand,branch,key:`${key(brand)}|${key(branch)}`};}
+export function allowedStore(user:AuthUser,storeName:unknown){const identity=branchIdentity(storeName);return canAccess(user,identity.brand,identity.key);}
+export function scopeRatings<T extends {ratings:any[];platforms:any[];storeCount:number}>(data:T,user:AuthUser):T{if(user.role==='admin'||user.role==='portfolio_manager')return data;const ratings=data.ratings.filter(row=>allowedStore(user,row.storeName));const platforms=data.platforms.map(platform=>{const rows=platform.ratings.filter((row:any)=>allowedStore(user,row.storeName));return {...platform,ratings:rows,storeCount:rows.length};});return {...data,ratings,platforms,storeCount:ratings.length};}
+export function scopePerformance<T extends {rows:any[];scopeCount:number;observedCount?:number;activeCount?:number}>(data:T,user:AuthUser):T{if(user.role==='admin'||user.role==='portfolio_manager')return data;const rows=data.rows.filter(row=>allowedStore(user,row.storeName));return {...data,rows,scopeCount:rows.length,...('observedCount'in data?{observedCount:rows.filter(row=>row.present).length}:{}),...('activeCount'in data?{activeCount:rows.filter(row=>row.tier!==null).length}:{})};}

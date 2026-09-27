@@ -107,6 +107,7 @@ const groupRating = group => { const values=group.rows.map(row=>row.rating).filt
 async function api(path) {
   const response = await fetch(path, { headers: { accept: 'application/json' }, cache: 'no-store' });
   const body = await response.json();
+  if (response.status === 401) globalThis.dashboardAuth?.expired();
   if (!response.ok) throw new Error(body.error || `Request failed: ${response.status}`);
   return body;
 }
@@ -245,7 +246,10 @@ function cloudHealth(result) {
   if (!result || result.state === 'ERROR') return 'ERROR';
   if (result.state === 'EMPTY') return 'EMPTY';
   const age = Date.now() - timestamp(result.syncTimestamp);
-  return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > 7200000 ? 'STALE' : age >= 5400000 ? 'DELAYED' : 'LIVE';
+  const talabat=String(result.platform||'').toLowerCase()==='talabat';
+  const delayedAfter=talabat?5*60*60*1000:90*60*1000;
+  const staleAfter=talabat?8*60*60*1000:2*60*60*1000;
+  return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > staleAfter ? 'STALE' : age >= delayedAfter ? 'DELAYED' : 'LIVE';
 }
 function cloudPlatformCards(platforms) {
   return '<section class="platform-health-grid">' + state.platforms.map(platform => {
@@ -274,6 +278,10 @@ async function renderCloudRatings() {
   const selectedPlatform = state.tab === 'talabat' || state.tab === 'keeta' ? state.tab : null;
   const sourceRows = selectedPlatform ? response.ratings.filter(row => row.platform === selectedPlatform) : response.ratings;
   const allGroups = groupCloudRows(response.ratings);
+  globalThis.ratingAccessOptions={
+    brands:[...new Set(allGroups.map(group=>group.brand))].sort((a,b)=>a.localeCompare(b)),
+    branches:allGroups.map(group=>({key:group.key,label:group.displayName})).sort((a,b)=>a.label.localeCompare(b.label))
+  };
   const viewGroups = selectedPlatform ? groupCloudRows(sourceRows) : allGroups;
   const brands = [...new Set(allGroups.map(group => group.brand))].sort((a,b)=>a.localeCompare(b));
   const search = state.search.toLowerCase();
@@ -516,4 +524,5 @@ if (['overview', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance
   state.tab = initialTab;
   for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab));
 }
-initialize();
+function bootDashboard(){if(globalThis.dashboardAuth)globalThis.dashboardAuth.boot(initialize);else initialize();}
+bootDashboard();

@@ -15,8 +15,9 @@ const payload={ok:true,selector:'all',storeCount:1,ratings:[sourceRow],platforms
   {platform:'talabat',state:'SUCCESS',storeCount:1,syncTimestamp:sourceRow.syncTimestamp,emptyReason:null,errorCode:null,ratings:[sourceRow]},emptyKeeta]};
 const projected={...payload,ratings:[{...sourceRow,status:'HEALTHY'}],platforms:[
   {...payload.platforms[0],ratings:[{...sourceRow,status:'HEALTHY'}]},emptyKeeta]};
+const adminAuth=async()=>({id:'test',username:'test',displayName:'Test',role:'admin' as const,scopes:[],mustChangePassword:false});
 async function call(route:'config'|'health'|'ratings',fetcher:typeof fetch,settings:NodeJS.ProcessEnv=env,method='GET'){
-  const handler=createCloudHandler(route,settings,fetcher);
+  const handler=createCloudHandler(route,settings,fetcher,adminAuth);
   let body:any;const headers:Record<string,string>={};
   const response:any={statusCode:0,setHeader(k:string,v:string){headers[k]=v;},end(s:string){body=JSON.parse(s);}};
   await handler({method,headers:{}} as any,response);
@@ -62,8 +63,8 @@ test('Vercel routes and public output are explicit, runtime is bounded and secre
 });
 test('Cloud dashboard HTML and API load through HTTP without local server entry point',async()=>{
   const routes:Record<string,ReturnType<typeof createCloudHandler>>={
-    '/api/config':createCloudHandler('config',env),'/api/health':createCloudHandler('health',env),
-    '/api/dashboard/ratings/latest':createCloudHandler('ratings',env,async()=>Response.json(payload))};
+    '/api/config':createCloudHandler('config',env,fetch,adminAuth),'/api/health':createCloudHandler('health',env,fetch,adminAuth),
+    '/api/dashboard/ratings/latest':createCloudHandler('ratings',env,async()=>Response.json(payload),adminAuth)};
   // Emulate Vercel's static public directory and three independent function routes.
   const server=createServer((req,res)=>{
     const route=routes[req.url||''];if(route){void route(req,res);return;}

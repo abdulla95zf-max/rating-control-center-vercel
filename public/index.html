@@ -10,6 +10,7 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="stylesheet" href="/styles.css">
   <script src="/performance.js" defer></script>
+  <script src="/auth.js" defer></script>
   <script src="/app.js" defer></script>
 </head>
 <body>
@@ -22,6 +23,11 @@
     <div class="refresh-state" id="refreshState">
       <span class="live-dot"></span>
       <span>Loading data…</span>
+    </div>
+    <div class="account-menu" id="accountMenu" hidden>
+      <span id="accountName"></span>
+      <button class="account-button" id="manageUsers" type="button" hidden>Users</button>
+      <button class="account-button" id="logoutButton" type="button">Log out</button>
     </div>
   </header>
 
@@ -48,6 +54,37 @@
     <section class="detail-sheet">
       <button class="close-button" data-close-detail aria-label="Close details">×</button>
       <div id="detailContent"></div>
+    </section>
+  </aside>
+
+  <section class="auth-gate" id="authGate" hidden>
+    <form class="auth-card" id="loginForm">
+      <div class="brand-mark">RC</div>
+      <h2>Rating Control Center</h2>
+      <p>Sign in with the username and password provided by your administrator.</p>
+      <label>Username<input id="loginUsername" name="username" autocomplete="username" required></label>
+      <label>Password<input id="loginPassword" name="password" type="password" autocomplete="current-password" required></label>
+      <p class="form-error" id="loginError" role="alert"></p>
+      <button class="primary-button" type="submit">Sign in</button>
+    </form>
+  </section>
+
+  <aside class="admin-panel" id="adminPanel" hidden aria-labelledby="adminTitle">
+    <div class="detail-backdrop" data-close-admin></div>
+    <section class="admin-sheet">
+      <button class="close-button" data-close-admin aria-label="Close user management">×</button>
+      <h2 id="adminTitle">User management</h2>
+      <p>Create credentials directly. Users are not emailed and are not forced to change their password.</p>
+      <form id="createUserForm" class="user-form">
+        <label>Display name<input name="displayName" maxlength="120" required></label>
+        <label>Username<input name="username" minlength="3" maxlength="40" pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,39}" required></label>
+        <label>Password<input name="password" type="password" minlength="12" maxlength="128" required></label>
+        <label>Role<select name="role"><option value="viewer">Viewer</option><option value="branch_manager">Branch manager</option><option value="brand_manager">Brand manager</option><option value="portfolio_manager">Portfolio manager</option><option value="admin">Administrator</option></select></label>
+        <label class="scope-field">Access<select name="scope" multiple size="6"></select><small>For brand/branch managers, select one or more items. Ctrl/Cmd selects multiple.</small></label>
+        <p class="form-error" data-user-error role="alert"></p>
+        <button class="primary-button" type="submit">Create user</button>
+      </form>
+      <div id="usersList" class="users-list"></div>
     </section>
   </aside>
 </body>

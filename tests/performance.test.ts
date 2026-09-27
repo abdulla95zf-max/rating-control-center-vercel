@@ -21,7 +21,8 @@ test('malformed dates, scope mismatches, secret-bearing fields and oversized res
 });
 test('cloud performance endpoint uses server credentials and blocks cross-site/non-GET calls',async()=>{
  let calls=0;const mock:typeof fetch=async()=>{calls++;return Response.json(fixture());};
- const s=createServer(createCloudHandler('performance',{RATINGS_API_URL:config.ratingsApiUrl,RATINGS_API_TOKEN:token},mock));await new Promise<void>(r=>s.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+(s.address() as {port:number}).port;
+ const auth=async()=>({id:'test',username:'test',displayName:'Test',role:'admin' as const,scopes:[],mustChangePassword:false});
+ const s=createServer(createCloudHandler('performance',{RATINGS_API_URL:config.ratingsApiUrl,RATINGS_API_TOKEN:token},mock,auth));await new Promise<void>(r=>s.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+(s.address() as {port:number}).port;
  try{assert.equal((await fetch(url,{method:'POST'})).status,405);assert.equal((await fetch(url,{headers:{'sec-fetch-site':'cross-site'}})).status,403);assert.equal(calls,0);assert.equal((await fetch(url+'?date=invalid')).status,400);const r=await fetch(url+'?date=2026-09-20');assert.equal(r.status,200);assert.ok(!(await r.text()).includes(token));}
  finally{s.closeAllConnections();await new Promise<void>(r=>s.close(()=>r()));}
 });
