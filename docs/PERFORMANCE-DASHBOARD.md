@@ -44,6 +44,20 @@ The selected source is the existing REPORT_SOURCE_KEY, never browser supplied.
 - All report values are escaped before display. Unknown upstream fields are dropped.
 - No cross-day graphs or blended rates are fabricated. Only stored days are offered.
 
+## Action Center
+
+- Rating actions use each platform's latest snapshot and trigger only below 4.1.
+- Daily Performance actions trigger above these source values: customer complaint
+  rate 1%, avoidable cancellation rate 1.5%, unavailable time rate 2%, and average
+  preparation time 16 minutes.
+- Operational thresholds are evaluated only when Successful Orders is numeric and
+  above zero for that report day. Zero-order rows do not create operational actions;
+  a missing order value creates a data check instead of assuming zero.
+- The action row shows the day's Successful Orders for context. Rating actions remain
+  independent of daily order count.
+- Action Center has its own brand filter. Counts and the 12-row priority list follow
+  that filter.
+
 Reports are rechecked at most once per five minutes while this tab is active;
 brand/branch/search/view changes use the loaded data. Manual refresh bypasses the
 browser memory cache. There is no browser localStorage persistence of reports.

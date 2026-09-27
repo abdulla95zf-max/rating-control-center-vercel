@@ -1,5 +1,15 @@
 # Phase 2B — Keeta Live dashboard
 
+## Action Center rules update · 2026-09-27
+
+- Triggers rating actions only below 4.1.
+- Uses daily thresholds of complaints above 1%, avoidable cancellation above 1.5%,
+  offline above 2%, and average preparation time above 16 minutes.
+- Suppresses operational actions when Successful Orders is zero; missing order data
+  becomes a data check. Rating actions remain independent.
+- Shows Successful Orders on operational action rows and adds an Action Center brand filter.
+- Labels the mixed time basis clearly: latest ratings and daily Performance.
+
 - Extends the existing server-side proxy to request and strictly validate `platform=all`.
 - Computes display status centrally from rating and ignores legacy source status for presentation.
 - Adds combined Overview, isolated Talabat and Keeta tabs, platform badges, independent freshness, partial-failure states, and deterministic sorting.
