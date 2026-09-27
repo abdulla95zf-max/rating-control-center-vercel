@@ -156,6 +156,9 @@ tbody tr:hover { background: #172235; }
 .action-tabs button { border: 1px solid #34445e; border-radius: 9px; background: #0c1422; color: #9fb0c5; padding: 8px 12px; font-weight: 800; cursor: pointer; }
 .action-tabs button.active { border-color: #6685ad; background: #29405f; color: #fff; }
 .action-tabs span { margin-left: 5px; color: #75d7dc; }
+.action-readiness { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 20px; border-bottom: 1px solid #315069; background: linear-gradient(90deg, rgb(26 73 92 / 42%), rgb(24 40 62 / 38%)); }
+.action-readiness strong { color: #89dbe0; font-size: 12px; }
+.action-readiness span { color: #9eb2ca; font-size: 11px; text-align: right; }
 .action-copy .action-recommendation { margin-top: 6px; color: #a9bdd3; white-space: normal; line-height: 1.45; }
 .action-recommendation b { color: #75d7dc; }
 .action-full-list { width: 100%; border: 0; border-top: 1px solid var(--line); background: #101c2c; color: #8fc5ff; padding: 12px; font-weight: 800; cursor: pointer; }
@@ -334,6 +337,8 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
   .action-header h3 { font-size: 18px; }
   .action-summary { justify-content: flex-start; }
   .action-row { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; padding: 11px 12px; }
+  .action-readiness { display: grid; gap: 5px; padding: 11px 13px; }
+  .action-readiness span { text-align: left; line-height: 1.45; }
 .action-priority { padding: 5px 7px; font-size: 8px; text-align: center; }
   .action-copy strong { font-size: 12px; }
   .action-copy p { white-space: normal; line-height: 1.4; }
