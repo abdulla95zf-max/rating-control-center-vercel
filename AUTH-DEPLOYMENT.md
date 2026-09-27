@@ -8,7 +8,7 @@ Add these to the `rating-control-center-vercel` project for Production, Preview,
 
 - `DATABASE_URL`: the existing Neon/PostgreSQL connection string.
 - `AUTH_BOOTSTRAP_USERNAME`: the first administrator username, for example `admin`.
-- `AUTH_BOOTSTRAP_PASSWORD`: the first administrator password (12–128 characters).
+- `AUTH_BOOTSTRAP_PASSWORD`: the first administrator password (6–128 characters).
 - `AUTH_BOOTSTRAP_DISPLAY_NAME`: optional display name.
 
 The first request creates the authentication tables and the bootstrap administrator only when the users table is empty. After the first administrator login succeeds, `AUTH_BOOTSTRAP_PASSWORD` can be removed from Vercel and the project redeployed.

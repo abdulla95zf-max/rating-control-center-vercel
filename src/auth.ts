@@ -24,7 +24,7 @@ function database(){
 export function authDatabase(){return database();}
 function text(value:unknown,max:number){return typeof value==='string'&&value.trim().length>0&&value.trim().length<=max?value.trim():null;}
 function username(value:unknown){const normalized=typeof value==='string'?value.trim().toLowerCase():'';return USERNAME.test(normalized)?normalized:null;}
-function password(value:unknown){return typeof value==='string'&&value.length>=12&&value.length<=128?value:null;}
+function password(value:unknown){return typeof value==='string'&&value.length>=6&&value.length<=128?value:null;}
 function hashToken(token:string){return createHash('sha256').update(token).digest('hex');}
 async function hashPassword(value:string){const salt=randomBytes(16),key=await scrypt(value,salt,64,{N:32768,r:8,p:1,maxmem:64*1024*1024}) as Buffer;return `scrypt$32768$8$1$${salt.toString('base64')}$${key.toString('base64')}`;}
 async function verifyPassword(value:string,encoded:string){try{const [kind,n,r,p,salt,key]=encoded.split('$');if(kind!=='scrypt'||!n||!r||!p||!salt||!key)return false;const expected=Buffer.from(key,'base64'),actual=await scrypt(value,Buffer.from(salt,'base64'),expected.length,{N:Number(n),r:Number(r),p:Number(p),maxmem:64*1024*1024}) as Buffer;return expected.length===actual.length&&timingSafeEqual(expected,actual);}catch{return false;}}
