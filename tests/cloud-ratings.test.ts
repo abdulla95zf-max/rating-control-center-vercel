@@ -104,6 +104,8 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext(`buildActionCenter([{key:'x',displayName:'Kabab Fareej — Test',rows:[{platform:'talabat',rating:4.1}]}],null).length`,context),0);
   assert.equal(vm.runInContext(`buildActionCenter([{key:'x',displayName:'Kabab Fareej — Test',rows:[{platform:'talabat',rating:4.0}]}],null).length`,context),1);
   assert.equal(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'0','Customer Complaint rate':'9','Avoidable cancellation rate':'9','Unavailable Time Duration Rate':'9','Average preparation time (minutes)':'99'}}]}).length`,context),0);
+  assert.equal(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'9','Customer Complaint rate':'9'}}]})[0].level`,context),'attention');
+  assert.equal(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'10','Customer Complaint rate':'9'}}]})[0].level`,context),'critical');
   for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat.svg','/platforms/keeta.svg','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
   assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,2);
