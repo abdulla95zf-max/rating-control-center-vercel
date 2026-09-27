@@ -21,7 +21,7 @@ test('malformed dates, scope mismatches, secret-bearing fields and oversized res
 });
 test('cloud performance endpoint uses server credentials and blocks cross-site/non-GET calls',async()=>{
  let calls=0;const mock:typeof fetch=async()=>{calls++;return Response.json(fixture());};
- const auth=async()=>({id:'test',username:'test',displayName:'Test',role:'admin' as const,scopes:[],mustChangePassword:false});
+ const auth=async()=>({id:'test',username:'test',displayName:'Test',role:'admin' as const,scopes:[],mustChangePassword:false,isOwner:true});
  const s=createServer(createCloudHandler('performance',{RATINGS_API_URL:config.ratingsApiUrl,RATINGS_API_TOKEN:token},mock,auth));await new Promise<void>(r=>s.listen(0,'127.0.0.1',r));const url='http://127.0.0.1:'+(s.address() as {port:number}).port;
  try{assert.equal((await fetch(url,{method:'POST'})).status,405);assert.equal((await fetch(url,{headers:{'sec-fetch-site':'cross-site'}})).status,403);assert.equal(calls,0);assert.equal((await fetch(url+'?date=invalid')).status,400);const r=await fetch(url+'?date=2026-09-20');assert.equal(r.status,200);assert.ok(!(await r.text()).includes(token));}
  finally{s.closeAllConnections();await new Promise<void>(r=>s.close(()=>r()));}
@@ -38,6 +38,8 @@ test('UI calculations exclude missing rows and empty cells, preserve zero and di
  assert.equal(run("JSON.stringify(projectedTier({rating:4.2,metrics:{failRate:0.7,offlineRate:7,inaccurateOrders:0.8,avoidableWaitingTime:3.5}}))"),'["Good","good",2]');
  assert.equal(run("JSON.stringify(projectedTier({rating:4.5,metrics:{failRate:2.1,offlineRate:1,inaccurateOrders:0.1,avoidableWaitingTime:1}}))"),'["Poor","poor",0]');
 });
+
+test('branch detail hides noisy fields without removing source data from the proxy',()=>{const source=readFileSync('public/performance.js','utf8');for(const field of ['Delivery Sales','Orders count','Customer Complaint rate','Avoidable cancellation rate','Unavailable Time Duration Rate','Total AWT Duration (Minutes)'])assert.match(source,new RegExp(`hiddenPerformanceDetailFields[^;]*${field.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}`));assert.match(source,/data\.headers\.filter\(h=>!hiddenPerformanceDetailFields\.has\(h\)\)/);});
 
 test('period and tStar requests reuse the existing protected Performance route',async()=>{
  assert.deepEqual(requestPerformanceQuery('/x?period=7d'),{period:'7d'});assert.deepEqual(requestPerformanceQuery('/x?dataset=tstar'),{dataset:'tstar'});assert.throws(()=>requestPerformanceQuery('/x?dataset=tstar&period=month'));

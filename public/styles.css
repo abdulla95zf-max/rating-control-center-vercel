@@ -152,6 +152,14 @@ tbody tr:hover { background: #172235; }
 .action-more, .action-clear { padding: 13px 20px; }
 .action-clear { color: var(--healthy); }
 .action-rules { margin: 0; padding: 11px 20px; border-top: 1px solid var(--line); color: #71829a; font-size: 10px; line-height: 1.5; }
+.action-tabs { display: flex; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--line); }
+.action-tabs button { border: 1px solid #34445e; border-radius: 9px; background: #0c1422; color: #9fb0c5; padding: 8px 12px; font-weight: 800; cursor: pointer; }
+.action-tabs button.active { border-color: #6685ad; background: #29405f; color: #fff; }
+.action-tabs span { margin-left: 5px; color: #75d7dc; }
+.action-copy .action-recommendation { margin-top: 6px; color: #a9bdd3; white-space: normal; line-height: 1.45; }
+.action-recommendation b { color: #75d7dc; }
+.action-full-list { width: 100%; border: 0; border-top: 1px solid var(--line); background: #101c2c; color: #8fc5ff; padding: 12px; font-weight: 800; cursor: pointer; }
+.action-full-list:hover { background: #14243a; }
 .data-checks { margin: -8px 0 22px; overflow: hidden; border: 1px solid #2e3b50; border-radius: 16px; background: #0d1624; }
 .data-checks > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
 .data-checks h3 { margin: 3px 0 4px; font-size: 17px; }

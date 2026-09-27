@@ -15,7 +15,7 @@ const payload={ok:true,selector:'all',storeCount:1,ratings:[sourceRow],platforms
   {platform:'talabat',state:'SUCCESS',storeCount:1,syncTimestamp:sourceRow.syncTimestamp,emptyReason:null,errorCode:null,ratings:[sourceRow]},emptyKeeta]};
 const projected={...payload,ratings:[{...sourceRow,status:'HEALTHY'}],platforms:[
   {...payload.platforms[0],ratings:[{...sourceRow,status:'HEALTHY'}]},emptyKeeta]};
-const adminAuth=async()=>({id:'test',username:'test',displayName:'Test',role:'admin' as const,scopes:[],mustChangePassword:false});
+const adminAuth=async()=>({id:'test',username:'test',displayName:'Test',role:'admin' as const,scopes:[],mustChangePassword:false,isOwner:true});
 async function call(route:'config'|'health'|'ratings',fetcher:typeof fetch,settings:NodeJS.ProcessEnv=env,method='GET'){
   const handler=createCloudHandler(route,settings,fetcher,adminAuth);
   let body:any;const headers:Record<string,string>={};
@@ -57,6 +57,9 @@ test('Vercel routes and public output are explicit, runtime is bounded and secre
   assert.equal(cfg.framework,null);assert.equal(cfg.outputDirectory,'public');assert.equal(cfg.functions['api/**/*.ts'].maxDuration,30);
   assert.equal(cfg.crons,undefined);assert.equal(cfg.env,undefined);
   for(const file of ['api/config.ts','api/dashboard/ratings/latest.ts','api/dashboard/performance/action-history.ts'])assert.match(fs.readFileSync(file,'utf8'),/export default createCloudHandler/);
+  assert.ok(fs.readdirSync('api',{recursive:true}).filter(file=>String(file).endsWith('.ts')).length<=12);
+  for(const file of ['public/branches.html','public/branches.js','public/branches.css'])assert.equal(fs.existsSync(file),true,file);
+  assert.match(fs.readFileSync('src/auth.ts','utf8'),/is_owner/);assert.match(fs.readFileSync('src/services/branch-identity.ts','utf8'),/record\?\.active/);
   const ignore=fs.readFileSync('.vercelignore','utf8');for(const value of ['.env','.secrets/','*.sqlite','*.db'])assert.ok(ignore.includes(value));
   for(const file of fs.readdirSync('public'))if(fs.statSync(path.join('public',file)).isFile())assert.doesNotMatch(fs.readFileSync(path.join('public',file),'utf8'),/RATINGS_API_TOKEN|PRIVATE-UPSTREAM|Bearer /);
   const headers=cfg.headers[0].headers;assert.ok(headers.some((h:any)=>h.key==='Content-Security-Policy'&&h.value.includes("connect-src 'self'")));
