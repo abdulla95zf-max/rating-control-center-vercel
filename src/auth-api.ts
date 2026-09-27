@@ -1,5 +1,7 @@
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {changePassword,createUser,currentUser,listUsers,login,logout,readJson,requireUser,resetPassword,sameOrigin,updateUser} from './auth.ts';
+import {fetchLatestRatings} from './services/latest-ratings-proxy.ts';
+import {branchIdentity} from './services/branch-identity.ts';
 
 function headers(response:ServerResponse){response.setHeader('Content-Type','application/json; charset=utf-8');response.setHeader('Cache-Control','no-store, private');response.setHeader('X-Content-Type-Options','nosniff');}
 function send(response:ServerResponse,status:number,body:unknown){response.statusCode=status;response.end(JSON.stringify(body));}
@@ -18,4 +20,18 @@ export function createAuthHandler(route:'session'|'login'|'logout'|'changePasswo
   if(request.method==='POST'){const id=await createUser(user,body);return send(response,201,{ok:true,id});}
   const id=String(body.id||'');if(body.newPassword){await resetPassword(user,id,body.newPassword);return send(response,200,{ok:true});}await updateUser(user,id,body);return send(response,200,{ok:true});
  }catch(error:any){const code=String(error?.message||'');const status=code==='USERNAME_EXISTS'?409:code.startsWith('INVALID_')||code==='SELF_DISABLE'?400:code==='USER_NOT_FOUND'?404:503;return send(response,status,{error:status===503?'Authentication service unavailable':code});}};
+}
+
+export function createAccessOptionsHandler(env:NodeJS.ProcessEnv=process.env,fetcher:typeof fetch=fetch){
+ return async(request:IncomingMessage,response:ServerResponse)=>{headers(response);try{
+  if(request.method!=='GET')return send(response,405,{error:'Method not allowed'});
+  const user=await requireUser(request,response);if(!user)return;if(user.role!=='admin')return send(response,403,{error:'Administrator access required'});
+  const result=await fetchLatestRatings({host:'',port:0,talabatDatabasePath:'',publicDirectory:'',autoRefreshSeconds:60,ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''},fetcher);
+  const identityMap=new Map<string,ReturnType<typeof branchIdentity>>();
+  for(const row of result.ratings as Array<{storeName:string}>){const identity=branchIdentity(row.storeName);identityMap.set(identity.key,identity);}
+  const identities=[...identityMap.values()];
+  const brands=[...new Set(identities.map(item=>item.brand))].sort((a,b)=>a.localeCompare(b));
+  const branches=identities.map(item=>({key:item.key,brand:item.brand,branch:item.branch,label:`${item.brand} — ${item.branch}`})).sort((a,b)=>a.label.localeCompare(b.label));
+  return send(response,200,{brands,branches});
+ }catch{return send(response,503,{error:'Access options are temporarily unavailable'});}};
 }

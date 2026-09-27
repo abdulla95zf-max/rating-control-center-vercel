@@ -63,29 +63,11 @@
       <h2>Rating Control Center</h2>
       <p>Sign in with the username and password provided by your administrator.</p>
       <label>Username<input id="loginUsername" name="username" autocomplete="username" required></label>
-      <label>Password<input id="loginPassword" name="password" type="password" autocomplete="current-password" required></label>
+      <label>Password<span class="password-input"><input id="loginPassword" name="password" type="password" autocomplete="current-password" required><button type="button" data-toggle-password="loginPassword" aria-label="Show password">Show</button></span></label>
       <p class="form-error" id="loginError" role="alert"></p>
       <button class="primary-button" type="submit">Sign in</button>
     </form>
   </section>
 
-  <aside class="admin-panel" id="adminPanel" hidden aria-labelledby="adminTitle">
-    <div class="detail-backdrop" data-close-admin></div>
-    <section class="admin-sheet">
-      <button class="close-button" data-close-admin aria-label="Close user management">×</button>
-      <h2 id="adminTitle">User management</h2>
-      <p>Create credentials directly. Users are not emailed and are not forced to change their password.</p>
-      <form id="createUserForm" class="user-form">
-        <label>Display name<input name="displayName" maxlength="120" required></label>
-        <label>Username<input name="username" minlength="3" maxlength="40" pattern="[a-zA-Z0-9][a-zA-Z0-9._-]{2,39}" required></label>
-        <label>Password<input name="password" type="password" minlength="12" maxlength="128" required></label>
-        <label>Role<select name="role"><option value="viewer">Viewer</option><option value="branch_manager">Branch manager</option><option value="brand_manager">Brand manager</option><option value="portfolio_manager">Portfolio manager</option><option value="admin">Administrator</option></select></label>
-        <label class="scope-field">Access<select name="scope" multiple size="6"></select><small>For brand/branch managers, select one or more items. Ctrl/Cmd selects multiple.</small></label>
-        <p class="form-error" data-user-error role="alert"></p>
-        <button class="primary-button" type="submit">Create user</button>
-      </form>
-      <div id="usersList" class="users-list"></div>
-    </section>
-  </aside>
 </body>
 </html>
