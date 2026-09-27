@@ -152,6 +152,10 @@ tbody tr:hover { background: #172235; }
 .action-more, .action-clear { padding: 13px 20px; }
 .action-clear { color: var(--healthy); }
 .action-rules { margin: 0; padding: 11px 20px; border-top: 1px solid var(--line); color: #71829a; font-size: 10px; line-height: 1.5; }
+.data-checks { margin: -8px 0 22px; overflow: hidden; border: 1px solid #2e3b50; border-radius: 16px; background: #0d1624; }
+.data-checks > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid var(--line); }
+.data-checks h3 { margin: 3px 0 4px; font-size: 17px; }
+.data-checks header p { margin: 0; color: var(--muted); font-size: 11px; }
 
 @media (max-width: 1050px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 760px) {
@@ -316,11 +320,13 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
   .monthly-table td::before {font-size:9px;color:#8fa7c2;}
   .tier-badge {min-width:94px;justify-self:end;}
   .action-center { margin-bottom: 14px; border-radius: 13px; }
+  .data-checks { margin: 0 0 14px; border-radius: 13px; }
+  .data-checks > header { flex-direction: column; padding: 14px 12px; }
   .action-header { display: grid; gap: 12px; padding: 15px 13px; }
   .action-header h3 { font-size: 18px; }
   .action-summary { justify-content: flex-start; }
   .action-row { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 8px; padding: 11px 12px; }
-  .action-priority { padding: 5px 7px; font-size: 8px; text-align: center; }
+.action-priority { padding: 5px 7px; font-size: 8px; text-align: center; }
   .action-copy strong { font-size: 12px; }
   .action-copy p { white-space: normal; line-height: 1.4; }
   .action-open { padding: 6px 9px; font-size: 10px; }
