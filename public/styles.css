@@ -132,6 +132,17 @@ tbody tr:hover { background: #172235; }
 .history-placeholder strong { color: var(--text); }
 .history-placeholder p { margin-bottom: 0; }
 .action-center { margin: 0 0 22px; overflow: hidden; border: 1px solid #34435b; border-radius: 16px; background: linear-gradient(145deg, #111d2d, #0e1725); }
+.recent-changes { margin: 0 0 22px; overflow: hidden; border: 1px solid #315069; border-radius: 16px; background: linear-gradient(145deg, #102131, #0d1827); }
+.recent-filters { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 9px; }
+.recent-filters label, .action-summary label { color: var(--muted); font-size: 10px; }
+.recent-filters .select, .action-summary .select { display: block; margin-top: 5px; min-width: 138px; }
+.recent-change { border-radius: 999px; padding: 6px 9px; font-size: 9px; font-weight: 800; white-space: nowrap; text-align: center; }
+.recent-change.drops { color: #ff718b; background: rgb(255 77 109 / 13%); }
+.recent-change.oneStar { color: #ffb74e; background: rgb(255 173 66 / 13%); }
+.recent-change.recovered { color: #6ce0ac; background: rgb(54 211 153 / 13%); }
+.recent-row .platform-identity { display: inline-flex; min-width: 0; margin-right: 5px; vertical-align: middle; }
+.recent-row .platform-identity img { width: 14px; height: 14px; }
+.recent-row .platform-identity > span { font-size: 10px; }
 .action-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 20px; border-bottom: 1px solid var(--line); }
 .action-header h3 { margin: 3px 0 5px; font-size: 20px; }
 .action-header p, .action-copy p, .action-more { margin: 0; color: var(--muted); font-size: 11px; }
@@ -185,6 +196,7 @@ tbody tr:hover { background: #172235; }
   .compact-table td:first-child, .overview-table td:first-child { display: block; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
   .compact-table td:first-child::before, .overview-table td:first-child::before { display: none; }
   .platform-rating-list { min-width: 0; }.platform-rating { width: 100%; justify-content: flex-start; }.platform-identity { min-width: 76px; }
+  .action-header { flex-direction: column; }.recent-filters { width: 100%; justify-content: flex-start; }.recent-filters label { flex: 1; }.recent-filters .select { width: 100%; min-width: 0; }.action-tabs { overflow-x: auto; }.action-row { grid-template-columns: 70px minmax(0, 1fr) auto; padding-inline: 13px; }
   .cloud-detail-platforms { grid-template-columns: 1fr; }.cloud-detail-card dl { grid-template-columns: 1fr 1fr; }
 }
 

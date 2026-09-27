@@ -9,6 +9,7 @@ import {createCloudHandler} from '../src/cloud-api.ts';
 const token='PRIVATE-UPSTREAM-TOKEN-'.repeat(3);
 const env={RATINGS_API_URL:'https://talabat-rating-monitor-vercel-poc.vercel.app/api/ratings/latest',RATINGS_API_TOKEN:token};
 const sourceRow={platform:'talabat',storeName:'Synthetic Marina',storeIdentityKey:'TB_AE;123',rating:4.4,reviewCount:22,oneStarCount:1,
+  previousRating:4.5,previousReviewCount:20,previousOneStarCount:1,previousTimestamp:'2026-09-17T08:00:00.000Z',
   timestamp:'2026-09-17T12:00:00.000Z',syncTimestamp:'2026-09-17T12:00:00.000Z',carriedForward:false};
 const emptyKeeta={platform:'keeta',state:'EMPTY',storeCount:0,syncTimestamp:null,emptyReason:'NO_RUN',errorCode:null,ratings:[]};
 const payload={ok:true,selector:'all',storeCount:1,ratings:[sourceRow],platforms:[

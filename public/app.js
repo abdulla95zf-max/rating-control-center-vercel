@@ -12,7 +12,11 @@ const state = {
   cloudResponse: null,
   actionBrand: '',
   actionTab: 'actions',
-  actionExpanded: false
+  actionExpanded: false,
+  recentBrand: '',
+  recentPlatform: '',
+  recentTab: 'drops',
+  recentExpanded: false
 };
 
 const main = document.getElementById('mainContent');
@@ -55,6 +59,7 @@ const ratingSortHeader=(label,key)=>{const active=state.sort.startsWith(key+'_')
 const actionNumber=value=>typeof value==='string'&&/^[-+]?\d+(?:\.\d+)?$/.test(value.trim())&&Number.isFinite(Number(value))?Number(value):null;
 let currentActions=[];
 let currentDataChecks=[];
+let currentRecentChanges=[];
 
 const brandRules = [
   { brand: 'Taazaa Mumbai', patterns: [/^Taazaa\s+Mumbai\b/i] },
@@ -305,8 +310,10 @@ async function renderCloudRatings() {
   const overallHealth=active.some(item=>item.state==='ERROR')?'ERROR':active.some(item=>cloudHealth(item)==='STALE')?'STALE':active.some(item=>cloudHealth(item)==='DELAYED')?'DELAYED':'LIVE';
   refreshState.querySelector('.live-dot').dataset.health=overallHealth;
   if(performance?.rows&&typeof performanceState!=='undefined'){performanceState.cache=performance;performanceState.cacheKey='';performanceState.checkedAt=Date.now();}
+  const recentChanges=!selectedPlatform?renderRecentChanges(allGroups):'';
   const actionCenter=!selectedPlatform?renderActionCenter(allGroups,performance,actionHistory):'';
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div></div>
+    ${recentChanges}
     ${actionCenter}
     ${cloudPlatformCards(platformResults)}
     <section class="kpi-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
@@ -317,8 +324,21 @@ async function renderCloudRatings() {
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
   attachCloudStoreClicks(filteredGroups);
+  attachRecentChanges(allGroups);
   attachActionCenter(allGroups);
 }
+
+function buildRecentChanges(groups){
+ const changes=[];
+ for(const group of groups)for(const row of group.rows){if(!row.previousTimestamp)continue;const ratingDelta=row.rating!==null&&row.previousRating!==null?Number((row.rating-row.previousRating).toFixed(1)):null,oneStarDelta=Number.isSafeInteger(row.oneStarCount)&&Number.isSafeInteger(row.previousOneStarCount)?row.oneStarCount-row.previousOneStarCount:null,reviewDelta=Number.isSafeInteger(row.reviewCount)&&Number.isSafeInteger(row.previousReviewCount)?row.reviewCount-row.previousReviewCount:null,base={key:group.key,name:group.displayName,brand:group.brand,platform:row.platform,timestamp:row.timestamp,rating:row.rating,previousRating:row.previousRating,ratingDelta,oneStarDelta,reviewDelta};if(ratingDelta!==null&&ratingDelta<0)changes.push({...base,type:'drops',score:(row.previousRating>=4.1&&row.rating<4.1?200:100)+Math.abs(ratingDelta)*100,label:row.previousRating>=4.1&&row.rating<4.1?'New critical':'Rating drop'});if(oneStarDelta!==null&&oneStarDelta>0)changes.push({...base,type:'oneStar',score:80+oneStarDelta*12,label:'New one-star'});if(ratingDelta!==null&&ratingDelta>0)changes.push({...base,type:'recovered',score:ratingDelta*100+(row.previousRating<4.1&&row.rating>=4.1?100:0),label:row.previousRating<4.1&&row.rating>=4.1?'Recovered above 4.1':'Rating improved'});}
+ return changes.sort((a,b)=>b.score-a.score||timestamp(b.timestamp)-timestamp(a.timestamp)||a.name.localeCompare(b.name));
+}
+function renderRecentChanges(groups){
+ const all=buildRecentChanges(groups),brands=[...new Set(all.map(item=>item.brand))].sort(),filtered=all.filter(item=>(!state.recentBrand||item.brand===state.recentBrand)&&(!state.recentPlatform||item.platform===state.recentPlatform)),lists={drops:filtered.filter(item=>item.type==='drops'),oneStar:filtered.filter(item=>item.type==='oneStar'),recovered:filtered.filter(item=>item.type==='recovered')},selected=lists[state.recentTab]||lists.drops;currentRecentChanges=selected;const shown=state.recentExpanded?selected:selected.slice(0,5),detail=item=>item.type==='oneStar'?`+${formatNumber(item.oneStarDelta)} one-star${item.reviewDelta>0?` from +${formatNumber(item.reviewDelta)} reviews`:''}`:`${formatRating(item.previousRating)} → ${formatRating(item.rating)} (${item.ratingDelta>0?'+':''}${item.ratingDelta.toFixed(1)})`;
+ const row=(item,index)=>`<li class="action-row recent-row"><span class="recent-change ${item.type}">${escapeHtml(item.label)}</span><div class="action-copy"><strong>${escapeHtml(item.name)}</strong><p>${platformLogoHtml(item.platform)} <span>${escapeHtml(detail(item))}</span> · ${escapeHtml(formatTime(item.timestamp))}</p></div><button class="action-open" data-recent-index="${index}">View</button></li>`;
+ return `<section class="recent-changes"><header class="action-header"><div><span class="action-eyebrow">PREVIOUS SAVED SNAPSHOT</span><h3>Recent Changes</h3><p>What changed since each store’s previous collection</p></div><div class="recent-filters"><label>Brand <select class="select" id="recentBrand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.recentBrand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select></label><label>Platform <select class="select" id="recentPlatform"><option value="">All platforms</option>${['talabat','keeta'].map(platform=>`<option value="${platform}" ${state.recentPlatform===platform?'selected':''}>${platform[0].toUpperCase()+platform.slice(1)}</option>`).join('')}</select></label></div></header><nav class="action-tabs">${[['drops','Rating drops',lists.drops.length],['oneStar','New one-star',lists.oneStar.length],['recovered','Recovered',lists.recovered.length]].map(([key,label,count])=>`<button type="button" class="${state.recentTab===key?'active':''}" data-recent-tab="${key}">${label} <span>${count}</span></button>`).join('')}</nav>${shown.length?`<ol class="action-list">${shown.map(row).join('')}</ol>`:'<div class="action-clear">No recent changes in this category.</div>'}${selected.length>5?`<button class="action-full-list" id="recentFullList" type="button">${state.recentExpanded?'Show top 5':`View full list (${selected.length})`}</button>`:''}<p class="action-rules">This compares the latest saved snapshot with the immediately previous one. Talabat normally collects every 4 hours; this is not a daily comparison.</p></section>`;
+}
+function attachRecentChanges(groups){const lookup=new Map(groups.map(group=>[group.key,group])),brand=document.getElementById('recentBrand'),platform=document.getElementById('recentPlatform');if(brand)brand.onchange=()=>{state.recentBrand=brand.value;state.recentExpanded=false;renderCurrent();};if(platform)platform.onchange=()=>{state.recentPlatform=platform.value;state.recentExpanded=false;renderCurrent();};for(const button of main.querySelectorAll('[data-recent-tab]'))button.onclick=()=>{state.recentTab=button.dataset.recentTab;state.recentExpanded=false;renderCurrent();};const full=document.getElementById('recentFullList');if(full)full.onclick=()=>{state.recentExpanded=!state.recentExpanded;renderCurrent();};for(const button of main.querySelectorAll('[data-recent-index]'))button.onclick=()=>{const item=currentRecentChanges[Number(button.dataset.recentIndex)];if(item&&lookup.has(item.key))openCloudStore(lookup.get(item.key));};}
 
 function buildActionCenter(groups,performance,actionHistory){
  const actions=new Map(),levels={attention:1,critical:2},pointsByStore=new Map();for(const point of actionHistory?.points||[]){const id=String(point.storeId),rows=pointsByStore.get(id)||[];rows.push(point);pointsByStore.set(id,rows);}for(const rows of pointsByStore.values())rows.sort((a,b)=>b.reportDate.localeCompare(a.reportDate));

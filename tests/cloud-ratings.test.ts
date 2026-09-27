@@ -12,8 +12,10 @@ const secret='PRIVATE-server-token-'.repeat(3);
 const config={host:'127.0.0.1',port:3000,talabatDatabasePath:'',autoRefreshSeconds:60,
   publicDirectory:path.resolve('public'),ratingsApiUrl:'https://example.vercel.app/api/ratings/latest',ratingsApiToken:secret};
 const talabat={platform:'talabat',storeIdentityKey:'TB_AE;one',storeName:'Synthetic Same',rating:4.4,reviewCount:25,oneStarCount:1,
+  previousRating:4.6,previousReviewCount:23,previousOneStarCount:0,previousTimestamp:'2026-09-17T08:00:00.000Z',
   timestamp:'2026-09-17T12:00:00.000Z',syncTimestamp:'2026-09-17T12:00:00.000Z',carriedForward:false};
 const keeta={platform:'keeta',storeIdentityKey:'KEETA;one',storeName:'Synthetic Same',rating:4.3,reviewCount:null,oneStarCount:null,
+  previousRating:null,previousReviewCount:null,previousOneStarCount:null,previousTimestamp:null,
   timestamp:'2026-09-17T11:00:00.000Z',syncTimestamp:'2026-09-17T12:00:00.000Z',carriedForward:true};
 const platform=(name:'talabat'|'keeta',ratings:any[],state='SUCCESS')=>({platform:name,state,storeCount:ratings.length,
   syncTimestamp:state==='ERROR'?null:'2026-09-17T12:00:00.000Z',emptyReason:state==='EMPTY'?'NO_RATINGS':null,
@@ -51,6 +53,7 @@ test('dashboard proxy requests platform=all, authenticates server-to-server and 
 test('strict upstream validation, redirect rejection and response-size limit return fixed errors',async()=>{
   for(const mock of [async()=>new Response(secret,{status:401}),async()=>{throw Error(secret);},
     async()=>Response.json({...payload,storeCount:999}),async()=>Response.json({...payload,ratings:[{...keeta,platform:'noon'}]}),
+    async()=>Response.json({...payload,ratings:[{...keeta,previousTimestamp:'2026-09-18T11:00:00.000Z'}]}),
     async()=>new Response('x'.repeat(2_000_001),{headers:{'content-type':'application/json'}})]){
     await serve(mock as typeof fetch,async base=>{const response=await fetch(base+'/api/dashboard/ratings/latest');
       assert.equal(response.status,502);assert.deepEqual(await response.json(),{error:'Cloud ratings are unavailable. Please try again.'});});
@@ -101,7 +104,8 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Qusais Industrial Area 1');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Barsha, Al Barsha 2"}).branch',context),'Al Barsha 2');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
-  for(const text of ['Operational Center','Actions','Complaints · 7d 1.20','Recommended:','Latest daily report 2026-09-20','id="actionBrand"'])assert.ok(main.innerHTML.includes(text),text);
+  for(const text of ['Recent Changes','Rating drops','New one-star','Recovered','4.6 → 4.4','id="recentBrand"','id="recentPlatform"','Operational Center','Actions','Complaints · 7d 1.20','Recommended:','Latest daily report 2026-09-20','id="actionBrand"'])assert.ok(main.innerHTML.includes(text),text);
+  assert.equal(vm.runInContext(`buildRecentChanges([{key:'x',displayName:'Brand — Branch',brand:'Brand',rows:[{platform:'talabat',timestamp:'2026-09-20T12:00:00.000Z',rating:4,previousRating:4.2,previousTimestamp:'2026-09-20T08:00:00.000Z',reviewCount:12,previousReviewCount:10,oneStarCount:3,previousOneStarCount:1}]}]).map(item=>item.type).sort().join(',')`,context),'drops,oneStar');
   assert.equal(vm.runInContext(`buildActionCenter([{key:'x',displayName:'Kabab Fareej — Test',rows:[{platform:'talabat',rating:4.1}]}],null).length`,context),0);
   assert.equal(vm.runInContext(`buildActionCenter([{key:'x',displayName:'Kabab Fareej — Test',rows:[{platform:'talabat',rating:4.0}]}],null).length`,context),1);
   assert.ok(vm.runInContext(`buildActionCenter([{key:'x',displayName:'Kabab Fareej — Test',rows:[{platform:'talabat',rating:4.0,reviewCount:12,oneStarCount:4}]}],null)[0].issues[0]`,context).includes('12 reviews · 4 one-star'));
@@ -116,7 +120,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.ok(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'10','Customer Complaint rate':'3'}}]},{points:Array.from({length:7},(_,i)=>({reportDate:'2026-09-'+(20-i),storeId:'2',orders:10,complaints:3,cancellation:0,offline:0,prep:12}))})[0].issues[0]`,context).includes('7d 3.00'));
   for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat.svg','/platforms/keeta.svg','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
-  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,2);
+  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,3);
   await vm.runInContext('openCloudStore(groupCloudRows(state.cloudResponse.ratings)[0])',context);
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));

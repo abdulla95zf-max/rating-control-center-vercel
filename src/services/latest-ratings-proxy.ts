@@ -11,6 +11,7 @@ type PlatformState='SUCCESS'|'EMPTY'|'ERROR';
 export interface CloudRating {
   platform:CloudPlatform;storeIdentityKey:string;storeName:string|null;rating:number|null;
   reviewCount:number|null;oneStarCount:number|null;timestamp:string;syncTimestamp:string|null;
+  previousRating:number|null;previousReviewCount:number|null;previousOneStarCount:number|null;previousTimestamp:string|null;
   carriedForward:boolean|null;status:ReturnType<typeof displayStatus>;
 }
 export interface CloudPlatformResult {
@@ -31,12 +32,21 @@ function projectRating(row:any,token:string):CloudRating{
     !count(row.reviewCount)||!count(row.oneStarCount)||
     (row.reviewCount!==null&&row.oneStarCount!==null&&row.oneStarCount>row.reviewCount)||
     ![true,false,null].includes(row.carriedForward))throw Error();
+  const hasPrevious=row.previousTimestamp!==null;
+  if((row.previousTimestamp!==null&&!iso(row.previousTimestamp))||
+    (row.previousRating!==null&&(typeof row.previousRating!=='number'||!Number.isFinite(row.previousRating)||row.previousRating<1||row.previousRating>5))||
+    !count(row.previousReviewCount)||!count(row.previousOneStarCount)||
+    (row.previousReviewCount!==null&&row.previousOneStarCount!==null&&row.previousOneStarCount>row.previousReviewCount)||
+    (!hasPrevious&&[row.previousRating,row.previousReviewCount,row.previousOneStarCount].some(value=>value!==null))||
+    (hasPrevious&&Date.parse(row.previousTimestamp)>=Date.parse(row.timestamp)))throw Error();
   if(row.storeName!=null&&(typeof row.storeName!=='string'||!row.storeName.trim()||row.storeName.length>512||
     /[\u0000-\u001f\u007f]/.test(row.storeName)||row.storeName.includes(token)))throw Error();
   if(row.platform==='talabat'&&row.carriedForward!==false)throw Error();
   if(row.platform==='keeta'&&row.syncTimestamp===null)throw Error();
   return {platform:row.platform,storeIdentityKey:row.storeIdentityKey,storeName:row.storeName??null,rating:row.rating,
     reviewCount:row.reviewCount,oneStarCount:row.oneStarCount,timestamp:row.timestamp,syncTimestamp:row.syncTimestamp,
+    previousRating:row.previousRating,previousReviewCount:row.previousReviewCount,
+    previousOneStarCount:row.previousOneStarCount,previousTimestamp:row.previousTimestamp,
     carriedForward:row.carriedForward,status:displayStatus(row.rating)};
 }
 function projectPlatform(value:any,token:string):CloudPlatformResult{
