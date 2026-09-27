@@ -106,6 +106,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'0','Customer Complaint rate':'9','Avoidable cancellation rate':'9','Unavailable Time Duration Rate':'9','Average preparation time (minutes)':'99'}}]}).length`,context),0);
   assert.equal(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'9','Customer Complaint rate':'9'}}]})[0].level`,context),'attention');
   assert.equal(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'10','Customer Complaint rate':'9'}}]})[0].level`,context),'critical');
+  assert.ok(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'10','Customer Complaint rate':'9'}}]},{points:[{reportDate:'2026-09-20',storeId:'2',orders:10,complaints:9},{reportDate:'2026-09-19',storeId:'2',orders:12,complaints:2},{reportDate:'2026-09-18',storeId:'2',orders:11,complaints:0}]})[0].issues[0]`,context).includes('Recurring 2/3 days'));
   for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat.svg','/platforms/keeta.svg','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
   assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,2);
@@ -113,7 +114,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
   await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/talabat.svg'));
-  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/performance/latest','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
+  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/performance/latest','/api/dashboard/performance/action-history?days=7','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
 });
 
 test('missing token and public assets fail closed without exposing token or upstream URL',async()=>{

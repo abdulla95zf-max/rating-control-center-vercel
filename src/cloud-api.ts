@@ -1,13 +1,13 @@
 import {fetchPerformance,fetchTstar,PerformanceError,requestPerformanceQuery} from './services/performance-proxy.ts';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {fetchLatestRatings, RatingsProxyError} from './services/latest-ratings-proxy.ts';
-import {fetchPerformanceHistory,fetchRatingHistory,HistoryProxyError} from './services/history-proxy.ts';
+import {fetchActionHistory,fetchPerformanceHistory,fetchRatingHistory,HistoryProxyError} from './services/history-proxy.ts';
 import {requireUser} from './auth.ts';
 import {allowedStore,scopePerformance,scopeRatings} from './services/branch-identity.ts';
 import {registerBranchSources} from './services/branch-registry.ts';
 
 /** Cloud-only entry point: never imports local configuration, SQLite or the Windows server. */
-export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance' | 'ratingHistory' | 'performanceHistory', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch,authenticate:typeof requireUser=requireUser) {
+export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance' | 'ratingHistory' | 'performanceHistory' | 'actionHistory', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch,authenticate:typeof requireUser=requireUser) {
   return async (request: IncomingMessage, response: ServerResponse) => {
     response.setHeader('Cache-Control', 'no-store, private');
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
@@ -25,8 +25,8 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
       try{const query=requestPerformanceQuery(request.url||''),config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};return send(200,await scopePerformance(query.dataset==='tstar'?await fetchTstar(config,fetcher):await fetchPerformance(config,query.date,fetcher,query.period),user));}
       catch(error){return send(error instanceof PerformanceError?error.status:502,{error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
     }
-    if(route==='ratingHistory'||route==='performanceHistory'){
-      try{const url=new URL(request.url||'','https://dashboard.invalid');const config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};if(route==='ratingHistory'){const identity=url.searchParams.get('storeIdentityKey')||'',latest=await fetchLatestRatings({host:'',port:0,talabatDatabasePath:'',publicDirectory:'',autoRefreshSeconds:60,ratingsApiUrl:config.ratingsApiUrl,ratingsApiToken:config.ratingsApiToken},fetcher),row=latest.ratings.find((item:any)=>item.storeIdentityKey===identity);if(!row||!allowedStore(user,row.storeName))return send(403,{error:'Forbidden'});return send(200,await fetchRatingHistory(config,identity,url.searchParams.get('range')||'30d',fetcher));}const storeId=url.searchParams.get('storeId')||'',latest=await fetchPerformance(config,undefined,fetcher),row=latest.rows.find((item:any)=>item.storeId===storeId);if(!row||!allowedStore(user,row.storeName))return send(403,{error:'Forbidden'});return send(200,await fetchPerformanceHistory(config,storeId,Number(url.searchParams.get('days')||30),fetcher));}
+    if(route==='ratingHistory'||route==='performanceHistory'||route==='actionHistory'){
+      try{const url=new URL(request.url||'','https://dashboard.invalid');const config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};if(route==='ratingHistory'){const identity=url.searchParams.get('storeIdentityKey')||'',latest=await fetchLatestRatings({host:'',port:0,talabatDatabasePath:'',publicDirectory:'',autoRefreshSeconds:60,ratingsApiUrl:config.ratingsApiUrl,ratingsApiToken:config.ratingsApiToken},fetcher),row=latest.ratings.find((item:any)=>item.storeIdentityKey===identity);if(!row||!allowedStore(user,row.storeName))return send(403,{error:'Forbidden'});return send(200,await fetchRatingHistory(config,identity,url.searchParams.get('range')||'30d',fetcher));}if(route==='actionHistory'){const days=Number(url.searchParams.get('days')||7),[latest,history]=await Promise.all([fetchPerformance(config,undefined,fetcher),fetchActionHistory(config,days,fetcher)]),scoped=await scopePerformance(latest,user),allowedIds=new Set(scoped.rows.map((row:any)=>String(row.storeId)));return send(200,{...history,points:history.points.filter((point:{storeId:string})=>allowedIds.has(point.storeId))});}const storeId=url.searchParams.get('storeId')||'',latest=await fetchPerformance(config,undefined,fetcher),row=latest.rows.find((item:any)=>item.storeId===storeId);if(!row||!allowedStore(user,row.storeName))return send(403,{error:'Forbidden'});return send(200,await fetchPerformanceHistory(config,storeId,Number(url.searchParams.get('days')||30),fetcher));}
       catch(error){return send(error instanceof HistoryProxyError?error.status:502,{error:error instanceof HistoryProxyError?error.message:'History is unavailable.'});}
     }
     try {

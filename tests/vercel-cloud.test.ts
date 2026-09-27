@@ -56,7 +56,7 @@ test('Vercel routes and public output are explicit, runtime is bounded and secre
   const cfg=JSON.parse(fs.readFileSync('vercel.json','utf8'));
   assert.equal(cfg.framework,null);assert.equal(cfg.outputDirectory,'public');assert.equal(cfg.functions['api/**/*.ts'].maxDuration,30);
   assert.equal(cfg.crons,undefined);assert.equal(cfg.env,undefined);
-  for(const file of ['api/config.ts','api/health.ts','api/dashboard/ratings/latest.ts'])assert.match(fs.readFileSync(file,'utf8'),/export default createCloudHandler/);
+  for(const file of ['api/config.ts','api/health.ts','api/dashboard/ratings/latest.ts','api/dashboard/performance/action-history.ts'])assert.match(fs.readFileSync(file,'utf8'),/export default createCloudHandler/);
   const ignore=fs.readFileSync('.vercelignore','utf8');for(const value of ['.env','.secrets/','*.sqlite','*.db'])assert.ok(ignore.includes(value));
   for(const file of fs.readdirSync('public'))if(fs.statSync(path.join('public',file)).isFile())assert.doesNotMatch(fs.readFileSync(path.join('public',file),'utf8'),/RATINGS_API_TOKEN|PRIVATE-UPSTREAM|Bearer /);
   const headers=cfg.headers[0].headers;assert.ok(headers.some((h:any)=>h.key==='Content-Security-Policy'&&h.value.includes("connect-src 'self'")));
