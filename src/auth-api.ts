@@ -1,7 +1,7 @@
 import type {IncomingMessage,ServerResponse} from 'node:http';
 import {changePassword,createUser,currentUser,listUsers,login,logout,readJson,requireUser,resetPassword,sameOrigin,updateUser} from './auth.ts';
 import {fetchLatestRatings} from './services/latest-ratings-proxy.ts';
-import {branchIdentity} from './services/branch-identity.ts';
+import {registerBranchSources} from './services/branch-registry.ts';
 
 function headers(response:ServerResponse){response.setHeader('Content-Type','application/json; charset=utf-8');response.setHeader('Cache-Control','no-store, private');response.setHeader('X-Content-Type-Options','nosniff');}
 function send(response:ServerResponse,status:number,body:unknown){response.statusCode=status;response.end(JSON.stringify(body));}
@@ -28,11 +28,9 @@ export function createAccessOptionsHandler(env:NodeJS.ProcessEnv=process.env,fet
   if(request.method!=='GET')return send(response,405,{error:'Method not allowed'});
   const user=await requireUser(request,response);if(!user)return;if(user.role!=='admin')return send(response,403,{error:'Administrator access required'});
   const result=await fetchLatestRatings({host:'',port:0,talabatDatabasePath:'',publicDirectory:'',autoRefreshSeconds:60,ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''},fetcher);
-  const identityMap=new Map<string,ReturnType<typeof branchIdentity>>();
-  for(const row of result.ratings as Array<{storeName:string}>){const identity=branchIdentity(row.storeName);identityMap.set(identity.key,identity);}
-  const identities=[...identityMap.values()];
+  const registry=await registerBranchSources(result.ratings.map((row:any)=>({sourceType:`rating:${row.platform}`,sourceId:String(row.storeIdentityKey),storeName:String(row.storeName||'')}))),identities=[...new Map([...registry.values()].map(item=>[item.id,item])).values()];
   const brands=[...new Set(identities.map(item=>item.brand))].sort((a,b)=>a.localeCompare(b));
-  const branches=identities.map(item=>({key:item.key,brand:item.brand,branch:item.branch,label:`${item.brand} — ${item.branch}`})).sort((a,b)=>a.label.localeCompare(b.label));
+  const branches=identities.map(item=>({key:item.id,brand:item.brand,branch:item.branch,label:item.displayName})).sort((a,b)=>a.label.localeCompare(b.label));
   return send(response,200,{brands,branches});
  }catch{return send(response,503,{error:'Access options are temporarily unavailable'});}};
 }

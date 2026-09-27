@@ -21,6 +21,7 @@ function database(){
  pool??=new Pool({connectionString:url,max:3,connectionTimeoutMillis:8_000,idleTimeoutMillis:10_000,ssl:url.includes('localhost')?false:{rejectUnauthorized:false}});
  return pool;
 }
+export function authDatabase(){return database();}
 function text(value:unknown,max:number){return typeof value==='string'&&value.trim().length>0&&value.trim().length<=max?value.trim():null;}
 function username(value:unknown){const normalized=typeof value==='string'?value.trim().toLowerCase():'';return USERNAME.test(normalized)?normalized:null;}
 function password(value:unknown){return typeof value==='string'&&value.length>=12&&value.length<=128?value:null;}
@@ -50,6 +51,13 @@ async function schema(){
    id bigserial PRIMARY KEY, actor_user_id text REFERENCES dashboard_users(id) ON DELETE SET NULL,
    event text NOT NULL, target_user_id text, detail jsonb NOT NULL DEFAULT '{}'::jsonb,
    created_at timestamptz NOT NULL DEFAULT now())`);
+  await db.query(`CREATE TABLE IF NOT EXISTS dashboard_branches(
+   id text PRIMARY KEY, canonical_key text NOT NULL UNIQUE, brand text NOT NULL, branch_name text NOT NULL,
+   display_name text NOT NULL, active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now())`);
+  await db.query(`CREATE TABLE IF NOT EXISTS dashboard_branch_sources(
+   source_type text NOT NULL, source_id text NOT NULL, branch_id text NOT NULL REFERENCES dashboard_branches(id),
+   source_name text NOT NULL, last_seen_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(source_type,source_id))`);
+  await db.query(`CREATE INDEX IF NOT EXISTS dashboard_branch_sources_branch_idx ON dashboard_branch_sources(branch_id)`);
   const count=Number((await db.query('SELECT COUNT(*)::int AS value FROM dashboard_users')).rows[0]?.value||0);
   if(count===0){const u=username(process.env.AUTH_BOOTSTRAP_USERNAME),p=password(process.env.AUTH_BOOTSTRAP_PASSWORD),name=text(process.env.AUTH_BOOTSTRAP_DISPLAY_NAME,120)||'Dashboard Administrator';if(u&&p){await db.query('INSERT INTO dashboard_users(id,username,display_name,password_hash,role,scopes,active,must_change_password) VALUES($1,$2,$3,$4,$5,$6,true,false)',[randomUUID(),u,name,await hashPassword(p),'admin','[]']);}}
  })();

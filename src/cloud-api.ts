@@ -4,6 +4,7 @@ import {fetchLatestRatings, RatingsProxyError} from './services/latest-ratings-p
 import {fetchPerformanceHistory,fetchRatingHistory,HistoryProxyError} from './services/history-proxy.ts';
 import {requireUser} from './auth.ts';
 import {allowedStore,scopePerformance,scopeRatings} from './services/branch-identity.ts';
+import {registerBranchSources} from './services/branch-registry.ts';
 
 /** Cloud-only entry point: never imports local configuration, SQLite or the Windows server. */
 export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance' | 'ratingHistory' | 'performanceHistory', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch,authenticate:typeof requireUser=requireUser) {
@@ -21,7 +22,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     if (route === 'config') return send(200, {cloudRatings: true, autoRefreshSeconds: 60});
     if (route === 'health') return send(200, {ok: true, mode: 'cloud'});
     if(route==='performance'){
-      try{const query=requestPerformanceQuery(request.url||''),config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};return send(200,scopePerformance(query.dataset==='tstar'?await fetchTstar(config,fetcher):await fetchPerformance(config,query.date,fetcher,query.period),user));}
+      try{const query=requestPerformanceQuery(request.url||''),config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};return send(200,await scopePerformance(query.dataset==='tstar'?await fetchTstar(config,fetcher):await fetchPerformance(config,query.date,fetcher,query.period),user));}
       catch(error){return send(error instanceof PerformanceError?error.status:502,{error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
     }
     if(route==='ratingHistory'||route==='performanceHistory'){
@@ -34,7 +35,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
         host: '', port: 0, talabatDatabasePath: '', publicDirectory: '', autoRefreshSeconds: 60,
         ratingsApiUrl: env.RATINGS_API_URL || '', ratingsApiToken: env.RATINGS_API_TOKEN || ''
       }, fetcher);
-      return send(200, scopeRatings(ratings,user));
+      return send(200, await scopeRatings(ratings,user));
     } catch (error) {
       return send(error instanceof RatingsProxyError ? error.status : 502,
         {error: error instanceof RatingsProxyError ? error.message : 'Cloud ratings are unavailable.'});
