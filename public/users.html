@@ -1,6 +1,6 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1220"><title>User Management · Rating Control Center</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/users.css"><script src="/branch-labels.js" defer></script>
-  <script src="/users.js" defer></script></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1220"><script src="/theme.js"></script><title>User Management · Rating Control Center</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/users.css"><script src="/branch-labels.js" defer></script>
+  <script src="/users.js" defer></script><link rel="stylesheet" href="/theme.css"></head>
 <body class="users-page">
   <header class="topbar"><a class="back-link" href="/">← Dashboard</a><div class="brand-mark">RC</div><div class="brand-copy"><h1>User Management</h1><p>Accounts, roles and data access</p></div><div class="account-menu"><span id="currentAdmin"></span><button class="account-button" id="usersLogout" type="button">Log out</button></div></header>
   <main class="users-main" id="usersMain" hidden>
@@ -18,4 +18,4 @@
       <p class="form-error" id="userError" role="alert"></p><div class="form-actions"><button type="button" class="secondary-button" data-close-editor>Cancel</button><button class="primary-button" id="saveUser" type="submit">Create user</button></div>
     </form></section></aside>
   <div class="auth-gate" id="pageMessage"><div class="auth-card"><h2>Checking access…</h2><p id="pageMessageText">Please wait.</p></div></div>
-</body></html>
+<dialog id="deleteUserDialog" class="ratings-export-dialog delete-user-dialog" aria-labelledby="deleteUserTitle"><h3 id="deleteUserTitle">Delete user?</h3><strong id="deleteUserName"></strong><p id="deleteUserHandle"></p><p>This permanently removes the account and signs out all its sessions. Ratings and performance data are retained.</p><label for="deleteUsername" id="deleteUsernameHint"></label><input class="input" id="deleteUsername" autocomplete="off" spellcheck="false"><p id="deleteUserError" class="form-error" role="alert"></p><div class="form-actions"><button type="button" class="secondary-button" id="cancelDeleteUser">Cancel</button><button type="button" class="danger-button" id="confirmDeleteUser" disabled>Delete user</button></div></dialog></body></html>

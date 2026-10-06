@@ -1,3 +1,4 @@
+import {deleteDashboardUser} from './user-deletion.ts';
 import {createHash, randomBytes, randomUUID, scrypt as scryptCallback, timingSafeEqual} from 'node:crypto';
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {Pool} from 'pg';
@@ -82,3 +83,5 @@ export async function resetPassword(actor:AuthUser,id:string,next:string){const 
 async function audit(actor:string|null,event:string,target:string|null,detail:unknown){await database().query('INSERT INTO dashboard_audit_log(actor_user_id,event,target_user_id,detail) VALUES($1,$2,$3,$4)',[actor,event,target,JSON.stringify(detail||{})]);}
 export async function setBranchActive(actor:AuthUser,id:string,active:boolean,reason:unknown){await schema();if(!actor.isOwner)throw new Error('OWNER_REQUIRED');if(!/^[0-9a-f-]{36}$/i.test(id)||typeof active!=='boolean')throw new Error('INVALID_BRANCH');const note=reason===undefined||reason===null||reason===''?'':text(reason,240);if(note===null)throw new Error('INVALID_BRANCH');const result=await database().query('UPDATE dashboard_branches SET active=$2,updated_at=now() WHERE id=$1 RETURNING display_name',[id,active]);if(!result.rowCount)throw new Error('BRANCH_NOT_FOUND');await audit(actor.id,active?'branch_activated':'branch_deactivated',null,{branchId:id,displayName:result.rows[0].display_name,reason:note});}
 export function canAccess(user:AuthUser,brand:string,branchKey:string){if(user.role==='admin'||user.role==='portfolio_manager')return true;return user.scopes.some(scope=>scope.type==='brand'&&scope.key===brand||scope.type==='branch'&&scope.key===branchKey);}
+
+export async function deleteUser(actor:AuthUser,id:string,confirmation:unknown){await schema();await deleteDashboardUser(database(),actor.id,id,confirmation);}

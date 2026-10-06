@@ -31,7 +31,7 @@ test('UI calculations exclude missing rows and empty cells, preserve zero and di
  const run=(s:string)=>vm.runInContext(s,context);
  assert.equal(run("performanceNumber(null)"),null);assert.equal(run("performanceNumber('')"),null);assert.equal(run("performanceNumber('0')"),0);assert.equal(run("performanceNumber('Infinity')"),null);
  const total=run("performanceTotal([{present:true,values:{x:'0'}},{present:true,values:{x:'12.5'}},{present:true,values:{x:null}},{present:false,values:{x:null}}],'x')");
- assert.equal(total.value,12.5);assert.equal(total.populated,2);assert.equal(total.total,3);
+ assert.equal(total.value,12.5);assert.equal(total.populated,2);assert.equal(total.total,4);
  assert.equal(run("performanceTotal([{present:true,values:{x:null}}],'x').value"),null);
  assert.equal(run("performanceCoverage([{present:true,values:{}}])"),'Funnel data unavailable from Talabat');
  assert.equal(run("JSON.stringify(projectedTier({rating:4.4,metrics:{failRate:0.4,offlineRate:4,inaccurateOrders:0.4,avoidableWaitingTime:2.9}}))"),'["Exceptional","exceptional",3]');

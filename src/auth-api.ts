@@ -1,15 +1,15 @@
 import type {IncomingMessage,ServerResponse} from 'node:http';
-import {changePassword,createUser,currentUser,listUsers,login,logout,readJson,requireUser,resetPassword,sameOrigin,setBranchActive,updateUser} from './auth.ts';
+import {changePassword,createUser,currentUser,deleteUser,listUsers,login,logout,readJson,requireUser,resetPassword,sameOrigin,setBranchActive,updateUser} from './auth.ts';
 import {fetchLatestRatings} from './services/latest-ratings-proxy.ts';
 import {registerBranchSources} from './services/branch-registry.ts';
 
 function headers(response:ServerResponse){response.setHeader('Content-Type','application/json; charset=utf-8');response.setHeader('Cache-Control','no-store, private');response.setHeader('X-Content-Type-Options','nosniff');}
 function send(response:ServerResponse,status:number,body:unknown){response.statusCode=status;response.end(JSON.stringify(body));}
-function publicError(code:string){return ({INVALID_USERNAME:'Username must be 3–80 characters and may include letters, numbers, dot, dash, underscore or @.',INVALID_DISPLAY_NAME:'Enter a display name.',INVALID_PASSWORD:'Password must be 6–128 characters.',INVALID_ROLE:'Select a valid role.',INVALID_SCOPE:'Select access that matches the chosen role.',USERNAME_EXISTS:'This username already exists.',SELF_DISABLE:'You cannot disable your own account.',USER_NOT_FOUND:'User not found.',OWNER_REQUIRED:'Owner access required.',INVALID_BRANCH:'Invalid branch request.',BRANCH_NOT_FOUND:'Branch not found.'} as Record<string,string>)[code]||code;}
+function publicError(code:string){return ({INVALID_USERNAME:'Username must be 3–80 characters and may include letters, numbers, dot, dash, underscore or @.',INVALID_DISPLAY_NAME:'Enter a display name.',INVALID_PASSWORD:'Password must be 6–128 characters.',INVALID_ROLE:'Select a valid role.',INVALID_SCOPE:'Select access that matches the chosen role.',USERNAME_EXISTS:'This username already exists.',SELF_DISABLE:'You cannot disable your own account.',SELF_DELETE:'You cannot delete your own account.',OWNER_DELETE:'The owner account cannot be deleted.',LAST_ADMIN:'The last active administrator cannot be deleted.',ADMIN_REQUIRED:'Administrator access required.',DELETE_CONFIRMATION_REQUIRED:'Type the exact username to confirm deletion.',USER_NOT_FOUND:'User not found.',OWNER_REQUIRED:'Owner access required.',INVALID_BRANCH:'Invalid branch request.',BRANCH_NOT_FOUND:'Branch not found.'} as Record<string,string>)[code]||code;}
 export function createAuthHandler(route:'session'|'login'|'logout'|'changePassword'|'users'){
  return async(request:IncomingMessage,response:ServerResponse)=>{headers(response);try{
   if(route==='session'){if(request.method!=='GET')return send(response,405,{error:'Method not allowed'});const user=await currentUser(request);return send(response,200,{authenticated:Boolean(user),user});}
-  if(request.method!=='POST'&&!(route==='users'&&request.method==='GET')&&!(route==='users'&&request.method==='PATCH'))return send(response,405,{error:'Method not allowed'});
+  if(request.method!=='POST'&&!(route==='users'&&request.method==='GET')&&!(route==='users'&&request.method==='PATCH')&&!(route==='users'&&request.method==='DELETE'))return send(response,405,{error:'Method not allowed'});
   if(request.method!=='GET'&&!sameOrigin(request))return send(response,403,{error:'Forbidden'});
   if(route==='login'){const user=await login(await readJson(request),response);return user?send(response,200,{ok:true,user}):send(response,401,{error:'Invalid username or password'});}
   const user=await requireUser(request,response);if(!user)return;
@@ -18,9 +18,10 @@ export function createAuthHandler(route:'session'|'login'|'logout'|'changePasswo
   if(user.role!=='admin')return send(response,403,{error:'Administrator access required'});
   if(request.method==='GET')return send(response,200,{users:await listUsers()});
   const body=await readJson(request);
+  if(request.method==='DELETE'){await deleteUser(user,String(body.id||''),body.confirmUsername);return send(response,200,{ok:true});}
   if(request.method==='POST'){const id=await createUser(user,body);return send(response,201,{ok:true,id});}
   if(body.branchStatus){await setBranchActive(user,String(body.branchStatus.id||''),body.branchStatus.active,body.branchStatus.reason);return send(response,200,{ok:true});}const id=String(body.id||'');if(body.newPassword){await resetPassword(user,id,body.newPassword);return send(response,200,{ok:true});}await updateUser(user,id,body);return send(response,200,{ok:true});
- }catch(error:any){const code=String(error?.message||'');const status=code==='USERNAME_EXISTS'?409:code==='OWNER_REQUIRED'?403:code.startsWith('INVALID_')||code==='SELF_DISABLE'?400:['USER_NOT_FOUND','BRANCH_NOT_FOUND'].includes(code)?404:503;return send(response,status,{error:status===503?'Authentication service unavailable':publicError(code)});}};
+ }catch(error:any){const code=String(error?.message||'');const status=code==='USERNAME_EXISTS'?409:['OWNER_REQUIRED','OWNER_DELETE','ADMIN_REQUIRED'].includes(code)?403:code.startsWith('INVALID_')||['SELF_DISABLE','SELF_DELETE','LAST_ADMIN','DELETE_CONFIRMATION_REQUIRED'].includes(code)?400:['USER_NOT_FOUND','BRANCH_NOT_FOUND'].includes(code)?404:503;return send(response,status,{error:status===503?'Authentication service unavailable':publicError(code)});}};
 }
 
 export function createAccessOptionsHandler(env:NodeJS.ProcessEnv=process.env,fetcher:typeof fetch=fetch){

@@ -23,3 +23,7 @@ test('real merchant branch response fills all seven customer cards without aggre
  for(const value of ['1544','73','159','45','28'])assert.ok(!html.includes('>'+value+'<'),value);
  u.run("keetaPerformanceState.customerShop='all'");assert.match(u.run('kpCustomers(snap)'),/>1544</);
 });
+
+test('item sorting uses numeric values, puts unknowns last and breaks ties by name',()=>{
+ const u=ui();u.run("keetaPerformanceState.itemSort='volume_desc'");assert.equal(u.run("kpCompareItems({shop_salevm:'100',shop_product_name:'B'},{shop_salevm:'20',shop_product_name:'A'},true)<0"),true);assert.equal(u.run("kpCompareItems({shop_salevm:'',shop_product_name:'A'},{shop_salevm:'0',shop_product_name:'B'},true)>0"),true);u.run("keetaPerformanceState.itemSort='conversion_asc'");assert.equal(u.run("kpCompareItems({shop_brand_avg_cartadd_cvr:'2.5%'},{shop_brand_avg_cartadd_cvr:'12.1%'},false)<0"),true);for(const value of [null,'','—','abc']){u.set({value});assert.equal(u.run('kpNum(snap.value)'),null);}assert.equal(u.run("kpNum('0')"),0);
+});
