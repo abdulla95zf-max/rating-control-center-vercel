@@ -359,3 +359,6 @@ p.health-warning { color: var(--warning); line-height: 1.5; }
   .action-copy p { white-space: normal; line-height: 1.4; }
   .action-open { padding: 6px 9px; font-size: 10px; }
 }
+
+/* Export the current filtered Ratings table. */
+.ratings-export-controls{display:flex;align-items:center;flex-wrap:wrap;gap:9px;justify-content:flex-end}.rating-export-button{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border:1px solid #334b63;border-radius:9px;background:#132238;color:#dceaf6;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s}.rating-export-button span{color:#4ed0c4;font-size:17px}.rating-export-button:hover{background:#1c314c;border-color:#5b8ba8}.rating-export-button:focus-visible{outline:2px solid #4ed0c4;outline-offset:3px}.rating-export-button:disabled{opacity:.4;cursor:default}.rating-export-message{max-width:260px;color:#f4b8ad;font-size:12px}.page-heading:has(.ratings-export-controls){display:flex;align-items:center;justify-content:space-between;gap:18px}@media(max-width:650px){.page-heading:has(.ratings-export-controls){align-items:flex-start;flex-direction:column}.ratings-export-controls{justify-content:flex-start}}

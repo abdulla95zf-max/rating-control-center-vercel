@@ -85,22 +85,24 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   const node:any={querySelectorAll:()=>[],addEventListener:()=>{},querySelector:()=>({dataset:{}})};
   const performance={reportDate:'2026-09-20',rows:[{storeId:'1',storeName:'Kabab Fareej, Al Warqa',present:true,values:{'Successful Orders':'8','Customer Complaint rate':'1.2','Avoidable cancellation rate':'0','Unavailable Time Duration Rate':'0','Average preparation time (minutes)':'12'}}]};
   const actionHistory={points:Array.from({length:7},(_,index)=>({reportDate:`2026-09-${String(20-index).padStart(2,'0')}`,storeId:'1',orders:8,complaints:1.2,cancellation:0,offline:0,prep:12}))};
-  const urls:string[]=[];const context=vm.createContext({Intl,Date,URLSearchParams,console,performanceState:{},performanceFormat:(value:any)=>String(value),performanceDetail:()=>{},
+  const urls:string[]=[];const context=vm.createContext({Intl,Date,URLSearchParams,TextEncoder,console,performanceState:{},performanceFormat:(value:any)=>String(value),performanceDetail:()=>{},
     document:{getElementById:(id:string)=>id==='mainContent'?main:id==='detailContent'?detail:id==='detailPanel'?panel:node,querySelectorAll:()=>[],addEventListener:()=>{}},
     ResizeObserver:class{observe(){}},location:{hash:''},history:{replaceState(){}},window:{setInterval(){},clearTimeout(){},setTimeout(fn:any){fn();}},
     fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>url.includes('action-history')?actionHistory:url.includes('/performance/')?performance:grouped};}});
+  vm.runInContext(fs.readFileSync('public/branch-labels.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('public/ratings-export.js','utf8'),context);
   const source=fs.readFileSync('public/app.js','utf8').replace(/bootDashboard\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),
     {brand:'Kabab Fareej',branch:'Fujairah',key:'kabab fareej|fujairah',displayName:'Kabab Fareej — Fujairah'});
   assert.equal(vm.runInContext('storeIdentity({storeName:"Kabab Fareej, International City"}).branch',context),'Dragon Mart');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Kabab Fareej, Al Hamidiya"}).branch',context),'Ajman');
-  assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).branch`,context),'Hay Hoshi');
-  assert.equal(vm.runInContext(`storeIdentity({storeName:"KF - Hay Hoshi"}).branch`,context),'Hay Hoshi');
+  assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).branch`,context),'Hoshi');
+  assert.equal(vm.runInContext(`storeIdentity({storeName:"KF - Hay Hoshi"}).branch`,context),'Hoshi');
   assert.equal(vm.runInContext(`storeIdentity({storeName:"Kabab Fareej, Mleha, Al Bdai'a Subrub"}).key===storeIdentity({storeName:"KF - Hay Hoshi"}).key`,context),true);
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"Taazaa Mumbai, Al Dhait South"}))',context)),
-    {brand:'Taazaa Mumbai',branch:'Al Dhait South',key:'taazaa mumbai|al dhait south',displayName:'Taazaa Mumbai — Al Dhait South'});
-  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Noof"}).branch',context),'Al Noof');
+    {brand:'Taazaa Mumbai',branch:'RAK',key:'taazaa mumbai|al dhait south',displayName:'Taazaa Mumbai — RAK'});
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Noof"}).branch',context),'Hoshi');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Qusais Industrial Area 1');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Barsha, Al Barsha 2"}).branch',context),'Al Barsha 2');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);

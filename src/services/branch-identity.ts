@@ -3,10 +3,11 @@ import type {AuthUser} from '../auth.ts';
 import {canAccess} from '../auth.ts';
 import {registerBranchSources} from './branch-registry.ts';
 
+// Preserve persisted scope names and branch keys; the UI displays Morwarid.
 const rules=[
  ['Taazaa Mumbai',[/^Taazaa\s+Mumbai\b/i]],['FRB Shawarma',[/^FRB\s+Shawarma\b/i]],['FRB Kabab',[/^FRB\s+Kabab\b/i]],
  ['Kabab Al Sham',[/^Kabab\s+Al\s+Sham\b/i]],['Kabab Fareej',[/^Kabab\s+Fareej\b/i,/^KF\s*[-–—]/i]],
- ['Marwareed',[/^(?:Al\s+)?Morwarid\s+Restaurant\b/i,/^(?:Al\s+)?Marwareed\b/i]],['Leekh',[/^Al\s+Leekh\s+Emirati\b/i,/^Leekh\b/i]],
+ ['Marwareed',[/^(?:Al\s+)?Morwarid(?:\s+Restaurant)?\b/i,/^(?:Al\s+)?Marwareed\b/i]],['Leekh',[/^Al\s+Leekh\s+Emirati\b/i,/^Leekh\b/i]],
  ['Tanoorna Ghyr',[/^TANOORNA\s+GHYR\b/i]]
 ] as const;
 const aliases=new Map([['al warqa 1','Al Warqa'],['al warqa','Al Warqa'],['al twar 1','Al Twar'],['twar','Al Twar'],['al hamidiya','Ajman'],['al hamidiya 2','Al Hamidiya 2'],['ajman','Ajman'],['international city','Dragon Mart'],['dragon mart','Dragon Mart'],['al qusais 2','Al Qusais'],['qusais','Al Qusais'],['al kharan','RAK'],['rak','RAK'],['mleha al bdai a suburb','Hay Hoshi'],['al bdai a suburb',"Al Bdai'a Suburb"],['hay hoshi','Hay Hoshi'],['al barsha 2','Al Barsha'],['al barsha','Al Barsha'],['barsha al barsha 2','Al Barsha 2'],['fujairah city center','Fujairah'],['fujairah','Fujairah'],['umm al daman','Umm Al Daman'],['um aldaman','Umm Al Daman']]);

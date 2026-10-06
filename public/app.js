@@ -68,7 +68,7 @@ const brandRules = [
   { brand: 'FRB Kabab', patterns: [/^FRB\s+Kabab\b/i] },
   { brand: 'Kabab Al Sham', patterns: [/^Kabab\s+Al\s+Sham\b/i] },
   { brand: 'Kabab Fareej', patterns: [/^Kabab\s+Fareej\b/i, /^KF\s*[-–—]/i] },
-  { brand: 'Marwareed', patterns: [/^(?:Al\s+)?Morwarid\s+Restaurant\b/i, /^(?:Al\s+)?Marwareed\b/i] },
+  { brand: 'Morwarid', patterns: [/^(?:Al\s+)?Morwarid(?:\s+Restaurant)?\b/i, /^(?:Al\s+)?Marwareed\b/i] },
   { brand: 'Leekh', patterns: [/^Al\s+Leekh\s+Emirati\b/i, /^Leekh\b/i] },
   { brand: 'Tanoorna Ghyr', patterns: [/^TANOORNA\s+GHYR\b/i] }
 ];
@@ -97,8 +97,10 @@ function storeIdentity(row) {
   branch = cleanWords(branch.replace(/^\s*Al\s*,/i, '').replace(/^\s*[-–—,]+/, '')) || 'Unknown branch';
   const alias = branchAliases.get(keyWords(branch));
   branch = alias || branch.replace(/\bAl Dhait south\b/i, 'Al Dhait South');
-  return { brand, branch, key: `${keyWords(brand)}|${keyWords(branch)}`, displayName: `${brand} — ${branch}` };
+  const canonicalBranch=branch;branch=BranchLabels.branch(branch);
+  return { brand, branch, key: `${keyWords(brand === 'Morwarid' ? 'Marwareed' : brand)}|${keyWords(canonicalBranch)}`, displayName: `${brand} — ${branch}` };
 }
+function displayStoreName(row){const identity=storeIdentity(row);return identity.brand==='Other'?identity.branch:identity.displayName;}
 function groupCloudRows(rows) {
   const groups = new Map();
   for (const row of rows) {
@@ -225,7 +227,7 @@ async function renderOverview() {
 
 function rankPanel(title, subtitle, stores, valueRenderer) {
   return `<article class="panel"><header class="panel-header"><h3>${escapeHtml(title)}</h3><span>${escapeHtml(subtitle)}</span></header>
-    ${stores.length ? `<ol class="rank-list">${stores.map(store => `<li class="rank-item" data-store-id="${escapeHtml(store.storeId)}"><div><div class="rank-name">${escapeHtml(store.storeName)}</div><div class="rank-meta">${escapeHtml(store.status)}</div></div>${valueRenderer(store)}</li>`).join('')}</ol>` : '<div class="empty">No matching data</div>'}
+    ${stores.length ? `<ol class="rank-list">${stores.map(store => `<li class="rank-item" data-store-id="${escapeHtml(store.storeId)}"><div><div class="rank-name">${escapeHtml(displayStoreName(store))}</div><div class="rank-meta">${escapeHtml(store.status)}</div></div>${valueRenderer(store)}</li>`).join('')}</ol>` : '<div class="empty">No matching data</div>'}
   </article>`;
 }
 
@@ -235,7 +237,7 @@ async function renderTalabat() {
   if (state.status) parameters.set('status', state.status);
   const { stores, platform } = await api(`/api/stores?${parameters}`);
   main.innerHTML = `
-    <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div></div>
+    <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div>${ratingExportControls(stores.length)}</div>
     ${healthBanner(platform)}
     <div class="toolbar">
       <input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name" autocomplete="off">
@@ -248,10 +250,11 @@ async function renderTalabat() {
       ${[['','All statuses'],['HEALTHY','Healthy'],['ACCEPTABLE','Acceptable'],['WARNING','Warning only'],['CRITICAL','Critical only'],['UNKNOWN','Unknown']].map(([value,label]) => `<button class="filter-chip ${state.status === value ? 'active' : ''}" data-status="${value}">${label}</button>`).join('')}
     </div>
     <div class="table-wrap"><table class="compact-table"><thead><tr><th>Store name</th><th>Current rating</th><th>Previous</th><th>Change</th><th>Status</th><th>Last updated</th></tr></thead>
-      <tbody>${stores.length ? stores.map(store => `<tr data-store-id="${escapeHtml(store.storeId)}"><td class="store-name">${escapeHtml(store.storeName)}</td><td><strong>${formatRating(store.currentRating)}</strong></td><td>${formatRating(store.previousRating)}</td><td>${changeHtml(store.ratingChange)}</td><td>${statusHtml(store.status)}</td><td>${escapeHtml(formatTime(store.lastUpdated))}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">No stores match these filters</td></tr>'}</tbody>
+      <tbody>${stores.length ? stores.map(store => `<tr data-store-id="${escapeHtml(store.storeId)}"><td class="store-name">${escapeHtml(displayStoreName(store))}</td><td><strong>${formatRating(store.currentRating)}</strong></td><td>${formatRating(store.previousRating)}</td><td>${changeHtml(store.ratingChange)}</td><td>${statusHtml(store.status)}</td><td>${escapeHtml(formatTime(store.lastUpdated))}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">No stores match these filters</td></tr>'}</tbody>
     </table></div>`;
   attachTalabatControls();
   attachStoreClicks();
+  attachRatingExports(stores.map(store=>({...storeIdentity(store),rows:[{platform:'talabat',rating:store.currentRating,status:store.status,timestamp:store.lastUpdated}]})),{platform:'talabat',status:state.status,search:state.search});
 }
 
 function cloudHealth(result) {
@@ -275,6 +278,14 @@ function cloudPlatformCards(platforms) {
        result.state === 'EMPTY' ? '<p>No ratings in the selected latest run.</p>' : '') + '</article>';
   }).join('') + '</section>';
 }
+
+function ratingExportControls(count){return `<div class="ratings-export-controls" aria-label="Export current ratings"><button type="button" class="rating-export-button" data-export-ratings="excel" ${count?'':'disabled'}><span aria-hidden="true">↓</span> Excel</button><button type="button" class="rating-export-button" data-export-ratings="pdf" ${count?'':'disabled'}><span aria-hidden="true">↓</span> PDF</button><span class="rating-export-message" role="status"></span></div>`;}
+function attachRatingExports(groups,options){
+ const exporter=globalThis.RatingExports;if(!exporter){for(const button of main.querySelectorAll('[data-export-ratings]'))button.disabled=true;return;}
+ const snapshot=exporter.fromGroups(groups,options);
+ for(const button of main.querySelectorAll('[data-export-ratings]'))button.addEventListener('click',()=>{const message=main.querySelector('.rating-export-message');try{message.textContent='';if(button.dataset.exportRatings==='excel')exporter.downloadExcel(snapshot);else exporter.printPdf(snapshot);}catch(error){message.textContent=error instanceof Error?error.message:'Export could not be opened.';}});
+}
+
 async function renderCloudRatings() {
   const requestedTab=state.tab;
   const [response,performance,actionHistory]=await Promise.all([api('/api/dashboard/ratings/latest'),state.tab==='overview'?api('/api/dashboard/performance/latest').catch(()=>null):Promise.resolve(null),state.tab==='overview'?api('/api/dashboard/performance/action-history?days=30').catch(()=>null):Promise.resolve(null)]);
@@ -316,7 +327,7 @@ async function renderCloudRatings() {
   if(performance?.rows&&typeof performanceState!=='undefined'){performanceState.cache=performance;performanceState.cacheKey='';performanceState.checkedAt=Date.now();}
   const recentChanges=!selectedPlatform?renderRecentChanges(allGroups):'';
   const actionCenter=!selectedPlatform?renderActionCenter(allGroups,performance,actionHistory):'';
-  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div></div>
+  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${ratingExportControls(filteredGroups.length)}</div>
     ${recentChanges}
     ${actionCenter}
     ${cloudPlatformCards(platformResults)}
@@ -327,6 +338,7 @@ async function renderCloudRatings() {
     <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
+  attachRatingExports(filteredGroups,{platform:selectedPlatform,brand:state.brand,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);
   attachActionCenter(allGroups);
@@ -452,7 +464,7 @@ async function openStore(storeId, range = '24h') {
     if (request !== detailRequest) return;
     chartData = history.filter(p => Number.isFinite(timestamp(p.recordedAt)));
     detailContent.innerHTML = `
-      <h2 class="detail-title" id="detailTitle">${escapeHtml(store.storeName)}</h2>
+      <h2 class="detail-title" id="detailTitle">${escapeHtml(displayStoreName(store))}</h2>
       ${healthBanner(platform)}
       <section class="detail-kpis">
         <div class="mini-kpi"><span>Previous rating</span><strong>${formatRating(store.previousRating)}</strong></div>
