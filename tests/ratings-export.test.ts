@@ -21,3 +21,8 @@ test('UI branch aliases apply exactly the requested spellings, while identity ke
  assert.equal(c.BranchLabels.full('Marwareed — Al Barsha'),'Morwarid — Barsha');
  const a=c.identify({storeName:'Kabab Fareej — Al Noof'}),b=c.identify({storeName:'Kabab Fareej — Hay Hoshi'});assert.equal(a.displayName,b.displayName);assert.notEqual(a.key,b.key);
 });
+
+test('location cards retain every brand, keep missing ratings, and prioritize the lowest actual rating',()=>{
+ const report=api.fromGroups([{brand:'Healthy',branch:'Al Wasl',displayName:'Healthy — Al Wasl',rows:[{platform:'talabat',rating:4.5}]},{brand:'Critical',branch:'Al Wasl',displayName:'Critical — Al Wasl',rows:[{platform:'talabat',rating:2.8}]},{brand:'Missing',branch:'Ajman',displayName:'Missing — Ajman',rows:[{platform:'talabat',rating:null}]},{brand:'Other',branch:'RAK',displayName:'Other — RAK',rows:[{platform:'talabat',rating:3.4}]}],{platform:'talabat'});
+ const cards=api.locationCards(report);assert.equal(cards.length,3);assert.equal(cards[0].location,'Al Wasl');assert.equal(cards[0].rows.length,2);assert.equal(cards[0].rows[0].brand,'Critical');assert.equal(cards[2].location,'Ajman');assert.equal(cards[2].rows[0].values[0],null);assert.equal(report.rows[0].brand,'Healthy');
+});

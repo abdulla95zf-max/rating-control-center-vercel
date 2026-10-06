@@ -10,6 +10,12 @@
   const dates=groups.flatMap(g=>g.rows.map(r=>r.timestamp)).filter(v=>typeof v==='string'&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(a)-Date.parse(b));
   return {title:'Branch ratings',subtitle:platform?platformName(platform)+' · Latest saved ratings':'Portfolio · Latest saved ratings',platform:platform||'portfolio',columns,rows,filters:[brand||'All brands',status||'All statuses',...(location?['Location: '+location]:[]),...(search?['Search: '+search]:[])],generatedAt,observedAt:dates.at(-1)||null};
  }
+ function locationCards(report){
+  const locations=new Map();
+  const lowest=row=>{const values=row.values.filter(value=>value!==null);return values.length?Math.min(...values):Infinity;};
+  for(const row of report.rows){const location=row.location||'Unspecified location';if(!locations.has(location))locations.set(location,[]);locations.get(location).push({...row});}
+  return [...locations].map(([location,rows])=>({location,rows:rows.sort((a,b)=>lowest(a)-lowest(b)||(a.brand||a.branch).localeCompare(b.brand||b.branch))})).sort((a,b)=>Math.min(...a.rows.map(lowest))-Math.min(...b.rows.map(lowest))||a.location.localeCompare(b.location));
+ }
  const encoder=new TextEncoder(),bytes=text=>encoder.encode(text);
  const crcTable=Array.from({length:256},(_,n)=>{for(let k=0;k<8;k++)n=(n&1)?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
  const crc32=data=>{let c=0xffffffff;for(const b of data)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0;};
@@ -48,5 +54,5 @@
   let timer;const ready=event=>{if(event.origin!==location.origin||event.source!==child||event.data?.type!=='ratings-print-ready')return;window.removeEventListener('message',ready);clearTimeout(timer);child.postMessage({type:'ratings-print-report',report},location.origin);};
   window.addEventListener('message',ready);timer=setTimeout(()=>window.removeEventListener('message',ready),30000);
  }
- globalThis.RatingExports={fromGroups,excel,downloadExcel,printPdf,filename};
+ globalThis.RatingExports={fromGroups,locationCards,excel,downloadExcel,printPdf,filename};
 })();
