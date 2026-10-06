@@ -235,13 +235,13 @@ function rankPanel(title, subtitle, stores, valueRenderer) {
 async function renderTalabat() {
   const parameters = new URLSearchParams({ platform: 'talabat', sort: state.sort });
   if (state.search) parameters.set('search', state.search);
-  if (state.status) parameters.set('status', state.status);
   const { stores: sourceStores, platform } = await api(`/api/stores?${parameters}`);
   const brands=[...new Set(sourceStores.map(store=>storeIdentity(store).brand))].sort();
   const locations=[...new Set(sourceStores.map(store=>storeIdentity(store).branch))].sort();
-  const stores=sourceStores.filter(store=>{const identity=storeIdentity(store);return (!state.brand||identity.brand===state.brand)&&(!state.location||identity.branch===state.location);});
+  const exportStores=sourceStores.filter(store=>{const identity=storeIdentity(store);return (!state.brand||identity.brand===state.brand)&&(!state.location||identity.branch===state.location);});
+  const stores=exportStores.filter(store=>!state.status||store.status===state.status);
   main.innerHTML = `
-    <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div>${ratingExportControls(stores.length)}</div>
+    <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div></div>
     ${healthBanner(platform)}
     <div class="toolbar">
       <input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name" autocomplete="off">
@@ -252,15 +252,15 @@ async function renderTalabat() {
       </select>
       <button class="filter-chip ${state.status === 'CRITICAL' ? 'active' : ''}" data-status="CRITICAL">Critical only</button>
     </div>
-    <div class="status-filters">
+    <div class="ratings-table-actions"><div class="status-filters">
       ${[['','All statuses'],['HEALTHY','Healthy'],['ACCEPTABLE','Acceptable'],['WARNING','Warning only'],['CRITICAL','Critical only'],['UNKNOWN','Unknown']].map(([value,label]) => `<button class="filter-chip ${state.status === value ? 'active' : ''}" data-status="${value}">${label}</button>`).join('')}
-    </div>
+    </div>${ratingExportControls(exportStores.length)}</div>
     <div class="table-wrap"><table class="compact-table"><thead><tr><th>Store name</th><th>Current rating</th><th>Previous</th><th>Change</th><th>Status</th><th>Last updated</th></tr></thead>
       <tbody>${stores.length ? stores.map(store => `<tr data-store-id="${escapeHtml(store.storeId)}"><td class="store-name">${escapeHtml(displayStoreName(store))}</td><td><strong>${formatRating(store.currentRating)}</strong></td><td>${formatRating(store.previousRating)}</td><td>${changeHtml(store.ratingChange)}</td><td>${statusHtml(store.status)}</td><td>${escapeHtml(formatTime(store.lastUpdated))}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">No stores match these filters</td></tr>'}</tbody>
     </table></div>`;
   attachTalabatControls();
   attachStoreClicks();
-  attachRatingExports(stores.map(store=>({...storeIdentity(store),rows:[{platform:'talabat',rating:store.currentRating,status:store.status,timestamp:store.lastUpdated}]})),{platform:'talabat',brand:state.brand,location:state.location,status:state.status,search:state.search});
+  attachRatingExports(exportStores.map(store=>({...storeIdentity(store),rows:[{platform:'talabat',rating:store.currentRating,status:store.status,timestamp:store.lastUpdated}]})),{platform:'talabat',brand:state.brand,location:state.location,status:state.status,search:state.search});
 }
 
 function cloudHealth(result) {
@@ -285,11 +285,22 @@ function cloudPlatformCards(platforms) {
   }).join('') + '</section>';
 }
 
-function ratingExportControls(count){return `<div class="ratings-export-controls" aria-label="Export current ratings"><button type="button" class="rating-export-button" data-export-ratings="excel" ${count?'':'disabled'}><span aria-hidden="true">↓</span> Excel</button><button type="button" class="rating-export-button" data-export-ratings="pdf" ${count?'':'disabled'}><span aria-hidden="true">↓</span> PDF</button><span class="rating-export-message" role="status"></span></div>`;}
+function ratingExportControls(count){
+ const excelIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#21a366" d="M8 2h12v20H8z"/><path fill="#107c41" d="M2 6h12v14H2z"/><path stroke="white" stroke-width="2" d="m6 10 4 6m0-6-4 6"/><path stroke="#b8e5c9" d="M16 7h2m-2 4h2m-2 4h2"/></svg>';
+ const pdfIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#e94343" d="M5 2h10l4 4v16H5z"/><path fill="#ffb8b8" d="M15 2v5h4"/><path fill="none" stroke="white" stroke-width="1.5" d="M8 17c5-8 3-10 2-8-1 3 5 8 7 7-2-3-8-1-9 1Z"/></svg>';
+ return `<div class="ratings-export-controls" aria-label="Export ratings"><button type="button" class="rating-export-button" data-export-ratings="excel" ${count?'':'disabled'}>${excelIcon} Excel</button><button type="button" class="rating-export-button" data-export-ratings="pdf" ${count?'':'disabled'}>${pdfIcon} PDF</button><span class="rating-export-message" role="status"></span></div>`;
+}
 function attachRatingExports(groups,options){
  const exporter=globalThis.RatingExports;if(!exporter){for(const button of main.querySelectorAll('[data-export-ratings]'))button.disabled=true;return;}
- const snapshot=exporter.fromGroups(groups,options);
- for(const button of main.querySelectorAll('[data-export-ratings]'))button.addEventListener('click',()=>{const message=main.querySelector('.rating-export-message');try{message.textContent='';if(button.dataset.exportRatings==='excel')exporter.downloadExcel(snapshot);else exporter.printPdf(snapshot);}catch(error){message.textContent=error instanceof Error?error.message:'Export could not be opened.';}});
+ for(const button of main.querySelectorAll('[data-export-ratings]'))button.addEventListener('click',()=>{
+  document.getElementById('ratingsExportDialog')?.remove();
+  const critical=groups.filter(group=>options.platform?group.rows.some(row=>row.status==='CRITICAL'):groupStatus(group)==='CRITICAL');
+  const dialog=document.createElement('dialog');dialog.id='ratingsExportDialog';dialog.className='ratings-export-dialog';
+  dialog.innerHTML=`<form method="dialog"><div class="export-dialog-heading"><h3>Export ${button.dataset.exportRatings==='excel'?'Excel':'PDF'}</h3><button class="export-dialog-close" aria-label="Close" value="cancel">×</button></div><p>Choose which ratings to include.</p><p class="export-scope-note">Brand, location and search filters stay applied.</p><button type="button" class="export-choice" data-export-scope="all"><strong>All statuses</strong><span>${groups.length} branches</span></button><button type="button" class="export-choice critical-choice" data-export-scope="critical" ${critical.length?'':'disabled'}><strong>Critical only</strong><span>${critical.length} branches</span></button></form>`;
+  document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove());dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+  for(const choice of dialog.querySelectorAll('[data-export-scope]'))choice.addEventListener('click',()=>{const selected=choice.dataset.exportScope==='critical',snapshot=exporter.fromGroups(selected?critical:groups,{...options,status:selected?'CRITICAL':''});const message=main.querySelector('.rating-export-message');try{message.textContent='';if(button.dataset.exportRatings==='excel')exporter.downloadExcel(snapshot);else exporter.printPdf(snapshot);dialog.close();}catch(error){message.textContent=error instanceof Error?error.message:'Export could not be opened.';dialog.close();}});
+  dialog.showModal();
+ });
 }
 
 async function renderCloudRatings() {
@@ -315,16 +326,16 @@ async function renderCloudRatings() {
   const brands = [...new Set(allGroups.map(group => group.brand))].sort((a,b)=>a.localeCompare(b));
   const locations = [...new Set(viewGroups.map(group => group.branch))].sort((a,b)=>a.localeCompare(b));
   const search = state.search.toLowerCase();
-  const filteredGroups = viewGroups.filter(group => (!state.brand || group.brand === state.brand) && (!state.location || group.branch === state.location) &&
-    (!state.status || (selectedPlatform ? group.rows.some(row=>row.status===state.status) : groupStatus(group)===state.status)) &&
+  const exportGroups = viewGroups.filter(group => (!state.brand || group.brand === state.brand) && (!state.location || group.branch === state.location) &&
     [group.displayName,group.brand,group.branch,...group.rows.map(row=>row.storeName||'')].some(value=>value.toLowerCase().includes(search)));
-  filteredGroups.sort((a,b) => {
+  exportGroups.sort((a,b) => {
     const direction=state.sort.endsWith('_desc')?-1:1,key=state.sort.replace(/_(?:asc|desc)$/,'');
     if(key==='rating'){const av=groupRating(a),bv=groupRating(b);if(av===null&&bv!==null)return 1;if(av!==null&&bv===null)return -1;if(av!==bv)return direction*((av??0)-(bv??0));}
     if(key==='severity'){const difference=severity[groupStatus(a)]-severity[groupStatus(b)];if(difference)return direction*difference;}
     if(key==='observed'){const av=Math.max(...a.rows.map(row=>timestamp(row.timestamp)).filter(Number.isFinite)),bv=Math.max(...b.rows.map(row=>timestamp(row.timestamp)).filter(Number.isFinite));if(av!==bv)return direction*(av-bv);}
     return direction*a.displayName.localeCompare(b.displayName);
   });
+  const filteredGroups=exportGroups.filter(group=>!state.status||(selectedPlatform?group.rows.some(row=>row.status===state.status):groupStatus(group)===state.status));
   const counted = selectedPlatform ? sourceRows.map(row=>row.status) : viewGroups.map(group=>groupStatus(group));
   const counts = Object.fromEntries(['HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => [status, counted.filter(value=>value===status).length]));
   const title=selectedPlatform ? selectedPlatform[0].toUpperCase()+selectedPlatform.slice(1)+' latest ratings' : 'Portfolio overview';
@@ -334,7 +345,7 @@ async function renderCloudRatings() {
   if(performance?.rows&&typeof performanceState!=='undefined'){performanceState.cache=performance;performanceState.cacheKey='';performanceState.checkedAt=Date.now();}
   const recentChanges=!selectedPlatform?renderRecentChanges(allGroups):'';
   const actionCenter=!selectedPlatform?renderActionCenter(allGroups,performance,actionHistory):'';
-  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${ratingExportControls(filteredGroups.length)}</div>
+  main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Live latest data · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div></div>
     ${recentChanges}
     ${actionCenter}
     ${cloudPlatformCards(platformResults)}
@@ -343,10 +354,10 @@ async function renderCloudRatings() {
     <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
     <select class="select" id="locationFilter" aria-label="Filter by location"><option value="">All locations</option>${locations.map(location=>`<option value="${escapeHtml(location)}" ${state.location===location?'selected':''}>${escapeHtml(location)}</option>`).join('')}</select>
     <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Branch name · A to Z'],['name_desc','Branch name · Z to A'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · best first'],['severity_desc','Status · most severe first'],['observed_desc','Observed · newest first'],['observed_asc','Observed · oldest first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
-    <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
+    <div class="ratings-table-actions"><div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>${ratingExportControls(exportGroups.length)}</div>
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
-  attachRatingExports(filteredGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
+  attachRatingExports(exportGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);
   attachActionCenter(allGroups);
