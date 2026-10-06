@@ -267,9 +267,9 @@ function cloudHealth(result) {
   if (!result || result.state === 'ERROR') return 'ERROR';
   if (result.state === 'EMPTY') return 'EMPTY';
   const age = Date.now() - timestamp(result.syncTimestamp);
-  const talabat=String(result.platform||'').toLowerCase()==='talabat';
-  const delayedAfter=talabat?5*60*60*1000:90*60*1000;
-  const staleAfter=talabat?8*60*60*1000:2*60*60*1000;
+  const scheduledEveryFourHours=['talabat','keeta'].includes(String(result.platform||'').toLowerCase());
+  const delayedAfter=scheduledEveryFourHours?5*60*60*1000:90*60*1000;
+  const staleAfter=scheduledEveryFourHours?8*60*60*1000:2*60*60*1000;
   return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > staleAfter ? 'STALE' : age >= delayedAfter ? 'DELAYED' : 'LIVE';
 }
 function cloudPlatformCards(platforms) {

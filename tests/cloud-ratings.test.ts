@@ -149,3 +149,15 @@ test('dashboard packages local identity artwork, sticky platform navigation and 
  assert.match(html,/rel="icon" href="\/favicon\.svg"/);assert.match(html,/class="tab-logo"/);
  assert.match(css,/\.platform-tabs \{ position: sticky;/);assert.match(css,/@media \(max-width: 760px\)/);assert.match(css,/\.overview-table tr \{ display: grid;/);
 });
+
+
+test('Keeta and Talabat freshness accommodates four-hour schedules without hiding missed cycles',()=>{
+ const source=fs.readFileSync('public/app.js','utf8'),segment=source.slice(source.indexOf('function cloudHealth('),source.indexOf('function cloudPlatformCards('));
+ const now=Date.parse('2026-10-06T12:00:00Z'),context=vm.createContext({Date:{now:()=>now},timestamp:Date.parse});vm.runInContext(segment+';globalThis.health=cloudHealth',context);
+ for(const platform of ['talabat','keeta']){
+  const health=(hours:number)=>context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()});
+  assert.equal(health(3),'LIVE');assert.equal(health(4.99),'LIVE');assert.equal(health(5),'DELAYED');assert.equal(health(8),'DELAYED');assert.equal(health(8.01),'STALE');assert.equal(health(-1),'UNKNOWN');
+  assert.equal(context.health({platform,state:'ERROR'}),'ERROR');assert.equal(context.health({platform,state:'EMPTY'}),'EMPTY');assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:'invalid'}),'UNKNOWN');
+ }
+ assert.equal(context.health({platform:'noon',state:'SUCCESS',syncTimestamp:new Date(now-3*3600000).toISOString()}),'STALE');
+});
