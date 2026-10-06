@@ -55,7 +55,7 @@ function redrawCharts() {
 new ResizeObserver(()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();}).observe(detailContent);
 const changeHtml = value => value === null ? '—' : `<span class="${value < 0 ? 'negative' : value > 0 ? 'positive' : ''}">${value > 0 ? '+' : ''}${Number(value).toFixed(1)}</span>`;
 const statusHtml = status => `<span class="status status-${String(status).toLowerCase()}">${escapeHtml(status)}</span>`;
-const platformLogoHtml = platform => `<span class="platform-identity"><img src="/platforms/${escapeHtml(platform)}.svg" alt=""><span>${escapeHtml(platform)}</span></span>`;
+const platformLogoHtml = platform => `<span class="platform-identity"><img src="/platforms/${escapeHtml(platform)}-icon.png" alt=""><span>${escapeHtml(platform)}</span></span>`;
 const inlineStatusHtml = status => `<span class="inline-status inline-status-${String(status).toLowerCase()}"><i></i>${escapeHtml(status)}</span>`;
 const ratingSortHeader=(label,key)=>{const active=state.sort.startsWith(key+'_'),direction=active&&state.sort.endsWith('_desc')?'desc':'asc',arrow=active?(direction==='asc'?'▲':'▼'):'↕';return `<button class="sort-button ${active?'active':''}" data-rating-sort="${key}" aria-label="Sort ${escapeHtml(label)} ${direction==='asc'?'descending':'ascending'}">${escapeHtml(label)} <span aria-hidden="true">${arrow}</span></button>`;};
 const actionNumber=value=>typeof value==='string'&&/^[-+]?\d+(?:\.\d+)?$/.test(value.trim())&&Number.isFinite(Number(value))?Number(value):null;
@@ -275,9 +275,9 @@ function cloudHealth(result) {
 function cloudPlatformCards(platforms) {
   return '<section class="platform-health-grid">' + state.platforms.map(platform => {
     const result = platforms.find(item => item.platform === platform.id);
-    if (!result) return '<article class="kpi-card platform-health-card is-disconnected"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml('NOT CONNECTED') + '<p>Not Connected</p></article>';
+    if (!result) return '<article class="kpi-card platform-health-card is-disconnected"><h3 class="platform-card-heading"><img src="/platforms/' + escapeHtml(platform.id) + '-icon.png" alt="">' + escapeHtml(platform.name) + '</h3>' + statusHtml('NOT CONNECTED') + '<p>Not Connected</p></article>';
     const health = cloudHealth(result);
-    return '<article class="kpi-card platform-health-card is-connected"><h3>' + escapeHtml(platform.name) + '</h3>' + statusHtml(result.state) +
+    return '<article class="kpi-card platform-health-card is-connected"><h3 class="platform-card-heading"><img src="/platforms/' + escapeHtml(platform.id) + '-icon.png" alt="">' + escapeHtml(platform.name) + '</h3>' + statusHtml(result.state) +
       '<p>Freshness: ' + statusHtml(health) + '</p><p>Total stores: ' + formatNumber(result.storeCount) + '</p>' +
       '<p>Last sync<br>' + escapeHtml(formatTime(result.syncTimestamp)) + '</p>' +
       (result.state === 'ERROR' ? '<p class="health-warning">Ratings source is unavailable.</p>' :
