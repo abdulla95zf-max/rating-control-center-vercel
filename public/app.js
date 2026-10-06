@@ -3,6 +3,7 @@ const state = {
   platforms: [],
   search: '',
   brand: '',
+  location: '',
   status: '',
   sort: 'name_asc',
   refreshSeconds: 60,
@@ -235,12 +236,17 @@ async function renderTalabat() {
   const parameters = new URLSearchParams({ platform: 'talabat', sort: state.sort });
   if (state.search) parameters.set('search', state.search);
   if (state.status) parameters.set('status', state.status);
-  const { stores, platform } = await api(`/api/stores?${parameters}`);
+  const { stores: sourceStores, platform } = await api(`/api/stores?${parameters}`);
+  const brands=[...new Set(sourceStores.map(store=>storeIdentity(store).brand))].sort();
+  const locations=[...new Set(sourceStores.map(store=>storeIdentity(store).branch))].sort();
+  const stores=sourceStores.filter(store=>{const identity=storeIdentity(store);return (!state.brand||identity.brand===state.brand)&&(!state.location||identity.branch===state.location);});
   main.innerHTML = `
     <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div>${ratingExportControls(stores.length)}</div>
     ${healthBanner(platform)}
     <div class="toolbar">
       <input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name" autocomplete="off">
+      <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
+      <select class="select" id="locationFilter" aria-label="Filter by location"><option value="">All locations</option>${locations.map(location=>`<option value="${escapeHtml(location)}" ${state.location===location?'selected':''}>${escapeHtml(location)}</option>`).join('')}</select>
       <select class="select" id="storeSort" aria-label="Sort stores">
         ${[['name_asc','Name · A to Z'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['change_asc','Change · biggest drop'],['change_desc','Change · biggest gain']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}
       </select>
@@ -254,7 +260,7 @@ async function renderTalabat() {
     </table></div>`;
   attachTalabatControls();
   attachStoreClicks();
-  attachRatingExports(stores.map(store=>({...storeIdentity(store),rows:[{platform:'talabat',rating:store.currentRating,status:store.status,timestamp:store.lastUpdated}]})),{platform:'talabat',status:state.status,search:state.search});
+  attachRatingExports(stores.map(store=>({...storeIdentity(store),rows:[{platform:'talabat',rating:store.currentRating,status:store.status,timestamp:store.lastUpdated}]})),{platform:'talabat',brand:state.brand,location:state.location,status:state.status,search:state.search});
 }
 
 function cloudHealth(result) {
@@ -307,8 +313,9 @@ async function renderCloudRatings() {
   };
   const viewGroups = selectedPlatform ? groupCloudRows(sourceRows) : allGroups;
   const brands = [...new Set(allGroups.map(group => group.brand))].sort((a,b)=>a.localeCompare(b));
+  const locations = [...new Set(viewGroups.map(group => group.branch))].sort((a,b)=>a.localeCompare(b));
   const search = state.search.toLowerCase();
-  const filteredGroups = viewGroups.filter(group => (!state.brand || group.brand === state.brand) &&
+  const filteredGroups = viewGroups.filter(group => (!state.brand || group.brand === state.brand) && (!state.location || group.branch === state.location) &&
     (!state.status || (selectedPlatform ? group.rows.some(row=>row.status===state.status) : groupStatus(group)===state.status)) &&
     [group.displayName,group.brand,group.branch,...group.rows.map(row=>row.storeName||'')].some(value=>value.toLowerCase().includes(search)));
   filteredGroups.sort((a,b) => {
@@ -334,11 +341,12 @@ async function renderCloudRatings() {
     <section class="kpi-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
     <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
     <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
+    <select class="select" id="locationFilter" aria-label="Filter by location"><option value="">All locations</option>${locations.map(location=>`<option value="${escapeHtml(location)}" ${state.location===location?'selected':''}>${escapeHtml(location)}</option>`).join('')}</select>
     <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Branch name · A to Z'],['name_desc','Branch name · Z to A'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · best first'],['severity_desc','Status · most severe first'],['observed_desc','Observed · newest first'],['observed_asc','Observed · oldest first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
     <div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
-  attachRatingExports(filteredGroups,{platform:selectedPlatform,brand:state.brand,status:state.status,search:state.search});
+  attachRatingExports(filteredGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);
   attachActionCenter(allGroups);
@@ -394,6 +402,7 @@ function attachTalabatControls() {
     debounce = window.setTimeout(() => { state.search = event.target.value.trim(); renderCurrent(); }, 280);
   });
   document.getElementById('brandFilter')?.addEventListener('change', event => { state.brand = event.target.value; renderCurrent(); });
+  document.getElementById('locationFilter')?.addEventListener('change', event => { state.location = event.target.value; renderCurrent(); });
   document.getElementById('storeSort')?.addEventListener('change', event => { state.sort = event.target.value; renderCurrent(); });
   for(const button of main.querySelectorAll('[data-rating-sort]'))button.addEventListener('click',()=>{const key=button.dataset.ratingSort,current=state.sort.startsWith(key+'_');state.sort=key+'_'+(current&&!state.sort.endsWith('_desc')?'desc':'asc');renderCurrent();});
   for (const button of main.querySelectorAll('[data-status]')) button.addEventListener('click', () => { state.status = button.dataset.status || ''; renderCurrent(); });

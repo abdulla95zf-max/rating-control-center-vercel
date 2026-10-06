@@ -8,7 +8,7 @@
   if(['al dhait south','al dhait rak al dhait south','rak'].includes(key))return 'RAK';
   if(['al barsha 1','al barsha','barsha'].includes(key))return 'Barsha';
   if(['al hamidiya 2','ajman'].includes(key))return 'Ajman';
-  if(['al darfrah','mushrif mall al dafrah'].includes(key))return 'AbuDhabi';
+  if(['al darfrah','al dafrah','mushrif mall al dafrah'].includes(key))return 'AbuDhabi';
   return original;
  };
  const full=value=>{const text=String(value??''),split=text.match(/^(.+?)\s+[—–]\s+(.+)$/);return split?brand(split[1])+' — '+branch(split[2]):text.replace(/^Marwareed\b/i,'Morwarid');};
