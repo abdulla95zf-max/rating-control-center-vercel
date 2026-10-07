@@ -161,6 +161,7 @@ function updateTalabatViews() {
 
 async function renderCurrent() {
   updateTalabatViews();
+  if(state.tab==='growth'){await renderGrowth();return;}
   if(state.tab==='performance'){await renderPerformance();return;}
   if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
   if(state.tab==='noon-performance'){await renderNoonPerformance();return;}
@@ -355,7 +356,7 @@ async function renderCloudRatings() {
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Latest saved ratings · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${selectedPlatform?`<div class="ratings-freshness">${statusHtml(overallHealth)}<span>Last sync <strong>${escapeHtml(formatTime(active[0]?.syncTimestamp))}</strong></span></div>`:''}</div>
     ${selectedPlatform?'':cloudPlatformCards(platformResults)}
     <section class="kpi-grid rating-status-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
-    ${selectedPlatform?'':`<div class="overview-panels">${recentChanges}${actionCenter}</div>`}
+    ${selectedPlatform?'':`<div class="overview-panels">${recentChanges}${actionCenter}</div>${typeof renderGrowthOverview==='function'?'<section class="gr-overview" id="growthOverview"><h3>Sales decline priorities</h3><p>Reading saved comparisons…</p></section>':''}`}
     <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
     <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
     <select class="select" id="locationFilter" aria-label="Filter by location"><option value="">All locations</option>${locations.map(location=>`<option value="${escapeHtml(location)}" ${state.location===location?'selected':''}>${escapeHtml(location)}</option>`).join('')}</select>
@@ -363,6 +364,7 @@ async function renderCloudRatings() {
     <div class="ratings-table-actions"><div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>${ratingExportControls(exportGroups.length)}</div>
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
+  if(!selectedPlatform&&typeof renderGrowthOverview==='function')renderGrowthOverview();
   attachRatingExports(exportGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);
@@ -595,7 +597,7 @@ for (const closer of document.querySelectorAll('[data-close-detail]')) closer.ad
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedStore = null; ++detailRequest; detailPanel.classList.remove('open'); detailPanel.setAttribute('aria-hidden', 'true'); } });
 
 const initialTab = location.hash.slice(1);
-if (['overview', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance'].includes(initialTab)) {
+if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance'].includes(initialTab)) {
   state.tab = initialTab;
   for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
 }
