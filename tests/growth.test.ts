@@ -1,9 +1,22 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
 import {growthNumber,growthRow,readTalabatGrowth,readKeetaGrowth,readNoonGrowth,fetchGrowth} from '../src/services/growth.ts';
 import {createCloudHandler} from '../src/cloud-api.ts';
+import {scopeKeetaSnapshot} from '../src/services/keeta-snapshot-scope.ts';
 const now=new Date('2026-10-07T09:00:00Z'),p={from:'2026-09-30',to:'2026-10-06',previousFrom:'2026-09-23',previousTo:'2026-09-29'};
 const rows=()=>Array.from({length:14},(_,i)=>({source_key:'source',report_date:new Date(Date.parse('2026-09-23')+i*86400000).toISOString().slice(0,10),store_id:'1',present:true,orders:i<7?'20':'10',sales:i<7?'1200':'500'}));
 const talabat=()=>({state:'SUCCESS',reportDate:p.to,receivedAt:now.toISOString(),rows:[{storeId:'1',storeName:'Kabab Fareej — Barsha',present:true,values:{'Successful Orders':'10','Gross Sales':'500'}}]});
+test('Keeta direct historical comparison removes dependency on an old snapshot and stays scoped',async()=>{
+ const comparison={from:p.previousFrom,to:p.previousTo,sales:8029,orders:110,verifiedBy:'SOURCE_CHANGE_RATIOS'};
+ const data:any={state:'SUCCESS',snapshot:{periodFrom:p.from,periodTo:p.to,comparisonFrom:p.previousFrom,comparisonTo:p.previousTo,observedAt:now.toISOString(),shops:[{shopId:'1',business:{shop_income:'10,183.50',shop_valid_order_num:'130'},businessComparison:comparison},{shopId:'2',shopName:'Forbidden',businessComparison:comparison}]}};
+ data.snapshot=scopeKeetaSnapshot(data.snapshot,new Set(['1']));
+ const result=await readKeetaGrowth(data,{query:async()=>assert.fail('No historical database read needed')},now);
+ assert.equal(result.rows.length,1);assert.equal(result.rows[0].previous.sales,8029);assert.equal(result.rows[0].ordersDelta,20);assert.equal(result.rows[0].delta,2154.5);assert.ok(!JSON.stringify(result).includes('Forbidden'));
+ for(const invalid of [{...comparison,from:'2026-09-24'},{...comparison,verifiedBy:'ESTIMATE'},{...comparison,orders:110.5}]){
+  data.snapshot.shops[0].businessComparison=invalid;
+  const missing=await readKeetaGrowth(data,{query:async()=>({rows:[]})},now);
+  assert.equal(missing.rows[0].eligible,false);
+ }
+});
 test('Growth parses sales without interpreting unknowns as zero',()=>{for(const v of [null,undefined,'','AED 100','10%','1,2','-2','Infinity'])assert.equal(growthNumber(v),null);assert.equal(growthNumber('1,250.25'),1250.25);assert.equal(growthNumber(0),0);});
 test('Growth decomposition reconciles changes, zero baseline does not invent percentage',()=>{const r=growthRow('id','name',p,{sales:500,orders:10},{sales:1200,orders:20});assert.equal(r.delta,-700);assert.equal(r.orderEffect!+r.basketEffect!,r.delta);assert.equal(r.aov,50);assert.equal(r.ordersDelta,-10);const first=growthRow('id','name',p,{sales:500,orders:10},{sales:0,orders:0});assert.equal(first.deltaPercent,null);assert.equal(first.orderEffect,null);assert.equal(first.eligible,true);const closed=growthRow('id','name',p,{sales:0,orders:0},{sales:500,orders:10});assert.equal(closed.delta,-500);assert.equal(closed.aov,null);assert.equal(growthRow('id','name',p,{sales:20,orders:0},{sales:10,orders:1}).eligible,false);});
 test('Talabat requires fourteen distinct valid daily branch observations and verifies controlling source',async()=>{const data=rows(),db={query:async(q:any)=>{assert.deepEqual(q.values,[['1'],'2026-09-23','2026-10-06']);return {rows:data};}};let result=await readTalabatGrowth(talabat(),db,now);assert.equal(result.rows[0].delta,-4900);assert.equal(result.rows[0].current.sales,3500);data.splice(0,1);result=await readTalabatGrowth(talabat(),db,now);assert.equal(result.rows[0].reason,'PREVIOUS_DAYS_MISSING');assert.equal(result.rows[0].previous.sales,null);assert.equal(result.rows[0].delta,null);const ambiguous=[...rows(),...rows().map(r=>({...r,source_key:'other'}))];await assert.rejects(readTalabatGrowth(talabat(),{query:async()=>({rows:ambiguous})},now),/SOURCE_AMBIGUOUS/);const wrong=rows().map(r=>({...r,sales:'99'}));await assert.rejects(readTalabatGrowth(talabat(),{query:async()=>({rows:wrong})},now),/SOURCE_UNCONFIRMED/);});
