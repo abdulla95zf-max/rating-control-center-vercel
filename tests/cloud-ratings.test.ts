@@ -79,7 +79,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   const grouped={...projected,ratings:[{...talabatBranch,status:'HEALTHY'},{...keetaBranch,status:'ACCEPTABLE'}],
     platforms:[{...projected.platforms[0],ratings:[{...talabatBranch,status:'HEALTHY'}]},
       {...projected.platforms[1],ratings:[{...keetaBranch,status:'ACCEPTABLE'}]}]};
-  const main:any={innerHTML:'',querySelectorAll:()=>[]};
+  const main:any={innerHTML:'',querySelectorAll:()=>[],querySelector:()=>null};
   const detail:any={innerHTML:'',querySelectorAll:()=>[]};
   const panel:any={classList:{add:()=>{},remove:()=>{},contains:()=>false},setAttribute:()=>{}};
   const node:any={querySelectorAll:()=>[],addEventListener:()=>{},querySelector:()=>({dataset:{}})};
@@ -91,6 +91,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
     fetch:async(url:string)=>{urls.push(url);return {ok:true,json:async()=>url.includes('action-history')?actionHistory:url.includes('/performance/')?performance:grouped};}});
   vm.runInContext(fs.readFileSync('public/branch-labels.js','utf8'),context);
   vm.runInContext(fs.readFileSync('public/ratings-export.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('public/report-cache.js','utf8'),context);
   const source=fs.readFileSync('public/app.js','utf8').replace(/bootDashboard\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),
@@ -106,6 +107,8 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Qusais Industrial Area 1');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Barsha, Al Barsha 2"}).branch',context),'Al Barsha 2');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
+  await vm.runInContext('Promise.all([overviewReports.read(overviewPerformancePath,()=>api(overviewPerformancePath)),overviewReports.read(overviewHistoryPath,()=>api(overviewHistoryPath))])',context);
+  vm.runInContext('paintCloudRatings(state.cloudResponse)',context);
   for(const text of ['Recent Changes','Rating drops','New one-star','Improved','4.6 → 4.4','id="recentBrand"','id="recentPlatform"','Operational Center','Actions','Complaints · 7d 1.20','Recommended:','Latest daily report 2026-09-20','id="actionBrand"'])assert.ok(main.innerHTML.includes(text),text);
   assert.equal(vm.runInContext(`buildRecentChanges([{key:'x',displayName:'Brand — Branch',brand:'Brand',rows:[{platform:'talabat',timestamp:'2026-09-20T12:00:00.000Z',rating:4,previousRating:4.2,previousTimestamp:'2026-09-20T08:00:00.000Z',reviewCount:12,previousReviewCount:10,oneStarCount:3,previousOneStarCount:1}]}]).map(item=>item.type).sort().join(',')`,context),'drops,oneStar');
   assert.equal(vm.runInContext(`buildRecentChanges([{key:'x',displayName:'Brand — Branch',brand:'Brand',rows:[{platform:'talabat',timestamp:'2026-09-20T12:00:00.000Z',rating:2.9,previousRating:2.7,previousTimestamp:'2026-09-20T08:00:00.000Z',reviewCount:12,previousReviewCount:10,oneStarCount:3,previousOneStarCount:3}]}])[0].label`,context),'Improved · still critical');
@@ -131,7 +134,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
   await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/talabat.svg'));
-  assert.deepEqual(urls,['/api/dashboard/ratings/latest','/api/dashboard/performance/latest','/api/dashboard/performance/action-history?days=30','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d','/api/dashboard/ratings/latest','/api/dashboard/ratings/latest']);
+  assert.deepEqual([...urls].sort(),['/api/dashboard/ratings/latest','/api/dashboard/performance/latest','/api/dashboard/performance/action-history?days=30','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d'].sort());
 });
 
 test('missing token and public assets fail closed without exposing token or upstream URL',async()=>{

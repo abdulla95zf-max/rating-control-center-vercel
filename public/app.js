@@ -136,7 +136,7 @@ async function initialize() {
 
   } catch (error) {
     renderError(error);
-  } finally { state.timer = window.setInterval(renderCurrent, state.refreshSeconds * 1000); }
+  } finally { if(!globalThis.dashboardAuth||globalThis.dashboardAuth.user)state.timer = window.setInterval(()=>renderCurrent(true), state.refreshSeconds * 1000); }
 }
 
 function updatePlatformTabs() {
@@ -159,23 +159,21 @@ function updateTalabatViews() {
   for(const button of keetaViewTabs.querySelectorAll('[data-keeta-view]'))button.classList.toggle('active',button.dataset.keetaView===state.tab);
 }
 
-async function renderCurrent() {
+async function renderCurrent(force=false) {
   updateTalabatViews();
   if(state.tab==='growth'){await renderGrowth();return;}
   if(state.tab==='performance'){await renderPerformance();return;}
   if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
   if(state.tab==='noon-performance'){await renderNoonPerformance();return;}
+  if(state.cloudRatings){
+    if(['overview','talabat','keeta','noon'].includes(state.tab))await renderCloudRatings(force);
+    else renderDisconnected(state.tab);
+    return;
+  }
   if (state.busy) return;
   state.busy = true;
   refreshState.querySelector('span:last-child').textContent = 'Refreshing…';
   try {
-    if (state.cloudRatings) {
-      if (state.tab === 'overview' || state.tab === 'talabat' || state.tab === 'keeta' || state.tab === 'noon') await renderCloudRatings();
-      else renderDisconnected(state.tab);
-      if(state.tab==='performance')return;
-      refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-      return;
-    }
     state.platforms = (await api('/api/platforms')).platforms;
     updatePlatformTabs();
     refreshState.querySelector('.live-dot').dataset.health = state.platforms.find(p => p.id === 'talabat')?.health || 'ERROR';
@@ -309,10 +307,57 @@ function attachRatingExports(groups,options){
  });
 }
 
-async function renderCloudRatings() {
-  const requestedTab=state.tab;
-  const [response,performance,actionHistory]=await Promise.all([api('/api/dashboard/ratings/latest'),state.tab==='overview'?api('/api/dashboard/performance/latest').catch(()=>null):Promise.resolve(null),state.tab==='overview'?api('/api/dashboard/performance/action-history?days=30').catch(()=>null):Promise.resolve(null)]);
-  if(state.tab!==requestedTab)return;
+const ratingsReports=createReportCache({ttl:60000});
+const overviewReports=createReportCache({ttl:300000});
+let cloudViewEpoch=0;
+const ratingsReportPath='/api/dashboard/ratings/latest';
+const overviewPerformancePath='/api/dashboard/performance/latest';
+const overviewHistoryPath='/api/dashboard/performance/action-history?days=30';
+function ratingsRefreshLabel(){
+ const entry=ratingsReports.peek(ratingsReportPath),label=refreshState.querySelector('span:last-child');
+ const checked=entry.checkedAt?new Date(entry.checkedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):null;
+ label.textContent=entry.error?`Refresh failed · showing saved view${checked?' · checked '+checked:''}`:entry.pending?`Refreshing…${entry.value?' · showing saved view':''}`:checked?`Auto-refresh ${state.refreshSeconds}s · checked ${checked}`:'Reading saved ratings…';
+}
+function overviewActionPanel(groups){
+ const p=overviewReports.peek(overviewPerformancePath),h=overviewReports.peek(overviewHistoryPath);
+ if(p.value&&h.value){const panel=renderActionCenter(groups,p.value,h.value);return p.error||h.error?panel.replace('<section class="action-center">','<section class="action-center"><p class="perf-note">Refresh failed · showing previously loaded operational reports.</p>'):panel;}
+ return '<section class="action-center"><header class="action-header"><h3>Operational Center</h3></header><p class="perf-note">'+(p.error||h.error?'Saved operational reports could not be refreshed. They will be retried automatically.':'Loading saved operational reports… Ratings are already available.')+'</p></section>';
+}
+function refreshOverviewActions(epoch){
+ if(epoch!==cloudViewEpoch||state.tab!=='overview'||!state.cloudResponse)return;
+ const existing=main.querySelector('.action-center');if(!existing)return;
+ const groups=groupCloudRows(state.cloudResponse.ratings);
+ existing.outerHTML=overviewActionPanel(groups);attachActionCenter(groups);
+}
+function loadOverviewReports(force,epoch){
+ for(const path of [overviewPerformancePath,overviewHistoryPath]){
+  const entry=overviewReports.peek(path);
+  if(entry.pending||(!force&&entry.value&&Date.now()-entry.checkedAt<300000))continue;
+  overviewReports.read(path,()=>api(path),{force}).then(value=>{
+   if(epoch!==cloudViewEpoch)return;
+   if(path===overviewPerformancePath&&value?.rows&&typeof performanceState!=='undefined'){performanceState.cache=value;performanceState.cacheKey='';performanceState.checkedAt=overviewReports.peek(path).checkedAt;}
+  }).catch(()=>{}).finally(()=>refreshOverviewActions(epoch));
+ }
+}
+async function renderCloudRatings(force=false) {
+ const requestedTab=state.tab,epoch=cloudViewEpoch;
+ if(requestedTab==='overview')loadOverviewReports(force,epoch);
+ const cached=ratingsReports.peek(ratingsReportPath);
+ if(cached.value)paintCloudRatings(cached.value);
+ const request=ratingsReports.read(ratingsReportPath,()=>api(ratingsReportPath),{force});
+ ratingsRefreshLabel();
+ try{
+  const response=await request;
+  if(epoch!==cloudViewEpoch||state.tab!==requestedTab)return;
+  paintCloudRatings(response);ratingsRefreshLabel();
+ }catch(error){
+  if(epoch!==cloudViewEpoch||state.tab!==requestedTab)return;
+  if(ratingsReports.peek(ratingsReportPath).value){ratingsRefreshLabel();return;}
+  renderError(error);refreshState.querySelector('span:last-child').textContent='Data unavailable';
+ }
+}
+function paintCloudRatings(response) {
+  const focused=document.activeElement,focusId=focused?.id,selection=focused?.id==='storeSearch'?[focused.selectionStart,focused.selectionEnd]:null,typedSearch=focused?.id==='storeSearch'?focused.value:null;
   state.cloudResponse = response;
   const platformResults = response.platforms;
   state.platforms = state.platforms.map(platform => {
@@ -350,9 +395,8 @@ async function renderCloudRatings() {
   const active=selectedPlatform ? platformResults.filter(item=>item.platform===selectedPlatform) : platformResults;
   const overallHealth=['ERROR','STALE','DELAYED','EMPTY','UNKNOWN','LIVE'].find(health=>active.some(item=>cloudHealth(item)===health))||'UNKNOWN';
   refreshState.querySelector('.live-dot').dataset.health=overallHealth;
-  if(performance?.rows&&typeof performanceState!=='undefined'){performanceState.cache=performance;performanceState.cacheKey='';performanceState.checkedAt=Date.now();}
   const recentChanges=!selectedPlatform?renderRecentChanges(allGroups):'';
-  const actionCenter=!selectedPlatform?renderActionCenter(allGroups,performance,actionHistory):'';
+  const actionCenter=!selectedPlatform?overviewActionPanel(allGroups):'';
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Latest saved ratings · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${selectedPlatform?`<div class="ratings-freshness">${statusHtml(overallHealth)}<span>Last sync <strong>${escapeHtml(formatTime(active[0]?.syncTimestamp))}</strong></span></div>`:''}</div>
     ${selectedPlatform?'':cloudPlatformCards(platformResults)}
     <section class="kpi-grid rating-status-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
@@ -369,6 +413,7 @@ async function renderCloudRatings() {
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);
   attachActionCenter(allGroups);
+  if(focusId){const next=document.getElementById(focusId);if(next){if(typedSearch!==null)next.value=typedSearch;next.focus();if(selection&&typeof next.setSelectionRange==='function')next.setSelectionRange(...selection);}}
 }
 
 function buildRecentChanges(groups){
@@ -602,5 +647,16 @@ if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'p
   for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
 }
 document.addEventListener('rcc-theme-change',()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();});
+document.addEventListener('rcc-auth-reset',()=>{
+ ++cloudViewEpoch;ratingsReports.clear();overviewReports.clear();state.cloudResponse=null;state.busy=false;
+ currentActions=[];currentDataChecks=[];currentRecentChanges=[];globalThis.ratingAccessOptions=null;document.getElementById('ratingsExportDialog')?.remove();
+ if(state.timer){window.clearInterval(state.timer);state.timer=null;}
+ if(typeof performanceState!=='undefined'){++performanceState.generation;performanceState.cache=null;performanceState.checkedAt=0;}
+ if(typeof keetaPerformanceState!=='undefined'){keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;}
+ if(typeof noonPerformanceState!=='undefined'){++noonPerformanceState.request;noonPerformanceState.cache=null;noonPerformanceState.checkedAt=0;if(noonPerformanceState.poll)window.clearInterval(noonPerformanceState.poll);noonPerformanceState.poll=null;}
+ if(typeof growthState!=='undefined'){++growthState.generation;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;}
+ selectedStore=null;++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');detailContent.innerHTML='';
+ main.innerHTML='<section class="loading-card">Loading authorized saved reports…</section>';
+});
 function bootDashboard(){if(globalThis.dashboardAuth)globalThis.dashboardAuth.boot(initialize);else initialize();}
 bootDashboard();
