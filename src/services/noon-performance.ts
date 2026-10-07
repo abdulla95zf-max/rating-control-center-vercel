@@ -20,13 +20,14 @@ export function validateNoonPerformance(value:any){
  if(value?.version!==1||typeof value.observedAt!=='string'||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z$/.test(value.observedAt)||!Number.isFinite(Date.parse(value.observedAt))||!Array.isArray(value.reports)||value.reports.length!==24)invalid();
  const p=value.period;
  for(const k of ['startDate','endDate'])if(typeof p?.[k]!=='string'||!/^\d{4}-\d\d-\d\d$/.test(p[k])||!Number.isFinite(Date.parse(p[k]))||new Date(p[k]).toISOString().slice(0,10)!==p[k])invalid();
- if(Date.parse(p.endDate)-Date.parse(p.startDate)!==6*86400000)invalid();
+ const days=(Date.parse(p.endDate)-Date.parse(p.startDate))/86400000+1;if(days<1||days>90)invalid();
  const seen=new Set<string>(),brands=new Map(Object.values(noonScope).map(s=>[s.restaurantId,s.brand]));
  const reports=value.reports.map((r:any)=>{
   const store=r.scope==='STORE',e=store?noonScope[r.outletCode]:null,brand=brands.get(r.restaurantId),key=r.restaurantId+';'+(store?r.outletCode:'BRAND');
   if(!brand||r.brand!==brand||!['STORE','BRAND'].includes(r.scope)||seen.has(key)||(store?!e||e.restaurantId!==r.restaurantId: r.outletCode!==null))invalid();seen.add(key);
   const d=safe(r.dashboard,fields),s=d?.salesInsights,c=d?.customerInsights,o=d?.operationInsights;
   if(d?.startDate!==p.startDate||d?.endDate!==p.endDate||!s||!c||!o||!count(s.mainInsights?.ordersCount)||!num(s.mainInsights?.revenue)||!count(c.customerBaseInsights?.newCustomersOrdersCount)||!count(c.customerBaseInsights?.returningCustomersOrdersCount)||!count(o.mainInsights?.totalOrders))invalid();
+  const comparison={startDate:d.comparisonStartDate,endDate:d.comparisonEndDate};for(const k of ['startDate','endDate'] as const)if(typeof comparison[k]!=='string'||!/^\d{4}-\d\d-\d\d$/.test(comparison[k])||new Date(comparison[k]).toISOString().slice(0,10)!==comparison[k])invalid();if(comparison.startDate>comparison.endDate||comparison.endDate>=p.startDate||(Date.parse(comparison.endDate)-Date.parse(comparison.startDate))/86400000>=90)invalid();
   if(!Array.isArray(r.items)||r.items.length>10000)invalid();
   // Lapsed customer branch attribution was not verified; do not expose it in branch-scoped API results.
   if(store)for(const key of ['customerBaseInsights','customerBaseInsightsPrevious'])for(const name of Object.keys(c[key]??{}))if(name.startsWith('lapsedCustomers'))delete c[key][name];
@@ -34,11 +35,12 @@ export function validateNoonPerformance(value:any){
   return {brand,restaurantId:r.restaurantId,scope:r.scope,outletCode:store?r.outletCode:null,storeName:store?`${brand} — ${e!.location}`:brand,dashboard:d,items};
  });
  for(const [id] of brands){if(!seen.has(id+';BRAND'))invalid();for(const [code,e] of Object.entries(noonScope))if(e.restaurantId===id&&!seen.has(id+';'+code))invalid();}
- return {version:1,observedAt:value.observedAt,period:{startDate:p.startDate,endDate:p.endDate},reports};
+ const comparisons=new Set(reports.map((r:any)=>r.dashboard.comparisonStartDate+';'+r.dashboard.comparisonEndDate));if(comparisons.size!==1)invalid();
+ return {version:1,observedAt:value.observedAt,period:{startDate:p.startDate,endDate:p.endDate,comparisonStartDate:reports[0].dashboard.comparisonStartDate,comparisonEndDate:reports[0].dashboard.comparisonEndDate},reports};
 }
-export async function readNoonPerformance(db:Database=authDatabase()):Promise<any>{
+export async function readNoonPerformance(db:Database=authDatabase(),period?:{startDate:string;endDate:string}):Promise<any>{
  try{
-  const result=await db.query({text:'SELECT payload FROM noon_performance_snapshots ORDER BY period_to DESC,observed_at DESC,created_at DESC,id DESC LIMIT 1',query_timeout:5000});
+  const result=await db.query({text:period?'SELECT payload FROM noon_performance_snapshots WHERE period_from=$1 AND period_to=$2 ORDER BY observed_at DESC,created_at DESC,id DESC LIMIT 1':'SELECT payload FROM noon_performance_snapshots WHERE period_to-period_from=6 ORDER BY period_to DESC,observed_at DESC,created_at DESC,id DESC LIMIT 1',values:period?[period.startDate,period.endDate]:[],query_timeout:5000});
   if(!result.rows.length)return {state:'EMPTY',snapshot:null,errorCode:null};
   return {state:'SUCCESS',snapshot:validateNoonPerformance(result.rows[0].payload),errorCode:null};
  }catch(error:any){if(error?.code==='42P01')return {state:'EMPTY',snapshot:null,errorCode:null};return {state:'ERROR',snapshot:null,errorCode:'PERFORMANCE_READ_FAILED'};}
