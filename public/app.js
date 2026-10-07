@@ -128,7 +128,7 @@ async function initialize() {
   try {
     const config = await api('/api/config');
     state.cloudRatings = config.cloudRatings === true;
-    state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: ['talabat','keeta'].includes(id) ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
+    state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: ['talabat','keeta','noon'].includes(id) ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
     state.refreshSeconds = config.autoRefreshSeconds;
     updatePlatformTabs();
     await renderCurrent();
@@ -165,7 +165,7 @@ async function renderCurrent() {
   refreshState.querySelector('span:last-child').textContent = 'Refreshing…';
   try {
     if (state.cloudRatings) {
-      if (state.tab === 'overview' || state.tab === 'talabat' || state.tab === 'keeta') await renderCloudRatings();
+      if (state.tab === 'overview' || state.tab === 'talabat' || state.tab === 'keeta' || state.tab === 'noon') await renderCloudRatings();
       else renderDisconnected(state.tab);
       if(state.tab==='performance')return;
       refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
@@ -181,7 +181,7 @@ async function renderCurrent() {
     refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (error) {
     if(state.tab==='performance')return;
-    state.platforms = state.platforms.map(p => ['talabat','keeta'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
+    state.platforms = state.platforms.map(p => ['talabat','keeta','noon'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
     updatePlatformTabs();
     refreshState.querySelector('.live-dot').dataset.health = 'ERROR';
     renderError(error);
@@ -268,8 +268,9 @@ function cloudHealth(result) {
   if (result.state === 'EMPTY') return 'EMPTY';
   const age = Date.now() - timestamp(result.syncTimestamp);
   const scheduledEveryFourHours=['talabat','keeta'].includes(String(result.platform||'').toLowerCase());
-  const delayedAfter=scheduledEveryFourHours?5*60*60*1000:90*60*1000;
-  const staleAfter=scheduledEveryFourHours?8*60*60*1000:2*60*60*1000;
+  const scheduledDaily=String(result.platform||'').toLowerCase()==='noon';
+  const delayedAfter=scheduledDaily?26*60*60*1000:scheduledEveryFourHours?5*60*60*1000:90*60*1000;
+  const staleAfter=scheduledDaily?48*60*60*1000:scheduledEveryFourHours?8*60*60*1000:2*60*60*1000;
   return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > staleAfter ? 'STALE' : age >= delayedAfter ? 'DELAYED' : 'LIVE';
 }
 function cloudPlatformCards(platforms) {
@@ -315,7 +316,7 @@ async function renderCloudRatings() {
       lastSuccessfulSync:result.syncTimestamp, message:result.state === 'ERROR' ? 'Ratings source unavailable' : null} : platform;
   });
   updatePlatformTabs();
-  const selectedPlatform = state.tab === 'talabat' || state.tab === 'keeta' ? state.tab : null;
+  const selectedPlatform = ['talabat','keeta','noon'].includes(state.tab) ? state.tab : null;
   const sourceRows = selectedPlatform ? response.ratings.filter(row => row.platform === selectedPlatform) : response.ratings;
   const allGroups = groupCloudRows(response.ratings);
   globalThis.ratingAccessOptions={
@@ -372,7 +373,7 @@ function buildRecentChanges(groups){
 function renderRecentChanges(groups){
  const all=buildRecentChanges(groups),brands=[...new Set(all.map(item=>item.brand))].sort(),filtered=all.filter(item=>(!state.recentBrand||item.brand===state.recentBrand)&&(!state.recentPlatform||item.platform===state.recentPlatform)),lists={drops:filtered.filter(item=>item.type==='drops'),oneStar:filtered.filter(item=>item.type==='oneStar'),improved:filtered.filter(item=>item.type==='improved')},selected=lists[state.recentTab]||lists.drops;currentRecentChanges=selected;const shown=state.recentExpanded?selected:selected.slice(0,5),detail=item=>item.type==='oneStar'?`+${formatNumber(item.oneStarDelta)} one-star${item.reviewDelta>0?` from +${formatNumber(item.reviewDelta)} reviews`:''}`:`${formatRating(item.previousRating)} → ${formatRating(item.rating)} (${item.ratingDelta>0?'+':''}${item.ratingDelta.toFixed(1)})`;
  const row=(item,index)=>`<li class="action-row recent-row"><span class="recent-change ${item.type}">${escapeHtml(item.label)}</span><div class="action-copy"><strong>${escapeHtml(item.name)}</strong><p>${platformLogoHtml(item.platform)} <span>${escapeHtml(detail(item))}</span> · ${escapeHtml(formatTime(item.timestamp))}</p></div><button class="action-open" data-recent-index="${index}">View</button></li>`;
- return `<section class="recent-changes"><header class="action-header"><div><span class="action-eyebrow">PREVIOUS SAVED SNAPSHOT</span><h3>Recent Changes</h3><p>What changed since each store’s previous collection</p></div><div class="recent-filters"><label>Brand <select class="select" id="recentBrand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.recentBrand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select></label><label>Platform <select class="select" id="recentPlatform"><option value="">All platforms</option>${['talabat','keeta'].map(platform=>`<option value="${platform}" ${state.recentPlatform===platform?'selected':''}>${platform[0].toUpperCase()+platform.slice(1)}</option>`).join('')}</select></label></div></header><nav class="action-tabs">${[['drops','Rating drops',lists.drops.length],['oneStar','New one-star',lists.oneStar.length],['improved','Improved',lists.improved.length]].map(([key,label,count])=>`<button type="button" class="${state.recentTab===key?'active':''}" data-recent-tab="${key}">${label} <span>${count}</span></button>`).join('')}</nav>${shown.length?`<ol class="action-list">${shown.map(row).join('')}</ol>`:'<div class="action-clear">No recent changes in this category.</div>'}${selected.length>5?`<button class="action-full-list" id="recentFullList" type="button">${state.recentExpanded?'Show top 5':`View full list (${selected.length})`}</button>`:''}<details class="action-method"><summary>How changes are compared</summary><p class="action-rules">This compares the latest saved snapshot with the immediately previous one. Talabat normally collects every 4 hours; this is not a daily comparison.</p></details></section>`;
+ return `<section class="recent-changes"><header class="action-header"><div><span class="action-eyebrow">PREVIOUS SAVED SNAPSHOT</span><h3>Recent Changes</h3><p>What changed since each store’s previous collection</p></div><div class="recent-filters"><label>Brand <select class="select" id="recentBrand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.recentBrand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select></label><label>Platform <select class="select" id="recentPlatform"><option value="">All platforms</option>${['talabat','keeta','noon'].map(platform=>`<option value="${platform}" ${state.recentPlatform===platform?'selected':''}>${platform[0].toUpperCase()+platform.slice(1)}</option>`).join('')}</select></label></div></header><nav class="action-tabs">${[['drops','Rating drops',lists.drops.length],['oneStar','New one-star',lists.oneStar.length],['improved','Improved',lists.improved.length]].map(([key,label,count])=>`<button type="button" class="${state.recentTab===key?'active':''}" data-recent-tab="${key}">${label} <span>${count}</span></button>`).join('')}</nav>${shown.length?`<ol class="action-list">${shown.map(row).join('')}</ol>`:'<div class="action-clear">No recent changes in this category.</div>'}${selected.length>5?`<button class="action-full-list" id="recentFullList" type="button">${state.recentExpanded?'Show top 5':`View full list (${selected.length})`}</button>`:''}<details class="action-method"><summary>How changes are compared</summary><p class="action-rules">This compares the latest saved snapshot with the immediately previous one. Talabat normally collects every 4 hours; this is not a daily comparison.</p></details></section>`;
 }
 function attachRecentChanges(groups){const lookup=new Map(groups.map(group=>[group.key,group])),brand=document.getElementById('recentBrand'),platform=document.getElementById('recentPlatform');if(brand)brand.onchange=()=>{state.recentBrand=brand.value;state.recentExpanded=false;renderCurrent();};if(platform)platform.onchange=()=>{state.recentPlatform=platform.value;state.recentExpanded=false;renderCurrent();};for(const button of main.querySelectorAll('[data-recent-tab]'))button.onclick=()=>{state.recentTab=button.dataset.recentTab;state.recentExpanded=false;renderCurrent();};const full=document.getElementById('recentFullList');if(full)full.onclick=()=>{state.recentExpanded=!state.recentExpanded;renderCurrent();};for(const button of main.querySelectorAll('[data-recent-index]'))button.onclick=()=>{const item=currentRecentChanges[Number(button.dataset.recentIndex)];if(item&&lookup.has(item.key))openCloudStore(lookup.get(item.key));};}
 
@@ -445,7 +446,7 @@ async function openCloudStore(group,range='30d') {
       <div><dt>Observed</dt><dd>${escapeHtml(formatTime(row.timestamp))}</dd></div><div><dt>Freshness</dt><dd>${row.carriedForward?'Carried forward':'Latest observation'}</dd></div></dl>
     </article>`).join('')}</section>
     <section class="history-placeholder"><strong>Rating history</strong><p>Loading saved snapshots…</p></section>`;
-  const talabat=group.rows.find(row=>row.platform==='talabat');
+  const talabat=state.tab==='noon'?group.rows.find(row=>row.platform==='noon'):(group.rows.find(row=>row.platform==='talabat')||group.rows.find(row=>row.platform==='noon'));
   const replaceHistory=html=>{detailContent.innerHTML=detailContent.innerHTML.replace(/<section class="history-placeholder">[\s\S]*?<\/section>/,html);};
   if(!talabat){replaceHistory('<section class="history-placeholder"><strong>Rating history</strong><p>Talabat history is not available for this branch.</p></section>');return;}
   try{const result=await api(`/api/dashboard/ratings/history?storeIdentityKey=${encodeURIComponent(talabat.storeIdentityKey)}&range=${encodeURIComponent(range)}`);if(request!==detailRequest)return;chartData=result.points;

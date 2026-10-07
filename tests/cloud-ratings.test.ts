@@ -159,5 +159,6 @@ test('Keeta and Talabat freshness accommodates four-hour schedules without hidin
   assert.equal(health(3),'LIVE');assert.equal(health(4.99),'LIVE');assert.equal(health(5),'DELAYED');assert.equal(health(8),'DELAYED');assert.equal(health(8.01),'STALE');assert.equal(health(-1),'UNKNOWN');
   assert.equal(context.health({platform,state:'ERROR'}),'ERROR');assert.equal(context.health({platform,state:'EMPTY'}),'EMPTY');assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:'invalid'}),'UNKNOWN');
  }
- assert.equal(context.health({platform:'noon',state:'SUCCESS',syncTimestamp:new Date(now-3*3600000).toISOString()}),'STALE');
+ for(const [hours,expected] of [[3,'LIVE'],[24,'LIVE'],[25.99,'LIVE'],[26,'DELAYED'],[48,'DELAYED'],[48.01,'STALE']] as const)assert.equal(context.health({platform:'noon',state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()}),expected);
+ assert.equal(context.health({platform:'deliveroo',state:'SUCCESS',syncTimestamp:new Date(now-3*3600000).toISOString()}),'STALE');
 });

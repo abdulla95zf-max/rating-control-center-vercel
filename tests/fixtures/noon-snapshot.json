@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "observedAt": "2026-10-07T08:00:00.000Z",
+  "rows": [
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBFRJKRTU",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Al Barsha",
+      "rating": 3.8,
+      "reviewCount": 434
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFR091K",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Ajman",
+      "rating": 3.9,
+      "reviewCount": 181
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFR0QC3",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Al Qusais",
+      "rating": 4,
+      "reviewCount": 187
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFR5RJC",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Al Twar",
+      "rating": 3.9,
+      "reviewCount": 191
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFR6A8A",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Al Wasl",
+      "rating": 4.1,
+      "reviewCount": 765
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRAPKV",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Al Fareej - Fujairah",
+      "rating": 3.8,
+      "reviewCount": 110
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRCJSD",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Mirdif",
+      "rating": 4.1,
+      "reviewCount": 178
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRCR7N",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Al Warqa",
+      "rating": 3.6,
+      "reviewCount": 80
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRG8U0",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Hoshi",
+      "rating": 4.5,
+      "reviewCount": 68
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRH256",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Ras al Khaimah",
+      "rating": 4.2,
+      "reviewCount": 242
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRJKWG",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Dragon Mart",
+      "rating": 4.1,
+      "reviewCount": 76
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRP7ZM",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Al Fareej - Umm Al Daman",
+      "rating": 2.7,
+      "reviewCount": 20
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R2813694825370398006896956A",
+      "outletCode": "KBBLFRSTOG",
+      "brand": "Kabab Fareej",
+      "branchName": "Kabab Fareej - Muteena",
+      "rating": 3.7,
+      "reviewCount": 63
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBB08PH",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab ( MIRDIF )",
+      "rating": 3,
+      "reviewCount": 8
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBB25EW",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab ( QUSAIS )",
+      "rating": 3.8,
+      "reviewCount": 161
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBB4N21",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab ( BARSHA1 )",
+      "rating": 3.5,
+      "reviewCount": 127
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBB5Y5X",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab - Al Warqa",
+      "rating": 3.3,
+      "reviewCount": 7
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBB74GE",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab ( HOSHI )",
+      "rating": 3.7,
+      "reviewCount": 17
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBBIEQF",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab ( AJMAN )",
+      "rating": 4.1,
+      "reviewCount": 50
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBBM5NA",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab ( AL WASL )",
+      "rating": 4.1,
+      "reviewCount": 223
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBBS0X9",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab - Umm Al Daman",
+      "rating": 3,
+      "reviewCount": 1
+    },
+    {
+      "platform": "noon",
+      "restaurantId": "R9408821663380305655608737A",
+      "outletCode": "FRBKBBUK24",
+      "brand": "FRB Kabab",
+      "branchName": "FRB Kabab - Fujairah",
+      "rating": 3.1,
+      "reviewCount": 31
+    }
+  ]
+}
