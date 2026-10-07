@@ -1,3 +1,4 @@
+import {readNoonPerformance,scopeNoonPerformance} from './services/noon-performance.ts';
 import {withNoonRatings,readNoonHistory} from './services/noon-ratings.ts';
 import {fetchPerformance,fetchTstar,fetchKeetaPerformance,PerformanceError,requestPerformanceQuery} from './services/performance-proxy.ts';
 import type {IncomingMessage, ServerResponse} from 'node:http';
@@ -23,7 +24,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     if (route === 'config') return send(200, {cloudRatings: true, autoRefreshSeconds: 60});
     if (route === 'health') return send(200, {ok: true, mode: 'cloud'});
     if(route==='performance'){
-      try{const query=requestPerformanceQuery(request.url||''),config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};if(query.dataset==='keeta')return send(200,await scopeKeetaPerformance(await fetchKeetaPerformance(config,fetcher),user));return send(200,await scopePerformance(query.dataset==='tstar'?await fetchTstar(config,fetcher):await fetchPerformance(config,query.date,fetcher,query.period),user));}
+      try{if(new URL(request.url||'','https://dashboard.invalid').searchParams.get('dataset')==='noon'){if(env.NOON_RATINGS_ENABLED!=='true')return send(200,{state:'EMPTY',snapshot:null,errorCode:null});return send(200,await scopeNoonPerformance(await readNoonPerformance(),user));}const query=requestPerformanceQuery(request.url||''),config={ratingsApiUrl:env.RATINGS_API_URL||'',ratingsApiToken:env.RATINGS_API_TOKEN||''};if(query.dataset==='keeta')return send(200,await scopeKeetaPerformance(await fetchKeetaPerformance(config,fetcher),user));return send(200,await scopePerformance(query.dataset==='tstar'?await fetchTstar(config,fetcher):await fetchPerformance(config,query.date,fetcher,query.period),user));}
       catch(error){return send(error instanceof PerformanceError?error.status:502,{error:error instanceof PerformanceError?error.message:'Performance reports are unavailable.'});}
     }
     if(route==='ratingHistory'||route==='performanceHistory'||route==='actionHistory'){

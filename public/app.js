@@ -27,6 +27,7 @@ const detailPanel = document.getElementById('detailPanel');
 const detailContent = document.getElementById('detailContent');
 const talabatViewTabs = document.getElementById('talabatViewTabs');
 const keetaViewTabs = document.getElementById('keetaViewTabs');
+const noonViewTabs = document.getElementById('noonViewTabs');
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 const formatRating = value => value === null ? '—' : Number(value).toFixed(1);
@@ -152,6 +153,8 @@ function updateTalabatViews() {
   const visible=state.tab==='talabat'||state.tab==='performance';
   talabatViewTabs.hidden=!visible;
   for(const button of talabatViewTabs.querySelectorAll('[data-talabat-view]'))button.classList.toggle('active',button.dataset.talabatView===state.tab);
+  noonViewTabs.hidden=!(state.tab==='noon'||state.tab==='noon-performance');
+  for(const button of noonViewTabs.querySelectorAll('[data-noon-view]'))button.classList.toggle('active',button.dataset.noonView===state.tab);
   const keetaVisible=state.tab==='keeta'||state.tab==='keeta-performance';keetaViewTabs.hidden=!keetaVisible;
   for(const button of keetaViewTabs.querySelectorAll('[data-keeta-view]'))button.classList.toggle('active',button.dataset.keetaView===state.tab);
 }
@@ -160,6 +163,7 @@ async function renderCurrent() {
   updateTalabatViews();
   if(state.tab==='performance'){await renderPerformance();return;}
   if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
+  if(state.tab==='noon-performance'){await renderNoonPerformance();return;}
   if (state.busy) return;
   state.busy = true;
   refreshState.querySelector('span:last-child').textContent = 'Refreshing…';
@@ -579,6 +583,7 @@ talabatViewTabs.addEventListener('click',event=>{
   const button=event.target.closest('[data-talabat-view]');if(!button)return;
   state.tab=button.dataset.talabatView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();
 });
+noonViewTabs.addEventListener('click',event=>{const button=event.target.closest('[data-noon-view]');if(!button)return;state.tab=button.dataset.noonView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();});
 keetaViewTabs.addEventListener('click',event=>{const button=event.target.closest('[data-keeta-view]');if(!button)return;state.tab=button.dataset.keetaView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();});
 
 for (const closer of document.querySelectorAll('[data-close-detail]')) closer.addEventListener('click', () => {
@@ -589,9 +594,9 @@ for (const closer of document.querySelectorAll('[data-close-detail]')) closer.ad
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedStore = null; ++detailRequest; detailPanel.classList.remove('open'); detailPanel.setAttribute('aria-hidden', 'true'); } });
 
 const initialTab = location.hash.slice(1);
-if (['overview', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance'].includes(initialTab)) {
+if (['overview', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance'].includes(initialTab)) {
   state.tab = initialTab;
-  for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab));
+  for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
 }
 document.addEventListener('rcc-theme-change',()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();});
 function bootDashboard(){if(globalThis.dashboardAuth)globalThis.dashboardAuth.boot(initialize);else initialize();}
