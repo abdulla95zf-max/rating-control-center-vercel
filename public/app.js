@@ -436,7 +436,7 @@ function attachCloudStoreClicks(groups) {
   }
 }
 
-async function openCloudStore(group,range='30d') {
+async function openCloudStore(group,range='30d',historyPlatform=state.tab) {
   const request=++detailRequest;
   selectedStore=group.key;
   detailPanel.classList.add('open');
@@ -450,12 +450,13 @@ async function openCloudStore(group,range='30d') {
       <div><dt>Observed</dt><dd>${escapeHtml(formatTime(row.timestamp))}</dd></div><div><dt>Freshness</dt><dd>${row.carriedForward?'Carried forward':'Latest observation'}</dd></div></dl>
     </article>`).join('')}</section>
     <section class="history-placeholder"><strong>Rating history</strong><p>Loading saved snapshots…</p></section>`;
-  const talabat=state.tab==='noon'?group.rows.find(row=>row.platform==='noon'):(group.rows.find(row=>row.platform==='talabat')||group.rows.find(row=>row.platform==='noon'));
+  const historyRows=group.rows.filter(row=>['talabat','keeta','noon'].includes(row.platform)),historyRow=historyRows.find(row=>row.platform===historyPlatform)||historyRows.find(row=>row.platform==='talabat')||historyRows.find(row=>row.platform==='noon')||historyRows[0];
   const replaceHistory=html=>{detailContent.innerHTML=detailContent.innerHTML.replace(/<section class="history-placeholder">[\s\S]*?<\/section>/,html);};
-  if(!talabat){replaceHistory('<section class="history-placeholder"><strong>Rating history</strong><p>Talabat history is not available for this branch.</p></section>');return;}
-  try{const result=await api(`/api/dashboard/ratings/history?storeIdentityKey=${encodeURIComponent(talabat.storeIdentityKey)}&range=${encodeURIComponent(range)}`);if(request!==detailRequest)return;chartData=result.points;
-    replaceHistory(`<div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>Rating history</h4><p class="chart-hint">Hover or tap a point for its exact date and value.</p><canvas class="chart" id="ratingChart" aria-label="Rating history chart"></canvas></div><p class="updated">${formatNumber(chartData.length)} saved snapshots</p>`);
-    for(const button of detailContent.querySelectorAll('[data-cloud-range]'))button.addEventListener('click',()=>openCloudStore(group,button.dataset.cloudRange));
+  if(!historyRow){replaceHistory('<section class="history-placeholder"><strong>Rating history</strong><p>No saved rating history is available for this platform.</p></section>');return;}
+  try{const result=await api(`/api/dashboard/ratings/history?storeIdentityKey=${encodeURIComponent(historyRow.storeIdentityKey)}&range=${encodeURIComponent(range)}`);if(request!==detailRequest)return;chartData=result.points;
+    replaceHistory(`<div class="status-filters" aria-label="History platform">${historyRows.map(row=>`<button class="filter-chip ${row.platform===historyRow.platform?'active':''}" data-history-platform="${escapeHtml(row.platform)}">${escapeHtml(row.platform==='keeta'?'Keeta':row.platform==='noon'?'Noon':'Talabat')}</button>`).join('')}</div><div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>${escapeHtml(historyRow.platform==='keeta'?'Keeta':historyRow.platform==='noon'?'Noon':'Talabat')} rating history</h4><p class="chart-hint">Hover or tap a point for its exact date and value.</p><canvas class="chart" id="ratingChart" aria-label="Rating history chart"></canvas></div><p class="updated">${chartData.length?formatNumber(chartData.length)+' saved observations':'No saved observations in this range. Try a longer range.'}</p>`);
+    for(const button of detailContent.querySelectorAll('[data-cloud-range]'))button.addEventListener('click',()=>openCloudStore(group,button.dataset.cloudRange,historyRow.platform));
+    for(const button of detailContent.querySelectorAll('[data-history-platform]'))button.addEventListener('click',()=>openCloudStore(group,range,button.dataset.historyPlatform));
     requestAnimationFrame(redrawCharts);
   }catch{if(request!==detailRequest)return;replaceHistory('<section class="history-placeholder"><strong>Rating history unavailable</strong><p>Cloud History is not available. Saved snapshots could not be loaded.</p></section>');}
 }
