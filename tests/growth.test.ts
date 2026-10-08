@@ -26,7 +26,7 @@ test('Growth scopes before comparing and isolates failed platforms without leaki
 test('Growth UI gross-decline denominator does not net off growth and null percentages sort last',()=>{const context=vm.createContext({Intl,escapeHtml:(v:any)=>String(v)});vm.runInContext(fs.readFileSync('public/growth.js','utf8'),context);context.rows=[growthRow('1','one',p,{sales:500,orders:10},{sales:1000,orders:20}),growthRow('2','two',p,{sales:900,orders:10},{sales:500,orders:10}),growthRow('3','three',p,{sales:100,orders:2},{sales:0,orders:0}),growthRow('4','four',p,{sales:null,orders:null},{sales:10000,orders:100})];assert.equal(vm.runInContext('GrowthCore.summary(rows).loss',context),500);assert.equal(vm.runInContext('GrowthCore.summary(rows).current-GrowthCore.summary(rows).previous',context),0);assert.equal(vm.runInContext('GrowthCore.summary(rows).excluded',context),1);assert.equal(vm.runInContext("GrowthCore.sort(rows.filter(r=>r.eligible),'percent').at(-1).identity",context),'3');});
 test('Growth endpoint requires authentication and rejects extra query parameters before loading data',async()=>{const request:any={method:'GET',url:'/api/dashboard/performance/latest?dataset=growth',headers:{}};let body='';const response:any={statusCode:0,setHeader(){},end(v:string){body=v;}};await createCloudHandler('performance',{},fetch,async(_req,res)=>{res.statusCode=401;res.end('{}');return null;})(request,response);assert.equal(response.statusCode,401);request.url+='&date=2026-10-06';await createCloudHandler('performance',{},fetch,async()=>({role:'admin'} as any))(request,response);assert.equal(response.statusCode,400);assert.match(body,/Invalid Growth/);});
 
-const noOrders=()=>({present:true,sales:null,orders:null,metrics:{...Object.fromEntries(['Gross Sales','Successful Orders','Orders count','Cancelled Orders','Online Sales','Cash Sales','Delivery Sales','Pickup Sales','Online Orders','Cash Orders','Delivery Orders','Pickup Orders','Pro Orders','Pro Revenue','Items count'].map(k=>[k,null])),'Placed an order':'0','Impressions':'1714','Viewed your menu':'83','Scheduled Open Time (Minutes)':'719.9833333333333'}});
+const noOrders=()=>({present:true,raw_present:true,sales:null,orders:null,metrics:{'Placed an order':'0','Impressions':'1714','Scheduled Open Time (Minutes)':'719.98'},raw_metrics:{...Object.fromEntries(['Gross Sales','Successful Orders','Orders count','Cancelled Orders','Online Sales','Cash Sales','Delivery Sales','Pickup Sales','Online Orders','Cash Orders','Delivery Orders','Pickup Orders','Pro Orders','Pro Revenue','Items count'].map(k=>[k,null])),'Placed an order':'0','Impressions':'1714','Viewed your menu':'83','Scheduled Open Time (Minutes)':'719.9833333333333'}});
 test('Confirmed Talabat no-order pattern counts as a daily zero only in Growth',async()=>{
  const history:any[]=rows();history[10]={...history[10],...noOrders()};const before=JSON.stringify(history);
  const result=await readTalabatGrowth(talabat(),{query:async()=>({rows:history})},now);
@@ -34,10 +34,17 @@ test('Confirmed Talabat no-order pattern counts as a daily zero only in Growth',
 });
 test('Talabat zero-day rule excludes absent, partial, contradictory and unobserved rows',()=>{
  assert.equal(talabatZeroOrderDay(noOrders()),true);
- for(const change of [{present:false},{metrics:null},{sales:'100'},{orders:'1'}])assert.equal(talabatZeroOrderDay({...noOrders(),...change}),false);
- for(const change of [{'Placed an order':null},{'Placed an order':'1'},{'Orders count':'1'},{'Cancelled Orders':'1'},{'Cash Sales':'10'},{'Cash sales':'10'},{'Online sales':'5'},{'Online Orders':'bad'},{'Scheduled Open Time (Minutes)':'0'},{'Impressions':null,'Viewed your menu':null}])assert.equal(talabatZeroOrderDay({...noOrders(),metrics:{...noOrders().metrics,...change}}),false);
+ for(const change of [{raw_present:false},{raw_metrics:null},{metrics:null},{sales:'100'},{orders:'1'}])assert.equal(talabatZeroOrderDay({...noOrders(),...change}),false);
+ for(const change of [{'Placed an order':null},{'Placed an order':'1'},{'Orders count':'1'},{'Cancelled Orders':'1'},{'Cash Sales':'10'},{'Cash sales':'10'},{'Online sales':'5'},{'Online Orders':'bad'},{'Scheduled Open Time (Minutes)':'0'},{'Impressions':null,'Viewed your menu':null}])assert.equal(talabatZeroOrderDay({...noOrders(),raw_metrics:{...noOrders().raw_metrics,...change}}),false);
 });
 test('Incomplete Talabat row stays excluded when no-order evidence is absent',async()=>{
  const history:any[]=rows();history[10]={...history[10],sales:null,orders:null};
  const result=await readTalabatGrowth(talabat(),{query:async()=>({rows:history})},now);assert.equal(result.rows[0].reason,'CURRENT_DAYS_MISSING');
+});
+
+test('Null keys omitted by SQL projection still use complete raw no-order evidence',()=>{
+ const r=noOrders();assert.equal(Object.hasOwn(r.metrics,'Gross Sales'),false);assert.equal(talabatZeroOrderDay(r),true);
+ assert.equal(talabatZeroOrderDay({...r,metrics:{...r.metrics,'Cash sales':'5'}}),false);
+ assert.equal(talabatZeroOrderDay({...r,raw_present:false}),false);
+ const {['Cash Sales']:removed,...partial}=r.raw_metrics;assert.equal(talabatZeroOrderDay({...r,raw_metrics:partial}),false);
 });

@@ -22,7 +22,7 @@ export function growthRow(identity:string,name:string,period:GrowthPeriod,curren
 const freshness=(period:GrowthPeriod,observedAt:unknown,now:Date)=>{if(!validGrowthPeriod(period))return 'PERIOD_NOT_COMPARABLE';if(period.to>=today(now))return 'PERIOD_INCOMPLETE';const lag=days(period.to,today(now))-1;if(lag>3)return 'REPORT_STALE';if(typeof observedAt!=='string'||!Number.isFinite(Date.parse(observedAt))||Date.parse(observedAt)>now.getTime()+300000||now.getTime()-Date.parse(observedAt)>48*3600000)return 'COLLECTION_STALE';return null;};
 /** Talabat's confirmed no-order export pattern; applies only to Growth, never raw storage. */
 export function talabatZeroOrderDay(row:any):boolean{
- const v=row.metrics;if(row.present!==true||!v||typeof v!=='object'||Array.isArray(v))return false;
+ const v=row.raw_metrics;if(row.raw_present!==true||!v||typeof v!=='object'||Array.isArray(v))return false;
  const identity=(s:string)=>s.trim().toLowerCase().replace(/\s+/g,' ');
  const entries=Object.entries(v),values=(key:string)=>entries.filter(([name])=>identity(name)===identity(key)).map(([,value])=>value);
  const value=(key:string)=>{const matches=values(key);return matches.length===1?matches[0]:undefined;};
@@ -31,13 +31,15 @@ export function talabatZeroOrderDay(row:any):boolean{
  if(growthNumber(value('Placed an order'))!==0||!(growthNumber(value('Scheduled Open Time (Minutes)'))!>0))return false;
  if(!(growthNumber(value('Impressions'))!>0||growthNumber(value('Viewed your menu'))!>0))return false;
  const trading=['Gross Sales','Successful Orders','Orders count','Cancelled Orders','Online Sales','Cash Sales','Delivery Sales','Pickup Sales','Online Orders','Cash Orders','Delivery Orders','Pickup Orders','Pro Orders','Pro Revenue','Items count'];
- return trading.every(key=>{const matches=values(key);return matches.length>0&&matches.every(x=>blank(x)||growthNumber(x)===0);});
+ const projected=row.metrics;if(!projected||typeof projected!=='object'||Array.isArray(projected))return false;
+ const noContradictions=Object.entries(projected).every(([key,x])=>!trading.some(name=>identity(name)===identity(key))||blank(x)||growthNumber(x)===0);
+ return noContradictions&&trading.every(key=>{const matches=values(key);return matches.length>0&&matches.every(x=>blank(x)||growthNumber(x)===0);});
 }
 export async function readTalabatGrowth(data:any,db:Database,now=new Date()){
  if(data.state!=='SUCCESS'||!validReportDate(data.reportDate))return {platform:'talabat',state:'EMPTY',rows:[],period:null,observedAt:null,errorCode:null};
  const to=data.reportDate,p={from:day(to,-6),to,previousFrom:day(to,-13),previousTo:day(to,-7)},ids=data.rows.map((r:any)=>r.storeId);if(ids.length>500)throw Error('SCOPE_TOO_LARGE');
  if(!ids.length)return {platform:'talabat',state:'SUCCESS',rows:[],period:p,observedAt:data.receivedAt,errorCode:null};
- const result=await db.query({text:`SELECT c.source_key,c.report_date::text AS report_date,r.store_id,(r.present OR resolved.values IS NOT NULL) AS present,resolved.values->>'Successful Orders' AS orders,resolved.values->>'Gross Sales' AS sales,resolved.values AS metrics FROM public.performance_report_current c JOIN public.performance_report_rows r USING(revision_id) ${revisionProjection} WHERE r.store_id=ANY($1::text[]) AND c.report_date BETWEEN $2::date AND $3::date ORDER BY c.source_key,c.report_date,r.store_id LIMIT 14001`,values:[ids,p.previousFrom,p.to],query_timeout:6000});
+ const result=await db.query({text:`SELECT c.source_key,c.report_date::text AS report_date,r.store_id,(r.present OR resolved.values IS NOT NULL) AS present,resolved.values->>'Successful Orders' AS orders,resolved.values->>'Gross Sales' AS sales,resolved.values AS metrics,r.present AS raw_present,r.source_values AS raw_metrics FROM public.performance_report_current c JOIN public.performance_report_rows r USING(revision_id) ${revisionProjection} WHERE r.store_id=ANY($1::text[]) AND c.report_date BETWEEN $2::date AND $3::date ORDER BY c.source_key,c.report_date,r.store_id LIMIT 14001`,values:[ids,p.previousFrom,p.to],query_timeout:6000});
  if(result.rows.length>14000)throw Error('HISTORY_TOO_LARGE');
  const sources=[...new Set(result.rows.map(r=>r.source_key))].filter(source=>data.rows.filter((r:any)=>r.present).every((r:any)=>{const candidates=result.rows.filter(x=>x.source_key===source&&x.report_date===to&&x.store_id===r.storeId);return candidates.length===1&&candidates[0].present===true&&growthNumber(candidates[0].orders)===growthNumber(r.values['Successful Orders'])&&growthNumber(candidates[0].sales)===growthNumber(r.values['Gross Sales']);}));
  if(sources.length!==1)throw Error(sources.length?'SOURCE_AMBIGUOUS':'HISTORY_SOURCE_UNCONFIRMED');
