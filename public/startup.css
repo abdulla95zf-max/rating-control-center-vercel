@@ -18,3 +18,11 @@
 @keyframes startup-center{0%,45%{opacity:0}100%{opacity:1}}
 @keyframes startup-progress{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
 @media(prefers-reduced-motion:reduce){.startup-screen{transition:none}.startup-symbol path,.startup-progress::after{animation:none}.startup-progress::after{width:100%}}
+/* Keep motion recognizable throughout the actual loading interval. */
+.startup-arc-primary{animation:startup-left 2.4s ease-in-out infinite}
+.startup-arc-secondary{animation:startup-right 2.4s ease-in-out infinite}
+.startup-center{animation:startup-center 2.4s ease-in-out infinite}
+@keyframes startup-left{0%,100%{opacity:.6;transform:translate(-14px,-7px)}40%,70%{opacity:1;transform:translate(0,0)}}
+@keyframes startup-right{0%,100%{opacity:.6;transform:translate(14px,7px)}40%,70%{opacity:1;transform:translate(0,0)}}
+@keyframes startup-center{0%,15%,100%{opacity:.15;transform:scale(.9);transform-origin:50px 50px}45%,70%{opacity:1;transform:scale(1);transform-origin:50px 50px}}
+@media(prefers-reduced-motion:reduce){.startup-symbol path{animation:none}}
