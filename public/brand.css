@@ -8,3 +8,7 @@
 .brand-copy{flex:0 0 auto}.brand-copy h1{font-size:clamp(18px,2vw,23px);font-weight:750;letter-spacing:-.035em;line-height:1.1}
 .auth-brand{display:flex;gap:14px;align-items:center}.auth-brand .brand-mark{width:54px;height:54px;flex-basis:54px}.auth-brand h2{font-size:26px;letter-spacing:-.035em;line-height:1.1}
 @media(max-width:650px){.topbar .brand-mark{width:36px;height:36px;flex-basis:36px}.topbar{gap:9px}.brand-copy h1{font-size:18px}.brand-endorsement{font-size:9px;margin-bottom:2px}}
+
+/* Keep the emblem and wordmark together, with no internal SVG padding. */
+.topbar .brand-copy{margin-left:-6px}.auth-brand{gap:8px}
+@media(max-width:650px){.topbar .brand-copy{margin-left:-3px}}
