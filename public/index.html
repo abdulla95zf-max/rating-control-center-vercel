@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1220">
-  <script src="/theme.js"></script><title>Rating Control Center</title>
+  <script src="/theme.js"></script><title>FRB Control Center</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" href="/favicon.ico?v=frb-cc-1" sizes="any">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=frb-cc-1">
   <link rel="stylesheet" href="/styles.css">
   <script src="/branch-labels.js" defer></script>
   <script src="/performance.js" defer></script>
@@ -20,13 +20,13 @@
   <script src="/growth.js" defer></script>
   <link rel="stylesheet" href="/growth.css">
   <script src="/app.js" defer></script>
-<link rel="stylesheet" href="/theme.css"></head>
+<link rel="stylesheet" href="/theme.css"><link rel="stylesheet" href="/brand.css"></head>
 <body>
   <header class="topbar">
-    <div class="brand-mark" aria-hidden="true">RC</div>
+    <div class="brand-mark" aria-hidden="true"><img src="/brand/mark-dark.svg" class="brand-dark" alt=""><img src="/brand/mark-light.svg" class="brand-light" alt=""></div>
     <div class="brand-copy">
-      <h1>Online Rating Control Center</h1>
-      <p>Marketplace ratings & performance</p>
+      <span class="brand-endorsement">FRB</span>
+      <h1>Control Center</h1>
     </div>
     <div class="refresh-state" id="refreshState">
       <span class="live-dot"></span>
@@ -77,8 +77,7 @@
 
   <section class="auth-gate" id="authGate" hidden>
     <form class="auth-card" id="loginForm">
-      <div class="brand-mark">RC</div>
-      <h2>Rating Control Center</h2>
+      <div class="auth-brand"><div class="brand-mark" aria-hidden="true"><img src="/brand/mark-dark.svg" class="brand-dark" alt=""><img src="/brand/mark-light.svg" class="brand-light" alt=""></div><div><span class="brand-endorsement">FRB</span><h2>Control Center</h2></div></div>
       <p>Sign in with the username and password provided by your administrator.</p>
       <label>Username<input id="loginUsername" name="username" autocomplete="username" required></label>
       <label>Password<span class="password-input"><input id="loginPassword" name="password" type="password" autocomplete="current-password" required><button type="button" data-toggle-password="loginPassword" aria-label="Show password">Show</button></span></label>

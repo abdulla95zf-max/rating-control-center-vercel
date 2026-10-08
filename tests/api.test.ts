@@ -24,7 +24,7 @@ test('local API returns overview, stores, history and disconnected platforms', a
 
     const page = await fetch(`http://127.0.0.1:${port}/`);
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /Online Rating Control Center/);
+    assert.match(await page.text(), /<title>FRB Control Center<\/title>/);
     assert.match(page.headers.get('content-security-policy') ?? '', /default-src 'self'/);
 
     const overview = await fetch(`http://127.0.0.1:${port}/api/overview`).then(response => response.json()) as any;

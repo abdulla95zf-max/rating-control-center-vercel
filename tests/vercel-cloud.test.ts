@@ -78,7 +78,7 @@ test('Cloud dashboard HTML and API load through HTTP without local server entry 
   await new Promise<void>(resolve=>server.once('listening',resolve));
   try{
     const base=`http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-    const page=await fetch(base);assert.equal(page.status,200);assert.match(await page.text(),/Online Rating Control Center/);
+    const page=await fetch(base);assert.equal(page.status,200);assert.match(await page.text(),/<title>FRB Control Center<\/title>/);
     const config=await fetch(base+'/api/config').then(r=>r.json()) as any;assert.equal(config.cloudRatings,true);
     assert.deepEqual(await fetch(base+'/api/dashboard/ratings/latest').then(r=>r.json()),projected);
   }finally{await new Promise<void>(resolve=>server.close(()=>resolve()));}
