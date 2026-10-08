@@ -1,0 +1,68 @@
+/* Keep number hierarchy while reducing repeated vertical spacing. */
+#mainContent[data-performance-page] .page-heading {margin:12px 0;gap:14px;align-items:center}
+#mainContent[data-performance-page] .page-heading h2 {margin:4px 0;font-size:25px}
+#mainContent[data-performance-page] .page-heading p {margin:6px 0;font-size:13px}
+#mainContent[data-performance-page] .kpi-card {min-height:0;padding:13px 16px;border-radius:13px}
+#mainContent[data-performance-page] .kpi-value {font-size:29px;line-height:1.2;margin:7px 0}
+#mainContent[data-performance-page] .kpi-grid {gap:12px;margin:12px 0}
+#mainContent[data-performance-page] .perf-controls {padding:12px;gap:12px;margin:12px 0;align-items:end}
+#mainContent[data-performance-page] .perf-context {padding:10px 14px;gap:12px;display:flex;flex-wrap:wrap;font-size:12px;margin:10px 0}
+#mainContent[data-performance-page] .period-tabs,#mainContent[data-performance-page] .perf-view-tabs {margin:10px 0;gap:6px}
+.kp-actions .action-header {padding:13px 16px}
+.kp-actions .action-header h3 {margin:4px 0}
+.kp-actions .action-header p {margin:4px 0;font-size:12px}
+.kp-actions .action-row {grid-template-columns:28px minmax(0,1fr);gap:10px;padding:11px 16px}
+.kp-actions .action-rank {width:26px;height:26px;font-size:13px;border-radius:8px}
+.kp-actions .action-row strong {display:inline;font-size:14px}
+.kp-actions .action-row p {display:inline;margin:0 0 0 12px;font-size:13px;font-weight:600}
+.kp-actions .action-row small {display:block;margin-top:5px;font-size:12px;line-height:1.45}
+.kp-analysis-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}
+.kp-chart,.kp-insights {border:1px solid var(--line,#d8e0e8);background:var(--panel,#fff);border-radius:16px;padding:20px}
+.kp-chart h3 {font-size:17px;margin:0 0 6px}
+.kp-chart p,.kp-insights p {font-size:12px;opacity:.75;line-height:1.5;margin:6px 0 16px}
+.kp-chart-row {display:grid;gap:5px;margin:16px 0}
+.kp-chart-row>strong {font-size:13px}
+.kp-chart-row small,.kp-reorder small {font-size:11px;opacity:.75}
+.kp-bar-track {position:relative;border-radius:6px;background:rgba(128,148,170,.13);height:29px;overflow:hidden}
+.kp-bar-track span {display:block;height:100%;min-width:0;border-radius:6px;opacity:.75}
+.kp-bar-track strong {position:absolute;left:10px;top:5px;font-size:13px;color:var(--text,#162139);text-shadow:0 0 4px var(--panel,#fff)}
+.kp-reorder {display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-top:1px solid var(--line,#d8e0e8);padding-top:14px;font-size:12px}
+.kp-reorder>strong {font-size:23px}
+.kp-funnel {grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kp-funnel h3,.kp-funnel>p,.kp-funnel-counts {grid-column:1/-1}
+.kp-funnel-counts {display:flex;justify-content:space-between;gap:12px;font-size:12px}
+.kp-funnel-counts strong {display:block;font-size:20px;margin-top:5px}
+.kp-insights {border-left:4px solid #19b99c;margin:16px 0}
+.kp-insights p {margin-bottom:0;opacity:1}
+.kp-columns {padding:12px;border:1px solid var(--line,#d8e0e8);border-radius:12px;margin:10px 0;font-size:12px}
+.kp-columns label {display:inline-flex;gap:6px;margin:9px 12px 0 0}
+.kp-table-comparison {display:block;font-size:11px;opacity:.7;margin-top:5px;white-space:nowrap}
+.table-sort-button {border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0;display:inline-flex;gap:7px;align-items:center;text-align:inherit}
+.table-sort-button:hover {color:#19b99c}
+.table-sort-button:focus-visible {outline:2px solid #19b99c;outline-offset:4px}
+@media(max-width:700px){.kp-analysis-grid{grid-template-columns:1fr}.kp-funnel{grid-template-columns:1fr 1fr}.kp-actions .action-row p{display:block;margin:4px 0}.kp-chart{padding:15px}}
+#mainContent[data-performance-page] .kpi-label {min-height:0;font-size:11px}
+#mainContent[data-performance-page] .perf-card-note {margin:6px 0 0;font-size:11px;line-height:1.4}
+#mainContent[data-performance-page] .kpi-card::after {opacity:.26}
+.kp-customer-kpis {grid-template-columns:repeat(4,minmax(0,1fr))}
+#mainContent .kp-customer-controls {display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.kp-customer-controls>label {width:min(300px,100%)}
+#mainContent .kp-customer-controls .perf-view-tabs {display:flex;gap:8px;margin:0}
+.kp-customer-controls .perf-view-tabs .tab {padding:9px 13px}
+#mainContent .kp-period-controls {display:flex;flex-wrap:wrap;align-items:end}
+.kp-period-controls>label {width:220px;max-width:100%}
+.kp-funnel {align-content:start;align-items:start;row-gap:6px}
+.kp-funnel>p {margin:0 0 8px}
+.kp-funnel>.kp-chart-row {margin:6px 0}
+@media(max-width:760px){
+ #mainContent[data-performance-page] .kpi-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));padding:0;overflow:visible;margin:12px 0}
+ #mainContent[data-performance-page] .kpi-grid .kpi-card {min-width:0;min-height:0;padding:12px}
+ #mainContent[data-performance-page] .kpi-value {font-size:26px;overflow-wrap:normal}
+ #mainContent .kp-customer-controls {display:flex;gap:10px}
+ .kp-customer-controls>label {width:100%}
+ #mainContent .kp-customer-controls .perf-view-tabs {width:100%;display:grid;grid-template-columns:1fr 1fr}
+ .kp-customer-controls .perf-view-tabs .tab {font-size:11px;white-space:normal}
+}
+#mainContent .kp-period-controls {border:0;background:transparent;box-shadow:none;padding:0;margin:8px 0}
+#mainContent .kp-period-controls>label {display:flex;align-items:center;gap:9px;width:auto}
+.kp-period-controls .input {width:auto;min-width:180px}

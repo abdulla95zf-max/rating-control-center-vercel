@@ -1,0 +1,16 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';
+import {validateKeetaPeriod,enqueueKeetaPerformance} from '../src/services/keeta-performance-requests.ts';
+import {readKeetaPeriod} from '../src/services/keeta-periods.ts';
+test('Keeta periods exclude today and invalid calendar dates',()=>{const now=new Date('2026-10-08T08:00:00Z');assert.deepEqual(validateKeetaPeriod('2026-10-07','2026-10-07',now),{startDate:'2026-10-07',endDate:'2026-10-07'});for(const pair of [['2026-02-30','2026-03-01'],['2026-10-08','2026-10-08'],['2026-01-01','2026-10-07']])assert.throws(()=>validateKeetaPeriod(pair[0],pair[1],now));});
+test('Exact Keeta periods reuse existing weekly records and prefer newest exact snapshot',async()=>{const period={startDate:'2026-09-30',endDate:'2026-10-06'},requests:any[]=[],payload={periodFrom:period.startDate,periodTo:period.endDate,shops:[],items:[],customers:{}};const db={query:async(q:any)=>{requests.push(q);return {rows:[{payload,observed_at:q.text.includes('period_snapshots')?'2026-10-08T08:00:00Z':'2026-10-07T08:00:00Z'}]};}};const result=await readKeetaPeriod(period,db);assert.equal(result.snapshot?.observedAt,'2026-10-08T08:00:00.000Z');assert.ok(requests.every(q=>q.values[0]===period.startDate&&q.values[1]===period.endDate));});
+test('Keeta collection requires administrator authority and configured token before DB access',async()=>{const pool:any={connect:()=>{throw Error('DB touched');}},period={startDate:'2026-10-01',endDate:'2026-10-06'};await assert.rejects(enqueueKeetaPerformance({id:'u',role:'viewer'} as any,period,{},fetch,pool),/ADMIN_REQUIRED/);await assert.rejects(enqueueKeetaPerformance({id:'u',role:'admin'} as any,period,{},fetch,pool),/DISPATCH_NOT_CONFIGURED/);});
+test('duplicate Keeta requests commit without another GitHub dispatch',async()=>{
+ const calls:string[]=[];const client={query:async(sql:string)=>{calls.push(sql);return {rows:sql.startsWith('SELECT id FROM')?[{id:'existing'}]:[]};},release(){calls.push('RELEASE');}};
+ const result=await enqueueKeetaPerformance({id:'a',role:'admin'} as any,{startDate:'2026-10-01',endDate:'2026-10-06'},{KEETA_GITHUB_DISPATCH_TOKEN:'fixture'},async()=>{throw Error('Must not dispatch twice');},{connect:async()=>client});assert.equal(result.deduplicated,true);assert.ok(calls.includes('COMMIT'));assert.equal(calls.at(-1),'RELEASE');
+});
+test('Keeta dispatch payload carries validated range and queue ID; failed dispatch is recorded',async()=>{
+ let dispatches=0;const queries:any[]=[];const client={query:async(sql:string,values?:any[])=>{queries.push({sql,values});return {rows:sql.startsWith('SELECT count')?[{daily:0,personal:0,pending:0}]:[]};},release(){}};
+ const pool={connect:async()=>client,query:client.query};
+ await assert.rejects(enqueueKeetaPerformance({id:'a',role:'admin'} as any,{startDate:'2026-10-01',endDate:'2026-10-06'},{KEETA_GITHUB_DISPATCH_TOKEN:'fixture'},async(url:any,options:any)=>{dispatches++;assert.ok(String(url).includes('/keeta-rating-monitor-cloud/'));const payload=JSON.parse(options.body);assert.equal(payload.inputs.period_from,'2026-10-01');assert.match(payload.inputs.request_id,/^[a-f0-9-]{36}$/);return new Response('',{status:403});},pool),/DISPATCH_FAILED/);
+ assert.equal(dispatches,1);assert.ok(queries.some(q=>q.sql.includes("error_code='DISPATCH_FAILED'")));
+});
