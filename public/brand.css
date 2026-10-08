@@ -12,3 +12,8 @@
 /* Keep the emblem and wordmark together, with no internal SVG padding. */
 .topbar .brand-copy{margin-left:-6px}.auth-brand{gap:8px}
 @media(max-width:650px){.topbar .brand-copy{margin-left:-3px}}
+
+/* Optical alignment of the approved two-line wordmark. */
+.brand-endorsement{position:relative;top:2px;margin-bottom:0}
+.brand-copy h1,.auth-brand h2{position:relative;top:-1px}
+@media(max-width:650px){.brand-endorsement{margin-bottom:0}}
