@@ -21,6 +21,9 @@ export function growthRow(identity:string,name:string,period:GrowthPeriod,curren
 }
 const freshness=(period:GrowthPeriod,observedAt:unknown,now:Date)=>{if(!validGrowthPeriod(period))return 'PERIOD_NOT_COMPARABLE';if(period.to>=today(now))return 'PERIOD_INCOMPLETE';const lag=days(period.to,today(now))-1;if(lag>3)return 'REPORT_STALE';if(typeof observedAt!=='string'||!Number.isFinite(Date.parse(observedAt))||Date.parse(observedAt)>now.getTime()+300000||now.getTime()-Date.parse(observedAt)>48*3600000)return 'COLLECTION_STALE';return null;};
 /** Talabat's confirmed no-order export pattern; applies only to Growth, never raw storage. */
+// Operator verified these exact branch-days had no orders (2026-10-08).
+// This evidence does not apply to other dates/stores or override positive trading values.
+const confirmedNoOrderDays=new Set(['681284:2026-10-01','729490:2026-10-03','748506:2026-10-03']);
 export function talabatZeroOrderDay(row:any):boolean{
  const v=row.raw_metrics;if(row.raw_present!==true||!v||typeof v!=='object'||Array.isArray(v))return false;
  const identity=(s:string)=>s.trim().toLowerCase().replace(/\s+/g,' ');
@@ -28,8 +31,11 @@ export function talabatZeroOrderDay(row:any):boolean{
  const value=(key:string)=>{const matches=values(key);return matches.length===1?matches[0]:undefined;};
  const blank=(x:unknown)=>x===null||x===undefined||typeof x==='string'&&x.trim()==='';
  if(!blank(row.sales)||!blank(row.orders))return false;
- if(growthNumber(value('Placed an order'))!==0||!(growthNumber(value('Scheduled Open Time (Minutes)'))!>0))return false;
- if(!(growthNumber(value('Impressions'))!>0||growthNumber(value('Viewed your menu'))!>0))return false;
+ const confirmed=confirmedNoOrderDays.has(String(row.store_id)+':'+row.report_date);
+ if(!confirmed){
+  if(growthNumber(value('Placed an order'))!==0||!(growthNumber(value('Scheduled Open Time (Minutes)'))!>0))return false;
+  if(!(growthNumber(value('Impressions'))!>0||growthNumber(value('Viewed your menu'))!>0))return false;
+ }
  const trading=['Gross Sales','Successful Orders','Orders count','Cancelled Orders','Online Sales','Cash Sales','Delivery Sales','Pickup Sales','Online Orders','Cash Orders','Delivery Orders','Pickup Orders','Pro Orders','Pro Revenue','Items count'];
  const projected=row.metrics;if(!projected||typeof projected!=='object'||Array.isArray(projected))return false;
  const noContradictions=Object.entries(projected).every(([key,x])=>!trading.some(name=>identity(name)===identity(key))||blank(x)||growthNumber(x)===0);

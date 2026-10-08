@@ -48,3 +48,16 @@ test('Null keys omitted by SQL projection still use complete raw no-order eviden
  assert.equal(talabatZeroOrderDay({...r,raw_present:false}),false);
  const {['Cash Sales']:removed,...partial}=r.raw_metrics;assert.equal(talabatZeroOrderDay({...r,raw_metrics:partial}),false);
 });
+
+test('Operator-confirmed no-order days stay restricted to exact store/date and blank trading data',()=>{
+ for(const [store_id,report_date] of [['681284','2026-10-01'],['729490','2026-10-03'],['748506','2026-10-03']]){
+  const base=noOrders(),r={...base,store_id,report_date,raw_metrics:{...base.raw_metrics,'Placed an order':'1'},metrics:{...base.metrics,'Placed an order':'1'}};
+  assert.equal(talabatZeroOrderDay(r),true);
+  assert.equal(talabatZeroOrderDay({...r,store_id:'999999'}),false);
+  assert.equal(talabatZeroOrderDay({...r,report_date:'2026-10-04'}),false);
+  assert.equal(talabatZeroOrderDay({...r,raw_present:false}),false);
+  assert.equal(talabatZeroOrderDay({...r,sales:'25',orders:'1'}),false);
+  assert.equal(talabatZeroOrderDay({...r,raw_metrics:{...r.raw_metrics,'Cash sales':'25'}}),false);
+  assert.equal(talabatZeroOrderDay({...r,metrics:{...r.metrics,'Online Orders':'1'}}),false);
+ }
+});
