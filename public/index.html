@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b1220">
-  <script src="/theme.js"></script><title>FRB Control Center</title>
+  <script src="/theme.js"></script><link rel="stylesheet" href="/startup.css"><script src="/startup.js" defer></script><title>FRB Control Center</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/favicon.ico?v=frb-cc-1" sizes="any">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=frb-cc-1">
@@ -22,6 +22,8 @@
   <script src="/app.js" defer></script>
 <link rel="stylesheet" href="/theme.css"><link rel="stylesheet" href="/brand.css"></head>
 <body>
+  <section class="startup-screen" id="startupScreen" aria-label="Loading FRB Control Center"><div class="startup-content"><svg class="startup-symbol" viewBox="10 10 80 80" aria-hidden="true"><path class="startup-arc-primary" d="M58 10H38A28 28 0 0 0 10 38v12a28 28 0 0 0 28 28h4V58h-4a8 8 0 0 1-8-8V38a8 8 0 0 1 8-8h20Z" fill="#FFFFFF"/><path class="startup-arc-secondary" d="M62 22h0a28 28 0 0 1 28 28v12a28 28 0 0 1-28 28H42V70h20a8 8 0 0 0 8-8V50a8 8 0 0 0-8-8Z" fill="#10A878"/><path class="startup-center" d="M40 40h20v20H40Z" fill="#10A878"/></svg><p class="startup-brand">FRB</p><p class="startup-title">Control Center</p><p class="startup-message" id="startupMessage" role="status" aria-live="polite">Preparing your dashboard…</p><div class="startup-progress" aria-hidden="true"></div><button class="startup-retry" id="startupRetry" type="button" hidden>Try again</button><noscript><p>Enable JavaScript to open the dashboard.</p></noscript></div></section>
+
   <header class="topbar">
     <div class="brand-mark" aria-hidden="true"><img src="/brand/mark-dark.svg" class="brand-dark" alt=""><img src="/brand/mark-light.svg" class="brand-light" alt=""></div>
     <div class="brand-copy">
