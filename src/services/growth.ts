@@ -1,3 +1,4 @@
+import {revisionProjection} from './report-revision-projection.ts';
 import {authDatabase,type AuthUser} from '../auth.ts';
 import {fetchPerformance,fetchKeetaPerformance,validReportDate} from './performance-proxy.ts';
 import {scopePerformance,scopeKeetaPerformance} from './branch-identity.ts';
@@ -23,7 +24,7 @@ export async function readTalabatGrowth(data:any,db:Database,now=new Date()){
  if(data.state!=='SUCCESS'||!validReportDate(data.reportDate))return {platform:'talabat',state:'EMPTY',rows:[],period:null,observedAt:null,errorCode:null};
  const to=data.reportDate,p={from:day(to,-6),to,previousFrom:day(to,-13),previousTo:day(to,-7)},ids=data.rows.map((r:any)=>r.storeId);if(ids.length>500)throw Error('SCOPE_TOO_LARGE');
  if(!ids.length)return {platform:'talabat',state:'SUCCESS',rows:[],period:p,observedAt:data.receivedAt,errorCode:null};
- const result=await db.query({text:`SELECT c.source_key,c.report_date::text AS report_date,r.store_id,r.present,r.source_values->>'Successful Orders' AS orders,r.source_values->>'Gross Sales' AS sales FROM public.performance_report_current c JOIN public.performance_report_rows r USING(revision_id) WHERE r.store_id=ANY($1::text[]) AND c.report_date BETWEEN $2::date AND $3::date ORDER BY c.source_key,c.report_date,r.store_id LIMIT 14001`,values:[ids,p.previousFrom,p.to],query_timeout:6000});
+ const result=await db.query({text:`SELECT c.source_key,c.report_date::text AS report_date,r.store_id,(r.present OR resolved.values IS NOT NULL) AS present,resolved.values->>'Successful Orders' AS orders,resolved.values->>'Gross Sales' AS sales FROM public.performance_report_current c JOIN public.performance_report_rows r USING(revision_id) ${revisionProjection} WHERE r.store_id=ANY($1::text[]) AND c.report_date BETWEEN $2::date AND $3::date ORDER BY c.source_key,c.report_date,r.store_id LIMIT 14001`,values:[ids,p.previousFrom,p.to],query_timeout:6000});
  if(result.rows.length>14000)throw Error('HISTORY_TOO_LARGE');
  const sources=[...new Set(result.rows.map(r=>r.source_key))].filter(source=>data.rows.filter((r:any)=>r.present).every((r:any)=>{const candidates=result.rows.filter(x=>x.source_key===source&&x.report_date===to&&x.store_id===r.storeId);return candidates.length===1&&candidates[0].present===true&&growthNumber(candidates[0].orders)===growthNumber(r.values['Successful Orders'])&&growthNumber(candidates[0].sales)===growthNumber(r.values['Gross Sales']);}));
  if(sources.length!==1)throw Error(sources.length?'SOURCE_AMBIGUOUS':'HISTORY_SOURCE_UNCONFIRMED');
