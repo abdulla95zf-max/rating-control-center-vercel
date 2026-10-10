@@ -30,3 +30,15 @@ test('item sorting uses numeric values, puts unknowns last and breaks ties by na
 test('Customer chart comparisons use percentage points, preserve unknowns and escape source values',()=>{
  const u=ui();u.set({pay:[{code:'shop_merchant_txn_user_num',value:'0',popValues:['0']}],conversion:[{code:'shop_entry_cartadd_cvr',value:'29%',popValues:['31%']},{code:'shop_expose_entry_cvr',value:'<script>',popValues:['10%']}]});const html=u.run('kpCustomerCharts(snap,true)');assert.match(html,/-2 pp/);assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);assert.match(html,/Largest measured conversion decline: Visit → cart/);
 });
+
+test('operational queue groups all breaches by exact shop ID while retaining low-volume policy',()=>{
+ const u=ui();u.set([{shopId:'1',shopName:'Same',orders:100,cancelRate:3,offline:4,prep:19,missing:2},{shopId:'2',shopName:'Same',orders:10,cancelRate:3,offline:4,prep:19,missing:2}]);
+ const rows=u.run('kpActions(snap)');assert.equal(rows.length,2);assert.equal(rows.find((r:any)=>r.shopId==='1').issues.length,4);assert.equal(rows.find((r:any)=>r.shopId==='2').issues.length,1);assert.match(u.run('kpOperations(snap,kpActions(snap))'),/kp-issue-badge/);
+});
+test('comparison color follows actual change, preserves zero and leaves unknowns neutral',()=>{
+ const u=ui();assert.match(u.run("kpComparison({value:'0',popValues:['10'],popValue:'-100%'})"),/down/);assert.match(u.run("kpComparison({value:'10',popValues:['0'],popValue:'—'})"),/up/);assert.doesNotMatch(u.run("kpComparison({value:null,popValues:['10']})"),/kp-change/);assert.equal(u.run("kpDateRange('2026-10-01','2026-10-07')"),'1–7 Oct 2026');
+});
+
+test('customer exposure and funnel counts use source customer codes rather than item UV codes',()=>{
+ const u=ui();u.set({conversion:[{code:'shop_expose_user_num',value:'55755',popValues:['50000']},{code:'shop_entry_user_num',value:'12965'},{code:'shop_cartadd_user_num',value:'3000'},{code:'shop_submit_user_num',value:'1600'},{code:'shop_pay_user_num',value:'1588'}]});assert.equal(u.run('kpCustomer(snap,true)[11].row.value'),'55755');assert.match(u.run('kpCustomerCharts(snap,true)'),/55755|12965|1588/);
+});

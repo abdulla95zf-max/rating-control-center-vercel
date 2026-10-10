@@ -66,3 +66,26 @@
 #mainContent .kp-period-controls {border:0;background:transparent;box-shadow:none;padding:0;margin:8px 0}
 #mainContent .kp-period-controls>label {display:flex;align-items:center;gap:9px;width:auto}
 .kp-period-controls .input {width:auto;min-width:180px}
+
+/* Consistent controls and compact comparisons. */
+#mainContent .tab,#mainContent .filter-chip,.action-full-list{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;min-height:40px;padding:10px 15px;font-weight:700;cursor:pointer;box-shadow:0 2px 3px #0000000a;transition:background .15s,border-color .15s}
+#mainContent .tab:hover,#mainContent .filter-chip:hover,.action-full-list:hover{border-color:#19b99c;background:color-mix(in srgb,var(--panel) 90%,#19b99c)}
+#mainContent .tab.active,#mainContent .filter-chip.active{background:#087953;color:#fff;border-color:#087953}
+#mainContent button:disabled{opacity:.6;cursor:wait}
+#mainContent button:focus-visible{outline:2px solid #19b99c;outline-offset:3px}
+#mainContent .page-heading h2{font-weight:800;letter-spacing:-.025em}
+.gr-table-heading h3,.action-header h3{font-size:21px;font-weight:800}
+.gr-table th,.perf-table th{font-weight:750;color:var(--text);background:color-mix(in srgb,var(--panel) 92%,#19b99c)}
+.comparison-periods{display:flex;align-items:center;gap:14px;margin:10px 0;flex-wrap:wrap}
+.comparison-periods>div{display:grid;gap:4px;padding:9px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+.comparison-periods small{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.comparison-periods strong{font-size:14px;color:var(--text);white-space:nowrap}
+.comparison-periods>span{color:var(--muted);font-size:11px}
+.kp-issue-badges{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0}
+.kp-issue-badge{padding:5px 9px;border:1px solid #e59a48;border-radius:7px;background:color-mix(in srgb,var(--panel) 90%,#e59a48);color:var(--text);font-size:12px;font-weight:750}
+#mainContent .kp-table-comparison{font-size:10px;opacity:1;font-weight:400;color:var(--muted);line-height:1.4;white-space:normal;margin-top:4px}
+.kp-table-comparison>span,.kp-table-comparison>b{display:block}
+.kp-change{font-weight:650}.kp-change.up{color:#37b892}.kp-change.down{color:#ed636b}.kp-change.flat{color:var(--muted)}
+html[data-theme=light] .kp-change.up{color:#087953}html[data-theme=light] .kp-change.down{color:#b82939}
+@media(min-width:761px){#mainContent .kp-customer-table{table-layout:fixed;width:100%;min-width:0;font-size:12px}#mainContent .kp-customer-table th,#mainContent .kp-customer-table td{padding:11px 7px;white-space:normal;overflow-wrap:break-word}#mainContent .kp-customer-table th:first-child{width:170px}#mainContent .kp-customer-table .kp-branch-name{text-align:left;font-size:12px;line-height:1.5}#mainContent .kp-customer-table th{font-size:10px;line-height:1.4}#mainContent .kp-customer-table .table-sort-button{gap:3px}#mainContent .kp-customer-table td>strong{font-size:13px}}
+@media(max-width:640px){.comparison-periods{display:grid;grid-template-columns:1fr;gap:6px}.comparison-periods>span{display:none}.comparison-periods>div{padding:8px 12px}.kp-period-controls .tab{flex:1}.kp-issue-badge{font-size:11px}}
