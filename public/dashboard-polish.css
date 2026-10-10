@@ -73,8 +73,9 @@
 #mainContent .tab.active,#mainContent .filter-chip.active{background:#087953;color:#fff;border-color:#087953}
 #mainContent button:disabled{opacity:.6;cursor:wait}
 #mainContent button:focus-visible{outline:2px solid #19b99c;outline-offset:3px}
-#mainContent .page-heading h2{font-weight:800;letter-spacing:-.025em}
-.gr-table-heading h3,.action-header h3{font-size:21px;font-weight:800}
+#mainContent .page-heading h2{font-weight:650;letter-spacing:-.02em}
+#mainContent:has(.rating-status-grid) .page-heading h2{font-size:25px;line-height:1.25}
+.gr-table-heading h3,.action-header h3{font-size:21px;font-weight:650}
 .gr-table th,.perf-table th{font-weight:750;color:var(--text);background:color-mix(in srgb,var(--panel) 92%,#19b99c)}
 .comparison-periods{display:flex;align-items:center;gap:14px;margin:10px 0;flex-wrap:wrap}
 .comparison-periods>div{display:grid;gap:4px;padding:9px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px}
