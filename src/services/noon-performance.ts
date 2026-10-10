@@ -1,3 +1,4 @@
+import {readNoonSessionHealth} from './noon-session-health.ts';
 import {authDatabase,canAccess} from '../auth.ts';
 import type {AuthUser} from '../auth.ts';
 import {registerBranchSources} from './branch-registry.ts';
@@ -41,8 +42,9 @@ export function validateNoonPerformance(value:any){
 export async function readNoonPerformance(db:Database=authDatabase(),period?:{startDate:string;endDate:string}):Promise<any>{
  try{
   const result=await db.query({text:period?'SELECT payload FROM noon_performance_snapshots WHERE period_from=$1 AND period_to=$2 ORDER BY observed_at DESC,created_at DESC,id DESC LIMIT 1':'SELECT payload FROM noon_performance_snapshots WHERE period_to-period_from=6 ORDER BY period_to DESC,observed_at DESC,created_at DESC,id DESC LIMIT 1',values:period?[period.startDate,period.endDate]:[],query_timeout:5000});
-  if(!result.rows.length)return {state:'EMPTY',snapshot:null,errorCode:null};
-  return {state:'SUCCESS',snapshot:validateNoonPerformance(result.rows[0].payload),errorCode:null};
+  const sessionHealth=await readNoonSessionHealth(db);
+  if(!result.rows.length)return {state:'EMPTY',snapshot:null,errorCode:null,sessionHealth};
+  return {state:'SUCCESS',snapshot:validateNoonPerformance(result.rows[0].payload),errorCode:null,sessionHealth};
  }catch(error:any){if(error?.code==='42P01')return {state:'EMPTY',snapshot:null,errorCode:null};return {state:'ERROR',snapshot:null,errorCode:'PERFORMANCE_READ_FAILED'};}
 }
 export function restrictNoonPerformance(data:any,allowed:Set<string>){

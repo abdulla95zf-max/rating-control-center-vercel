@@ -1,3 +1,4 @@
+import {readNoonSessionHealth} from './noon-session-health.ts';
 import {authDatabase} from '../auth.ts';
 import {displayStatus} from './rating-status.ts';
 import type {CloudRating,CloudPlatformResult} from './latest-ratings-proxy.ts';
@@ -19,7 +20,8 @@ function empty():CloudPlatformResult{return {platform:'noon',state:'EMPTY',store
 export async function readNoonRatings(db:Database=authDatabase()):Promise<CloudPlatformResult>{
  try{
   const result=await db.query({text:`SELECT payload FROM (SELECT DISTINCT ON(observed_at) observed_at,created_at,id,payload FROM noon_rating_snapshots ORDER BY observed_at DESC,created_at DESC,id DESC) s ORDER BY observed_at DESC LIMIT 2`,query_timeout:5000});
-  if(!result.rows.length)return empty();
+  const sessionHealth=await readNoonSessionHealth(db);
+  if(!result.rows.length)return {...empty(),sessionHealth};
   const current=validateNoonSnapshot(result.rows[0].payload),previous=result.rows[1]?validateNoonSnapshot(result.rows[1].payload):null;
   if(previous&&Date.parse(previous.observedAt)>=Date.parse(current.observedAt))throw Error('SNAPSHOT_INVALID');
   const older=new Map(previous?.rows.map(r=>[r.outletCode,r])??[]);
@@ -27,7 +29,7 @@ export async function readNoonRatings(db:Database=authDatabase()):Promise<CloudP
    platform:'noon',storeIdentityKey:`NOON;${r.restaurantId};${r.outletCode}`,storeName:`${r.brand} — ${expected.location}`,rating:r.rating,reviewCount:r.reviewCount,oneStarCount:null,
    timestamp:current.observedAt,syncTimestamp:current.observedAt,previousRating:prev?.rating??null,previousReviewCount:prev?.reviewCount??null,previousOneStarCount:null,previousTimestamp:previous?.observedAt??null,carriedForward:false,status:displayStatus(r.rating)
   };});
-  return {platform:'noon',state:'SUCCESS',storeCount:22,syncTimestamp:current.observedAt,emptyReason:null,errorCode:null,ratings};
+  return {platform:'noon',sessionHealth,state:'SUCCESS',storeCount:22,syncTimestamp:current.observedAt,emptyReason:null,errorCode:null,ratings};
  }catch(error:any){if(error?.code==='42P01')return empty();return {platform:'noon',state:'ERROR',storeCount:0,syncTimestamp:null,emptyReason:null,errorCode:'RATINGS_READ_FAILED',ratings:[]};}
 }
 export async function withNoonRatings<T extends {ratings:CloudRating[];platforms:CloudPlatformResult[];storeCount:number}>(data:T,enabled:boolean,read=readNoonRatings):Promise<T>{

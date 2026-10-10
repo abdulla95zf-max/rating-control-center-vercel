@@ -267,7 +267,7 @@ async function renderTalabat() {
 }
 
 function cloudHealth(result) {
-  if (!result || result.state === 'ERROR') return 'ERROR';
+  if (!result || result.state === 'ERROR' || result.sessionHealth === 'EXPIRED') return 'ERROR';
   if (result.state === 'EMPTY') return 'EMPTY';
   const age = Date.now() - timestamp(result.syncTimestamp);
   const scheduledEveryFourHours=['talabat','keeta'].includes(String(result.platform||'').toLowerCase());
@@ -275,6 +275,9 @@ function cloudHealth(result) {
   const delayedAfter=scheduledDaily?26*60*60*1000:scheduledEveryFourHours?5*60*60*1000:90*60*1000;
   const staleAfter=scheduledDaily?48*60*60*1000:scheduledEveryFourHours?8*60*60*1000:2*60*60*1000;
   return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > staleAfter ? 'STALE' : age >= delayedAfter ? 'DELAYED' : 'LIVE';
+}
+function noonSessionWarning(result) {
+  return result?.sessionHealth === 'EXPIRED' ? '<p class="health-warning" role="alert"><strong>Noon session expired.</strong> Collection needs a new login. Showing the last saved data; ask an administrator to renew the Noon session.</p>' : '';
 }
 function cloudPlatformCards(platforms) {
   return '<section class="platform-health-grid">' + state.platforms.map(platform => {
@@ -284,7 +287,7 @@ function cloudPlatformCards(platforms) {
     return '<article class="kpi-card platform-health-card is-connected"><h3 class="platform-card-heading"><img src="/platforms/' + escapeHtml(platform.id) + '-icon.png" alt="">' + escapeHtml(platform.name) + '</h3>' + statusHtml(result.state) +
       '<p>Freshness: ' + statusHtml(health) + '</p><p>Total stores: ' + formatNumber(result.storeCount) + '</p>' +
       '<p>Last sync<br>' + escapeHtml(formatTime(result.syncTimestamp)) + '</p>' +
-      (result.state === 'ERROR' ? '<p class="health-warning">Ratings source is unavailable.</p>' :
+      noonSessionWarning(result) + (result.state === 'ERROR' ? '<p class="health-warning">Ratings source is unavailable.</p>' :
        result.state === 'EMPTY' ? '<p>No ratings in the selected latest run.</p>' : '') + '</article>';
   }).join('') + '</section>';
 }
@@ -398,7 +401,7 @@ function paintCloudRatings(response) {
   const recentChanges=!selectedPlatform?renderRecentChanges(allGroups):'';
   const actionCenter=!selectedPlatform?overviewActionPanel(allGroups):'';
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Latest saved ratings · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${selectedPlatform?`<div class="ratings-freshness">${statusHtml(overallHealth)}<span>Last sync <strong>${escapeHtml(formatTime(active[0]?.syncTimestamp))}</strong></span></div>`:''}</div>
-    ${selectedPlatform?'':cloudPlatformCards(platformResults)}
+    ${selectedPlatform?noonSessionWarning(active[0]):cloudPlatformCards(platformResults)}
     <section class="kpi-grid rating-status-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
     ${selectedPlatform?'':`<div class="overview-panels">${recentChanges}${actionCenter}</div>${typeof renderGrowthOverview==='function'?'<section class="gr-overview" id="growthOverview"><h3>Sales decline priorities</h3><p>Reading saved comparisons…</p></section>':''}`}
     <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">

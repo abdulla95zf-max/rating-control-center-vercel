@@ -18,6 +18,7 @@ export interface CloudPlatformResult {
   platform:CloudPlatform;state:PlatformState;storeCount:number;syncTimestamp:string|null;
   emptyReason:'NO_RUN'|'LATEST_RUN_EMPTY'|'NO_RATINGS'|null;
   errorCode:'RATINGS_READ_FAILED'|null;ratings:CloudRating[];
+  sessionHealth?:'EXPIRED'|'OK'|'UNKNOWN';
 }
 
 const iso=(value:unknown):value is string=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)&&Number.isFinite(Date.parse(value));
