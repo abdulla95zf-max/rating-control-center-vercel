@@ -129,7 +129,7 @@ async function initialize() {
   try {
     const config = await api('/api/config');
     state.cloudRatings = config.cloudRatings === true;
-    state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: ['talabat','keeta','noon'].includes(id) ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
+    state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: ['talabat','keeta','noon','deliveroo'].includes(id) ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
     state.refreshSeconds = config.autoRefreshSeconds;
     updatePlatformTabs();
     await renderCurrent();
@@ -166,7 +166,7 @@ async function renderCurrent(force=false) {
   if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
   if(state.tab==='noon-performance'){await renderNoonPerformance();return;}
   if(state.cloudRatings){
-    if(['overview','talabat','keeta','noon'].includes(state.tab))await renderCloudRatings(force);
+    if(['overview','talabat','keeta','noon','deliveroo'].includes(state.tab))await renderCloudRatings(force);
     else renderDisconnected(state.tab);
     return;
   }
@@ -184,7 +184,7 @@ async function renderCurrent(force=false) {
     refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (error) {
     if(state.tab==='performance')return;
-    state.platforms = state.platforms.map(p => ['talabat','keeta','noon'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
+    state.platforms = state.platforms.map(p => ['talabat','keeta','noon','deliveroo'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
     updatePlatformTabs();
     refreshState.querySelector('.live-dot').dataset.health = 'ERROR';
     renderError(error);
@@ -270,7 +270,7 @@ function cloudHealth(result) {
   if (!result || result.state === 'ERROR' || result.sessionHealth === 'EXPIRED') return 'ERROR';
   if (result.state === 'EMPTY') return 'EMPTY';
   const age = Date.now() - timestamp(result.syncTimestamp);
-  const scheduledEveryFourHours=['talabat','keeta'].includes(String(result.platform||'').toLowerCase());
+  const scheduledEveryFourHours=['talabat','keeta','deliveroo'].includes(String(result.platform||'').toLowerCase());
   const scheduledDaily=String(result.platform||'').toLowerCase()==='noon';
   const delayedAfter=scheduledDaily?26*60*60*1000:scheduledEveryFourHours?5*60*60*1000:90*60*1000;
   const staleAfter=scheduledDaily?48*60*60*1000:scheduledEveryFourHours?8*60*60*1000:2*60*60*1000;
@@ -369,7 +369,7 @@ function paintCloudRatings(response) {
       lastSuccessfulSync:result.syncTimestamp, message:result.state === 'ERROR' ? 'Ratings source unavailable' : null} : platform;
   });
   updatePlatformTabs();
-  const selectedPlatform = ['talabat','keeta','noon'].includes(state.tab) ? state.tab : null;
+  const selectedPlatform = ['talabat','keeta','noon','deliveroo'].includes(state.tab) ? state.tab : null;
   const sourceRows = selectedPlatform ? response.ratings.filter(row => row.platform === selectedPlatform) : response.ratings;
   const allGroups = groupCloudRows(response.ratings);
   globalThis.ratingAccessOptions={
@@ -427,7 +427,7 @@ function buildRecentChanges(groups){
 function renderRecentChanges(groups){
  const all=buildRecentChanges(groups),brands=[...new Set(all.map(item=>item.brand))].sort(),filtered=all.filter(item=>(!state.recentBrand||item.brand===state.recentBrand)&&(!state.recentPlatform||item.platform===state.recentPlatform)),lists={drops:filtered.filter(item=>item.type==='drops'),oneStar:filtered.filter(item=>item.type==='oneStar'),improved:filtered.filter(item=>item.type==='improved')},selected=lists[state.recentTab]||lists.drops;currentRecentChanges=selected;const shown=state.recentExpanded?selected:selected.slice(0,5),detail=item=>item.type==='oneStar'?`+${formatNumber(item.oneStarDelta)} one-star${item.reviewDelta>0?` from +${formatNumber(item.reviewDelta)} reviews`:''}`:`${formatRating(item.previousRating)} → ${formatRating(item.rating)} (${item.ratingDelta>0?'+':''}${item.ratingDelta.toFixed(1)})`;
  const row=(item,index)=>`<li class="action-row recent-row"><span class="recent-change ${item.type}">${escapeHtml(item.label)}</span><div class="action-copy"><strong>${escapeHtml(item.name)}</strong><p>${platformLogoHtml(item.platform)} <span>${escapeHtml(detail(item))}</span> · ${escapeHtml(formatTime(item.timestamp))}</p></div><button class="action-open" data-recent-index="${index}">View</button></li>`;
- return `<section class="recent-changes"><header class="action-header"><div><span class="action-eyebrow">PREVIOUS SAVED SNAPSHOT</span><h3>Recent Changes</h3><p>What changed since each store’s previous collection</p></div><div class="recent-filters"><label>Brand <select class="select" id="recentBrand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.recentBrand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select></label><label>Platform <select class="select" id="recentPlatform"><option value="">All platforms</option>${['talabat','keeta','noon'].map(platform=>`<option value="${platform}" ${state.recentPlatform===platform?'selected':''}>${platform[0].toUpperCase()+platform.slice(1)}</option>`).join('')}</select></label></div></header><nav class="action-tabs">${[['drops','Rating drops',lists.drops.length],['oneStar','New one-star',lists.oneStar.length],['improved','Improved',lists.improved.length]].map(([key,label,count])=>`<button type="button" class="${state.recentTab===key?'active':''}" data-recent-tab="${key}">${label} <span>${count}</span></button>`).join('')}</nav>${shown.length?`<ol class="action-list">${shown.map(row).join('')}</ol>`:'<div class="action-clear">No recent changes in this category.</div>'}${selected.length>5?`<button class="action-full-list" id="recentFullList" type="button">${state.recentExpanded?'Show top 5':`View full list (${selected.length})`}</button>`:''}<details class="action-method"><summary>How changes are compared</summary><p class="action-rules">This compares the latest saved snapshot with the immediately previous one. Talabat normally collects every 4 hours; this is not a daily comparison.</p></details></section>`;
+ return `<section class="recent-changes"><header class="action-header"><div><span class="action-eyebrow">PREVIOUS SAVED SNAPSHOT</span><h3>Recent Changes</h3><p>What changed since each store’s previous collection</p></div><div class="recent-filters"><label>Brand <select class="select" id="recentBrand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.recentBrand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select></label><label>Platform <select class="select" id="recentPlatform"><option value="">All platforms</option>${['talabat','keeta','noon','deliveroo'].map(platform=>`<option value="${platform}" ${state.recentPlatform===platform?'selected':''}>${platform[0].toUpperCase()+platform.slice(1)}</option>`).join('')}</select></label></div></header><nav class="action-tabs">${[['drops','Rating drops',lists.drops.length],['oneStar','New one-star',lists.oneStar.length],['improved','Improved',lists.improved.length]].map(([key,label,count])=>`<button type="button" class="${state.recentTab===key?'active':''}" data-recent-tab="${key}">${label} <span>${count}</span></button>`).join('')}</nav>${shown.length?`<ol class="action-list">${shown.map(row).join('')}</ol>`:'<div class="action-clear">No recent changes in this category.</div>'}${selected.length>5?`<button class="action-full-list" id="recentFullList" type="button">${state.recentExpanded?'Show top 5':`View full list (${selected.length})`}</button>`:''}<details class="action-method"><summary>How changes are compared</summary><p class="action-rules">This compares the latest saved snapshot with the immediately previous one. Talabat normally collects every 4 hours; this is not a daily comparison.</p></details></section>`;
 }
 function attachRecentChanges(groups){const lookup=new Map(groups.map(group=>[group.key,group])),brand=document.getElementById('recentBrand'),platform=document.getElementById('recentPlatform');if(brand)brand.onchange=()=>{state.recentBrand=brand.value;state.recentExpanded=false;renderCurrent();};if(platform)platform.onchange=()=>{state.recentPlatform=platform.value;state.recentExpanded=false;renderCurrent();};for(const button of main.querySelectorAll('[data-recent-tab]'))button.onclick=()=>{state.recentTab=button.dataset.recentTab;state.recentExpanded=false;renderCurrent();};const full=document.getElementById('recentFullList');if(full)full.onclick=()=>{state.recentExpanded=!state.recentExpanded;renderCurrent();};for(const button of main.querySelectorAll('[data-recent-index]'))button.onclick=()=>{const item=currentRecentChanges[Number(button.dataset.recentIndex)];if(item&&lookup.has(item.key))openCloudStore(lookup.get(item.key));};}
 
@@ -500,11 +500,11 @@ async function openCloudStore(group,range='30d',historyPlatform=state.tab) {
       <div><dt>Observed</dt><dd>${escapeHtml(formatTime(row.timestamp))}</dd></div><div><dt>Freshness</dt><dd>${row.carriedForward?'Carried forward':'Latest observation'}</dd></div></dl>
     </article>`).join('')}</section>
     <section class="history-placeholder"><strong>Rating history</strong><p>Loading saved snapshots…</p></section>`;
-  const historyRows=group.rows.filter(row=>['talabat','keeta','noon'].includes(row.platform)),historyRow=historyRows.find(row=>row.platform===historyPlatform)||historyRows.find(row=>row.platform==='talabat')||historyRows.find(row=>row.platform==='noon')||historyRows[0];
+  const historyRows=group.rows.filter(row=>['talabat','keeta','noon','deliveroo'].includes(row.platform)),historyRow=historyRows.find(row=>row.platform===historyPlatform)||historyRows.find(row=>row.platform==='talabat')||historyRows.find(row=>row.platform==='noon')||historyRows[0];
   const replaceHistory=html=>{detailContent.innerHTML=detailContent.innerHTML.replace(/<section class="history-placeholder">[\s\S]*?<\/section>/,html);};
   if(!historyRow){replaceHistory('<section class="history-placeholder"><strong>Rating history</strong><p>No saved rating history is available for this platform.</p></section>');return;}
   try{const result=await api(`/api/dashboard/ratings/history?storeIdentityKey=${encodeURIComponent(historyRow.storeIdentityKey)}&range=${encodeURIComponent(range)}`);if(request!==detailRequest)return;chartData=result.points;
-    replaceHistory(`<div class="status-filters" aria-label="History platform">${historyRows.map(row=>`<button class="filter-chip ${row.platform===historyRow.platform?'active':''}" data-history-platform="${escapeHtml(row.platform)}">${escapeHtml(row.platform==='keeta'?'Keeta':row.platform==='noon'?'Noon':'Talabat')}</button>`).join('')}</div><div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>${escapeHtml(historyRow.platform==='keeta'?'Keeta':historyRow.platform==='noon'?'Noon':'Talabat')} rating history</h4><p class="chart-hint">Hover or tap a point for its exact date and value.</p><canvas class="chart" id="ratingChart" aria-label="Rating history chart"></canvas></div><p class="updated">${chartData.length?formatNumber(chartData.length)+' saved observations':'No saved observations in this range. Try a longer range.'}</p>`);
+    replaceHistory(`<div class="status-filters" aria-label="History platform">${historyRows.map(row=>`<button class="filter-chip ${row.platform===historyRow.platform?'active':''}" data-history-platform="${escapeHtml(row.platform)}">${escapeHtml(row.platform[0].toUpperCase()+row.platform.slice(1))}</button>`).join('')}</div><div class="status-filters" aria-label="History range">${[['24h','24h'],['7d','7 days'],['30d','30 days'],['all','All']].map(([value,label])=>`<button class="filter-chip ${range===value?'active':''}" data-cloud-range="${value}">${label}</button>`).join('')}</div><div class="chart-card"><h4>${escapeHtml(historyRow.platform[0].toUpperCase()+historyRow.platform.slice(1))} rating history</h4><p class="chart-hint">Hover or tap a point for its exact date and value.</p><canvas class="chart" id="ratingChart" aria-label="Rating history chart"></canvas></div><p class="updated">${chartData.length?formatNumber(chartData.length)+' saved observations':'No saved observations in this range. Try a longer range.'}</p>`);
     for(const button of detailContent.querySelectorAll('[data-cloud-range]'))button.addEventListener('click',()=>openCloudStore(group,button.dataset.cloudRange,historyRow.platform));
     for(const button of detailContent.querySelectorAll('[data-history-platform]'))button.addEventListener('click',()=>openCloudStore(group,range,button.dataset.historyPlatform));
     requestAnimationFrame(redrawCharts);

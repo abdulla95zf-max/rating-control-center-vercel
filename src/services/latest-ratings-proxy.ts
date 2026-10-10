@@ -6,7 +6,7 @@ export class RatingsProxyError extends Error {
   constructor(status: number, message: string) { super(message); this.status = status; }
 }
 
-type CloudPlatform='talabat'|'keeta'|'noon';
+type CloudPlatform='talabat'|'keeta'|'noon'|'deliveroo';
 type PlatformState='SUCCESS'|'EMPTY'|'ERROR';
 export interface CloudRating {
   platform:CloudPlatform;storeIdentityKey:string;storeName:string|null;rating:number|null;

@@ -1,0 +1,250 @@
+{
+  "observedAt": "2026-10-10T11:55:21.116Z",
+  "rows": [
+    {
+      "id": "621379",
+      "drnId": "52ff2e90-10ea-47a2-acec-5ab87a2a5a51",
+      "name": "FRB Kabab - Ajman",
+      "orgId": "452544",
+      "state": "NO_RATING_RETURNED",
+      "rating": null,
+      "ratingCount": null,
+      "oneStarCount": null
+    },
+    {
+      "id": "621382",
+      "drnId": "7e3db9e6-0db9-4169-9fab-3c451c563648",
+      "name": "FRB Kabab - Al Wasl",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.423077,
+      "ratingCount": 52,
+      "oneStarCount": 5,
+      "breakdown": {
+        "one_star_count": 5,
+        "two_star_count": 2,
+        "three_star_count": 1,
+        "four_star_count": 2,
+        "five_star_count": 42
+      }
+    },
+    {
+      "id": "621372",
+      "drnId": "f408875f-30ec-4fd0-a9c1-45d09123c7a9",
+      "name": "FRB Kabab - Barsha 1",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 3.928571,
+      "ratingCount": 14,
+      "oneStarCount": 1,
+      "breakdown": {
+        "one_star_count": 1,
+        "two_star_count": 1,
+        "three_star_count": 3,
+        "four_star_count": 2,
+        "five_star_count": 7
+      }
+    },
+    {
+      "id": "621374",
+      "drnId": "cad6b0ce-3281-480d-9aef-15e978aadaa0",
+      "name": "FRB Kabab - Mirdif",
+      "orgId": "452544",
+      "state": "NO_RATING_RETURNED",
+      "rating": null,
+      "ratingCount": null,
+      "oneStarCount": null
+    },
+    {
+      "id": "656226",
+      "drnId": "0f6dc6a7-7a6b-44d5-a017-aeb782febeb9",
+      "name": "Kabab Al Fareej - Um Aldaman",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 3.958333,
+      "ratingCount": 24,
+      "oneStarCount": 5,
+      "breakdown": {
+        "one_star_count": 5,
+        "two_star_count": 0,
+        "three_star_count": 2,
+        "four_star_count": 1,
+        "five_star_count": 16
+      }
+    },
+    {
+      "id": "621365",
+      "drnId": "ff94836e-ad46-483a-be47-e912915aab1c",
+      "name": "Kabab Al Fareej Restaurant - Ajman",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.222222,
+      "ratingCount": 18,
+      "oneStarCount": 0,
+      "breakdown": {
+        "one_star_count": 0,
+        "two_star_count": 1,
+        "three_star_count": 4,
+        "four_star_count": 3,
+        "five_star_count": 10
+      }
+    },
+    {
+      "id": "621364",
+      "drnId": "8f310fc0-e20d-4476-83d9-818201c14942",
+      "name": "Kabab Al Fareej Restaurant - Al Wasl",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.3825,
+      "ratingCount": 676,
+      "oneStarCount": 57,
+      "breakdown": {
+        "one_star_count": 57,
+        "two_star_count": 19,
+        "three_star_count": 28,
+        "four_star_count": 53,
+        "five_star_count": 519
+      }
+    },
+    {
+      "id": "621363",
+      "drnId": "da4f22b1-1b67-458e-a1c3-ec68fe4cea99",
+      "name": "Kabab Al Fareej Restaurant - Barsha 1",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.318182,
+      "ratingCount": 242,
+      "oneStarCount": 28,
+      "breakdown": {
+        "one_star_count": 28,
+        "two_star_count": 7,
+        "three_star_count": 5,
+        "four_star_count": 22,
+        "five_star_count": 180
+      }
+    },
+    {
+      "id": "621368",
+      "drnId": "4f800123-494f-4358-a8a7-c60d1eb41a9a",
+      "name": "Kabab Al Fareej Restaurant - Mirdif",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.410256,
+      "ratingCount": 39,
+      "oneStarCount": 3,
+      "breakdown": {
+        "one_star_count": 3,
+        "two_star_count": 2,
+        "three_star_count": 1,
+        "four_star_count": 3,
+        "five_star_count": 30
+      }
+    },
+    {
+      "id": "621369",
+      "drnId": "be9cabac-3a1f-411d-9aca-a74afad5487f",
+      "name": "Kabab Al Fareej Restaurant - Muteena",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.237288,
+      "ratingCount": 59,
+      "oneStarCount": 8,
+      "breakdown": {
+        "one_star_count": 8,
+        "two_star_count": 2,
+        "three_star_count": 2,
+        "four_star_count": 3,
+        "five_star_count": 44
+      }
+    },
+    {
+      "id": "621376",
+      "drnId": "e4047ef6-a7a5-4b1e-99c4-3733e6719fda",
+      "name": "Kabab Al Fareej Restaurant - Qusais",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.384615,
+      "ratingCount": 26,
+      "oneStarCount": 2,
+      "breakdown": {
+        "one_star_count": 2,
+        "two_star_count": 1,
+        "three_star_count": 0,
+        "four_star_count": 5,
+        "five_star_count": 18
+      }
+    },
+    {
+      "id": "621367",
+      "drnId": "3d55979d-9fa4-4894-93af-f3ce59fff394",
+      "name": "Kabab Al Fareej Restaurant - Ras Al Khaima",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 3.882353,
+      "ratingCount": 17,
+      "oneStarCount": 3,
+      "breakdown": {
+        "one_star_count": 3,
+        "two_star_count": 1,
+        "three_star_count": 2,
+        "four_star_count": 0,
+        "five_star_count": 11
+      }
+    },
+    {
+      "id": "621375",
+      "drnId": "b05afd1b-c8e9-4a48-a00c-82c203dee7d9",
+      "name": "Kabab Al Fareej Restaurant - Tawar",
+      "orgId": "452544",
+      "state": "NO_RATING_RETURNED",
+      "rating": null,
+      "ratingCount": null,
+      "oneStarCount": null
+    },
+    {
+      "id": "621377",
+      "drnId": "6743583c-2f43-4435-9670-d6a7cba1bde0",
+      "name": "Kabab Al Fareej Restaurant - Warqaa",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.403509,
+      "ratingCount": 57,
+      "oneStarCount": 4,
+      "breakdown": {
+        "one_star_count": 4,
+        "two_star_count": 2,
+        "three_star_count": 4,
+        "four_star_count": 4,
+        "five_star_count": 43
+      }
+    },
+    {
+      "id": "621366",
+      "drnId": "8b2b6ea5-70d2-452b-bc03-fbbaa3d27faf",
+      "name": "Kabab Al Fareej Restaurant -Hoshi",
+      "orgId": "452544",
+      "state": "SUCCESS",
+      "rating": 4.071429,
+      "ratingCount": 28,
+      "oneStarCount": 5,
+      "breakdown": {
+        "one_star_count": 5,
+        "two_star_count": 1,
+        "three_star_count": 0,
+        "four_star_count": 3,
+        "five_star_count": 19
+      }
+    },
+    {
+      "id": "778123",
+      "drnId": "dc3aef5d-04a9-4824-8857-b9bbec2247e6",
+      "name": "Kabab Al Sham - Aweer",
+      "orgId": "554301",
+      "state": "NO_RATING_RETURNED",
+      "rating": null,
+      "ratingCount": null,
+      "oneStarCount": null
+    }
+  ],
+  "version": 1
+}
