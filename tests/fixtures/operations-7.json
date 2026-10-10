@@ -1,0 +1,5119 @@
+{
+  "version": 1,
+  "observedAt": "2026-10-10T12:57:00.000Z",
+  "days": 7,
+  "startDate": "2026-10-03",
+  "endDate": "2026-10-09",
+  "rows": [
+    {
+      "storeId": "621379",
+      "orgId": "452544",
+      "storeName": "FRB Kabab - Ajman",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "prep_time",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 0,
+          "change": -1,
+          "series": []
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 0,
+          "change": -1,
+          "series": []
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": 0,
+          "series": []
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621382",
+      "orgId": "452544",
+      "storeName": "FRB Kabab - Al Wasl",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 3,
+          "change": 0.5,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 3,
+          "change": 0.5,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 2,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 19.0533,
+          "change": 0.6307,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 10.4774
+            },
+            {
+              "time": 1791489600,
+              "value": 23.3412
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.6645,
+          "change": -0.0069,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.6392
+            },
+            {
+              "time": 1791057600,
+              "value": 4.6873
+            },
+            {
+              "time": 1791144000,
+              "value": 4.618
+            },
+            {
+              "time": 1791230400,
+              "value": 4.6837
+            },
+            {
+              "time": 1791316800,
+              "value": 4.7016
+            },
+            {
+              "time": 1791403200,
+              "value": 4.6683
+            },
+            {
+              "time": 1791489600,
+              "value": 4.6436
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.3569,
+          "change": 0.0048,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 13.5039
+            },
+            {
+              "time": 1791057600,
+              "value": 13.8744
+            },
+            {
+              "time": 1791144000,
+              "value": 13.1475
+            },
+            {
+              "time": 1791230400,
+              "value": 13.0092
+            },
+            {
+              "time": 1791316800,
+              "value": 13.0628
+            },
+            {
+              "time": 1791403200,
+              "value": 13.4235
+            },
+            {
+              "time": 1791489600,
+              "value": 13.3464
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 18.5056,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 27.7585
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 2,
+          "pct": 66.67
+        },
+        "inaccurate": {
+          "total": 1,
+          "pct": 33.33
+        },
+        "totalItemClaims": 1,
+        "claimedItems": [
+          {
+            "name": "رز بالزرشك",
+            "category": "Modifiers",
+            "claims": 1,
+            "missing": 0,
+            "incomplete": 1,
+            "incorrectlyCooked": 0,
+            "wrongOrder": 0,
+            "dietary": 0
+          }
+        ]
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621372",
+      "orgId": "452544",
+      "storeName": "FRB Kabab - Barsha 1",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 1,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 1,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 4.2243,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 4.2243
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 1,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.6467,
+          "change": 0.0056,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.6895
+            },
+            {
+              "time": 1791057600,
+              "value": 4.6982
+            },
+            {
+              "time": 1791144000,
+              "value": 4.6879
+            },
+            {
+              "time": 1791230400,
+              "value": 4.6488
+            },
+            {
+              "time": 1791316800,
+              "value": 4.6235
+            },
+            {
+              "time": 1791403200,
+              "value": 4.6266
+            },
+            {
+              "time": 1791489600,
+              "value": 4.3379
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 14.6818,
+          "change": -0.0176,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 15.4767
+            },
+            {
+              "time": 1791057600,
+              "value": 14.9988
+            },
+            {
+              "time": 1791144000,
+              "value": 13.9794
+            },
+            {
+              "time": 1791230400,
+              "value": 14.0011
+            },
+            {
+              "time": 1791316800,
+              "value": 14.2784
+            },
+            {
+              "time": 1791403200,
+              "value": 14.3686
+            },
+            {
+              "time": 1791489600,
+              "value": 15.2479
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 1.15,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 1.15
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 1,
+          "pct": 100
+        },
+        "totalItemClaims": 1,
+        "claimedItems": [
+          {
+            "name": "Faloodeh Shirazi",
+            "category": "DESSERT",
+            "claims": 1,
+            "missing": 0,
+            "incomplete": 0,
+            "incorrectlyCooked": 1,
+            "wrongOrder": 0,
+            "dietary": 0
+          }
+        ]
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621374",
+      "orgId": "452544",
+      "storeName": "FRB Kabab - Mirdif",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.4876,
+          "change": 0.0004,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.4928
+            },
+            {
+              "time": 1791057600,
+              "value": 4.548
+            },
+            {
+              "time": 1791144000,
+              "value": 4.4803
+            },
+            {
+              "time": 1791230400,
+              "value": 4.4397
+            },
+            {
+              "time": 1791316800,
+              "value": 4.4755
+            },
+            {
+              "time": 1791403200,
+              "value": 4.5932
+            },
+            {
+              "time": 1791489600,
+              "value": 4.2075
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.1927,
+          "change": -0.0024,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 14.0642
+            },
+            {
+              "time": 1791057600,
+              "value": 13.8651
+            },
+            {
+              "time": 1791144000,
+              "value": 12.7791
+            },
+            {
+              "time": 1791230400,
+              "value": 12.1507
+            },
+            {
+              "time": 1791316800,
+              "value": 12.4157
+            },
+            {
+              "time": 1791403200,
+              "value": 12.7451
+            },
+            {
+              "time": 1791489600,
+              "value": 13.6448
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "656226",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej - Um Aldaman",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 9,
+          "change": 8,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 2
+            },
+            {
+              "time": 1791057600,
+              "value": 2
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 4
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 9,
+          "change": 8,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 2
+            },
+            {
+              "time": 1791057600,
+              "value": 2
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 4
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 12.1517,
+          "change": 0.306,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 16.311
+            },
+            {
+              "time": 1791057600,
+              "value": 7.0765
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 13.3114
+            },
+            {
+              "time": 1791403200,
+              "value": 9.3445
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 5,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 5
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.5241,
+          "change": -0.0085,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.5168
+            },
+            {
+              "time": 1791057600,
+              "value": 4.543
+            },
+            {
+              "time": 1791144000,
+              "value": 4.5375
+            },
+            {
+              "time": 1791230400,
+              "value": 4.6342
+            },
+            {
+              "time": 1791316800,
+              "value": 4.5256
+            },
+            {
+              "time": 1791403200,
+              "value": 4.5564
+            },
+            {
+              "time": 1791489600,
+              "value": 4.1351
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.9814,
+          "change": -0.0039,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 14.5053
+            },
+            {
+              "time": 1791057600,
+              "value": 14.7623
+            },
+            {
+              "time": 1791144000,
+              "value": 12.7221
+            },
+            {
+              "time": 1791230400,
+              "value": 13.4457
+            },
+            {
+              "time": 1791316800,
+              "value": 12.9901
+            },
+            {
+              "time": 1791403200,
+              "value": 13.3306
+            },
+            {
+              "time": 1791489600,
+              "value": 15.0996
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0.2833,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0.6375
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621365",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Ajman",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 4,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 2
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 4,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 2
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 14.4708,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 18.4845
+            },
+            {
+              "time": 1791316800,
+              "value": 8.0499
+            },
+            {
+              "time": 1791403200,
+              "value": 12.8641
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 1,
+          "change": -0.7083,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 1
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 17.532,
+          "change": -0.281,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 16.2416
+            },
+            {
+              "time": 1791144000,
+              "value": 17.222
+            },
+            {
+              "time": 1791230400,
+              "value": 18.1074
+            },
+            {
+              "time": 1791316800,
+              "value": 9.0084
+            },
+            {
+              "time": 1791403200,
+              "value": 16.9903
+            },
+            {
+              "time": 1791489600,
+              "value": 25.6275
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621364",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Al Wasl",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 77,
+          "change": 0.2419,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 11
+            },
+            {
+              "time": 1791057600,
+              "value": 11
+            },
+            {
+              "time": 1791144000,
+              "value": 11
+            },
+            {
+              "time": 1791230400,
+              "value": 8
+            },
+            {
+              "time": 1791316800,
+              "value": 16
+            },
+            {
+              "time": 1791403200,
+              "value": 8
+            },
+            {
+              "time": 1791489600,
+              "value": 12
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 77,
+          "change": 0.2419,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 11
+            },
+            {
+              "time": 1791057600,
+              "value": 11
+            },
+            {
+              "time": 1791144000,
+              "value": 11
+            },
+            {
+              "time": 1791230400,
+              "value": 8
+            },
+            {
+              "time": 1791316800,
+              "value": 16
+            },
+            {
+              "time": 1791403200,
+              "value": 8
+            },
+            {
+              "time": 1791489600,
+              "value": 12
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": -1,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 12.3962,
+          "change": -0.0351,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 10.9719
+            },
+            {
+              "time": 1791057600,
+              "value": 12.3317
+            },
+            {
+              "time": 1791144000,
+              "value": 11.6391
+            },
+            {
+              "time": 1791230400,
+              "value": 14.0057
+            },
+            {
+              "time": 1791316800,
+              "value": 12.5622
+            },
+            {
+              "time": 1791403200,
+              "value": 14.7218
+            },
+            {
+              "time": 1791489600,
+              "value": 11.6101
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 4.3,
+          "change": 0.0238,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 5
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 5
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 4.2
+            },
+            {
+              "time": 1791403200,
+              "value": 3.5
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.6645,
+          "change": -0.0069,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.6392
+            },
+            {
+              "time": 1791057600,
+              "value": 4.6873
+            },
+            {
+              "time": 1791144000,
+              "value": 4.618
+            },
+            {
+              "time": 1791230400,
+              "value": 4.6837
+            },
+            {
+              "time": 1791316800,
+              "value": 4.7016
+            },
+            {
+              "time": 1791403200,
+              "value": 4.6683
+            },
+            {
+              "time": 1791489600,
+              "value": 4.6436
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.3569,
+          "change": 0.0048,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 13.5039
+            },
+            {
+              "time": 1791057600,
+              "value": 13.8744
+            },
+            {
+              "time": 1791144000,
+              "value": 13.1475
+            },
+            {
+              "time": 1791230400,
+              "value": 13.0092
+            },
+            {
+              "time": 1791316800,
+              "value": 13.0628
+            },
+            {
+              "time": 1791403200,
+              "value": 13.4235
+            },
+            {
+              "time": 1791489600,
+              "value": 13.3464
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0.1385,
+          "change": -0.3227,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0.2636
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0.1156
+            },
+            {
+              "time": 1791403200,
+              "value": 0.7395
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621363",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Barsha 1",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 32,
+          "change": 0.28,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 6
+            },
+            {
+              "time": 1791057600,
+              "value": 10
+            },
+            {
+              "time": 1791144000,
+              "value": 6
+            },
+            {
+              "time": 1791230400,
+              "value": 3
+            },
+            {
+              "time": 1791316800,
+              "value": 2
+            },
+            {
+              "time": 1791403200,
+              "value": 3
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 32,
+          "change": 0.28,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 6
+            },
+            {
+              "time": 1791057600,
+              "value": 10
+            },
+            {
+              "time": 1791144000,
+              "value": 6
+            },
+            {
+              "time": 1791230400,
+              "value": 3
+            },
+            {
+              "time": 1791316800,
+              "value": 2
+            },
+            {
+              "time": 1791403200,
+              "value": 3
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 4,
+          "change": 3,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 2
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 16.2834,
+          "change": 0.2506,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 14.5099
+            },
+            {
+              "time": 1791057600,
+              "value": 13.9143
+            },
+            {
+              "time": 1791144000,
+              "value": 15.5841
+            },
+            {
+              "time": 1791230400,
+              "value": 23.5819
+            },
+            {
+              "time": 1791316800,
+              "value": 6.3572
+            },
+            {
+              "time": 1791403200,
+              "value": 27.1291
+            },
+            {
+              "time": 1791489600,
+              "value": 18.2576
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 3,
+          "change": -0.25,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 2
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 1
+            },
+            {
+              "time": 1791316800,
+              "value": 4.5
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.6467,
+          "change": 0.0056,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.6895
+            },
+            {
+              "time": 1791057600,
+              "value": 4.6982
+            },
+            {
+              "time": 1791144000,
+              "value": 4.6879
+            },
+            {
+              "time": 1791230400,
+              "value": 4.6488
+            },
+            {
+              "time": 1791316800,
+              "value": 4.6235
+            },
+            {
+              "time": 1791403200,
+              "value": 4.6266
+            },
+            {
+              "time": 1791489600,
+              "value": 4.3379
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 14.6818,
+          "change": -0.0176,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 15.4767
+            },
+            {
+              "time": 1791057600,
+              "value": 14.9988
+            },
+            {
+              "time": 1791144000,
+              "value": 13.9794
+            },
+            {
+              "time": 1791230400,
+              "value": 14.0011
+            },
+            {
+              "time": 1791316800,
+              "value": 14.2784
+            },
+            {
+              "time": 1791403200,
+              "value": 14.3686
+            },
+            {
+              "time": 1791489600,
+              "value": 15.2479
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 1.5395,
+          "change": 1.1787,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 1.2638
+            },
+            {
+              "time": 1791057600,
+              "value": 0.2166
+            },
+            {
+              "time": 1791144000,
+              "value": 2.0305
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 7.125
+            },
+            {
+              "time": 1791403200,
+              "value": 2.9166
+            },
+            {
+              "time": 1791489600,
+              "value": 2.1666
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 4,
+          "pct": 12.5
+        },
+        "inaccurate": {
+          "total": 1,
+          "pct": 3.13
+        },
+        "totalItemClaims": 2,
+        "claimedItems": [
+          {
+            "name": "White Rice",
+            "category": "Modifiers",
+            "claims": 1,
+            "missing": 0,
+            "incomplete": 0,
+            "incorrectlyCooked": 1,
+            "wrongOrder": 0,
+            "dietary": 0
+          },
+          {
+            "name": "Ghorme Sabzi With Rice",
+            "category": "Traditional Dishes & Stews",
+            "claims": 1,
+            "missing": 0,
+            "incomplete": 0,
+            "incorrectlyCooked": 1,
+            "wrongOrder": 0,
+            "dietary": 0
+          }
+        ]
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621368",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Mirdif",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 5,
+          "change": 0.25,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 2
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 5,
+          "change": 0.25,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 2
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 8.1293,
+          "change": -0.4704,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 6.167
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 11.3259
+            },
+            {
+              "time": 1791489600,
+              "value": 8.4934
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.4876,
+          "change": 0.0004,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.4928
+            },
+            {
+              "time": 1791057600,
+              "value": 4.548
+            },
+            {
+              "time": 1791144000,
+              "value": 4.4803
+            },
+            {
+              "time": 1791230400,
+              "value": 4.4397
+            },
+            {
+              "time": 1791316800,
+              "value": 4.4755
+            },
+            {
+              "time": 1791403200,
+              "value": 4.5932
+            },
+            {
+              "time": 1791489600,
+              "value": 4.2075
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.1927,
+          "change": -0.0024,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 14.0642
+            },
+            {
+              "time": 1791057600,
+              "value": 13.8651
+            },
+            {
+              "time": 1791144000,
+              "value": 12.7791
+            },
+            {
+              "time": 1791230400,
+              "value": 12.1507
+            },
+            {
+              "time": 1791316800,
+              "value": 12.4157
+            },
+            {
+              "time": 1791403200,
+              "value": 12.7451
+            },
+            {
+              "time": 1791489600,
+              "value": 13.6448
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": -1,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 1,
+          "pct": 16.67
+        },
+        "totalItemClaims": 2,
+        "claimedItems": [
+          {
+            "name": "Fattoush",
+            "category": "Modifiers",
+            "claims": 1,
+            "missing": 0,
+            "incomplete": 0,
+            "incorrectlyCooked": 1,
+            "wrongOrder": 0,
+            "dietary": 0
+          },
+          {
+            "name": "Irani Rotty Bread",
+            "category": "Reghagh Bread",
+            "claims": 1,
+            "missing": 0,
+            "incomplete": 0,
+            "incorrectlyCooked": 1,
+            "wrongOrder": 0,
+            "dietary": 0
+          }
+        ]
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621369",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Muteena",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 7,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 1
+            },
+            {
+              "time": 1791230400,
+              "value": 2
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 2
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 7,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 1
+            },
+            {
+              "time": 1791230400,
+              "value": 2
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 2
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 1,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 1
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 11.4233,
+          "change": -0.3218,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 13.5918
+            },
+            {
+              "time": 1791144000,
+              "value": 17.6429
+            },
+            {
+              "time": 1791230400,
+              "value": 13.1495
+            },
+            {
+              "time": 1791316800,
+              "value": 9.3554
+            },
+            {
+              "time": 1791403200,
+              "value": 6.5371
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": -1,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.4591,
+          "change": 0.0061,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.5263
+            },
+            {
+              "time": 1791057600,
+              "value": 4.9642
+            },
+            {
+              "time": 1791144000,
+              "value": 4.4736
+            },
+            {
+              "time": 1791230400,
+              "value": 4.5862
+            },
+            {
+              "time": 1791316800,
+              "value": 4.1428
+            },
+            {
+              "time": 1791403200,
+              "value": 4.1578
+            },
+            {
+              "time": 1791489600,
+              "value": 3.5833
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 11.0003,
+          "change": -0.0106,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 10.964
+            },
+            {
+              "time": 1791057600,
+              "value": 11.7967
+            },
+            {
+              "time": 1791144000,
+              "value": 10.7503
+            },
+            {
+              "time": 1791230400,
+              "value": 11.2286
+            },
+            {
+              "time": 1791316800,
+              "value": 10.7303
+            },
+            {
+              "time": 1791403200,
+              "value": 10.5912
+            },
+            {
+              "time": 1791489600,
+              "value": 10.7125
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 1.5071,
+          "change": 3.5545,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 5.9
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 2.325
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 1,
+          "pct": 14.29
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621376",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Qusais",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 4,
+          "change": -0.2,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 1
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 4,
+          "change": -0.2,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 1
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 2
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 7.9092,
+          "change": -0.4922,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 9.4633
+            },
+            {
+              "time": 1791316800,
+              "value": 8.0434
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 7.065
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 5,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 5
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.3513,
+          "change": -0.0041,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 5
+            },
+            {
+              "time": 1791057600,
+              "value": 5
+            },
+            {
+              "time": 1791144000,
+              "value": 5
+            },
+            {
+              "time": 1791230400,
+              "value": 4.375
+            },
+            {
+              "time": 1791316800,
+              "value": 4.2857
+            },
+            {
+              "time": 1791403200,
+              "value": 3
+            },
+            {
+              "time": 1791489600,
+              "value": 3
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 14.7368,
+          "change": -0.1445,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 14.7538
+            },
+            {
+              "time": 1791057600,
+              "value": 13.7383
+            },
+            {
+              "time": 1791144000,
+              "value": 13.9175
+            },
+            {
+              "time": 1791230400,
+              "value": 14.2505
+            },
+            {
+              "time": 1791316800,
+              "value": 14.9074
+            },
+            {
+              "time": 1791403200,
+              "value": 16.509
+            },
+            {
+              "time": 1791489600,
+              "value": 15.1085
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621367",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Ras Al Khaima",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 3,
+          "change": 2,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 1
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 1
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 3,
+          "change": 2,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 1
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 1
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 1,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 1
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 26.3796,
+          "change": 1.1526,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 41.2613
+            },
+            {
+              "time": 1791057600,
+              "value": 22.2631
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 15.6144
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": -1,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.1428,
+          "change": -0.0842,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 5
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 5
+            },
+            {
+              "time": 1791230400,
+              "value": 3
+            },
+            {
+              "time": 1791316800,
+              "value": 5
+            },
+            {
+              "time": 1791403200,
+              "value": 3
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.2008,
+          "change": -0.1707,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 13.6512
+            },
+            {
+              "time": 1791057600,
+              "value": 14.4159
+            },
+            {
+              "time": 1791144000,
+              "value": 11.1639
+            },
+            {
+              "time": 1791230400,
+              "value": 11.2572
+            },
+            {
+              "time": 1791316800,
+              "value": 12.7408
+            },
+            {
+              "time": 1791403200,
+              "value": 16.0153
+            },
+            {
+              "time": 1791489600,
+              "value": 12.4449
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 2.5833,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 7.75
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 1,
+          "pct": 33.33
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621375",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Tawar",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 2,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 2,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 1
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 10.7081,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 13.6407
+            },
+            {
+              "time": 1791403200,
+              "value": 7.7756
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.4533,
+          "change": 0.0344,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.2727
+            },
+            {
+              "time": 1791057600,
+              "value": 4.8888
+            },
+            {
+              "time": 1791144000,
+              "value": 4.3571
+            },
+            {
+              "time": 1791230400,
+              "value": 3.8333
+            },
+            {
+              "time": 1791316800,
+              "value": 4.5882
+            },
+            {
+              "time": 1791403200,
+              "value": 4.7777
+            },
+            {
+              "time": 1791489600,
+              "value": 5
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.1356,
+          "change": -0.1189,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 12.4595
+            },
+            {
+              "time": 1791057600,
+              "value": 14.2042
+            },
+            {
+              "time": 1791144000,
+              "value": 13.1109
+            },
+            {
+              "time": 1791230400,
+              "value": 12.9556
+            },
+            {
+              "time": 1791316800,
+              "value": 12.6359
+            },
+            {
+              "time": 1791403200,
+              "value": 13.2167
+            },
+            {
+              "time": 1791489600,
+              "value": 13.5944
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0.5833,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 1.1667
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621377",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant - Warqaa",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 8,
+          "change": 0.3333,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 1
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 2
+            },
+            {
+              "time": 1791403200,
+              "value": 3
+            },
+            {
+              "time": 1791489600,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 8,
+          "change": 0.3333,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 1
+            },
+            {
+              "time": 1791057600,
+              "value": 1
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 2
+            },
+            {
+              "time": 1791403200,
+              "value": 3
+            },
+            {
+              "time": 1791489600,
+              "value": 1
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 12.3401,
+          "change": 0.1423,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 17.231
+            },
+            {
+              "time": 1791057600,
+              "value": 9.027
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 9.988
+            },
+            {
+              "time": 1791403200,
+              "value": 12.3332
+            },
+            {
+              "time": 1791489600,
+              "value": 15.487
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.4876,
+          "change": 0.0004,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.4928
+            },
+            {
+              "time": 1791057600,
+              "value": 4.548
+            },
+            {
+              "time": 1791144000,
+              "value": 4.4803
+            },
+            {
+              "time": 1791230400,
+              "value": 4.4397
+            },
+            {
+              "time": 1791316800,
+              "value": 4.4755
+            },
+            {
+              "time": 1791403200,
+              "value": 4.5932
+            },
+            {
+              "time": 1791489600,
+              "value": 4.2075
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 13.1927,
+          "change": -0.0024,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 14.0642
+            },
+            {
+              "time": 1791057600,
+              "value": 13.8651
+            },
+            {
+              "time": 1791144000,
+              "value": 12.7791
+            },
+            {
+              "time": 1791230400,
+              "value": 12.1507
+            },
+            {
+              "time": 1791316800,
+              "value": 12.4157
+            },
+            {
+              "time": 1791403200,
+              "value": 12.7451
+            },
+            {
+              "time": 1791489600,
+              "value": 13.6448
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "621366",
+      "orgId": "452544",
+      "storeName": "Kabab Al Fareej Restaurant -Hoshi",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 1,
+          "change": -0.6666,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 1,
+          "change": -0.6666,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 1
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "prep_time",
+          "total": 21.9478,
+          "change": 0.2885,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 21.9478
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 4.25,
+          "change": 0.0303,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 4.125
+            },
+            {
+              "time": 1791057600,
+              "value": 4.5
+            },
+            {
+              "time": 1791144000,
+              "value": 3.5
+            },
+            {
+              "time": 1791230400,
+              "value": 4.2857
+            },
+            {
+              "time": 1791316800,
+              "value": 5
+            },
+            {
+              "time": 1791403200,
+              "value": 4.2857
+            },
+            {
+              "time": 1791489600,
+              "value": 4.25
+            }
+          ]
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 8.2732,
+          "change": -0.1626,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 8.552
+            },
+            {
+              "time": 1791057600,
+              "value": 8.3605
+            },
+            {
+              "time": 1791144000,
+              "value": 6.901
+            },
+            {
+              "time": 1791230400,
+              "value": 7.6984
+            },
+            {
+              "time": 1791316800,
+              "value": 7.7337
+            },
+            {
+              "time": 1791403200,
+              "value": 9.2958
+            },
+            {
+              "time": 1791489600,
+              "value": 9.4466
+            }
+          ]
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0.9666,
+          "change": 2.8664,
+          "series": [
+            {
+              "time": 1790971200,
+              "value": 0
+            },
+            {
+              "time": 1791057600,
+              "value": 0
+            },
+            {
+              "time": 1791144000,
+              "value": 0
+            },
+            {
+              "time": 1791230400,
+              "value": 0
+            },
+            {
+              "time": 1791316800,
+              "value": 0
+            },
+            {
+              "time": 1791403200,
+              "value": 0.9666
+            },
+            {
+              "time": 1791489600,
+              "value": 0
+            }
+          ]
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    },
+    {
+      "storeId": "778123",
+      "orgId": "554301",
+      "storeName": "Kabab Al Sham - Aweer",
+      "startDate": "2026-10-03",
+      "endDate": "2026-10-09",
+      "days": 7,
+      "code": "SUCCESS",
+      "metrics": [
+        {
+          "name": "total_orders",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "total_delivered_orders",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "total_rejected_orders",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "wait_time_past_target_5min_cnt",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "prep_time",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "order_rating",
+          "total": 0,
+          "change": 0,
+          "series": []
+        },
+        {
+          "name": "order_rating_benchmark",
+          "total": 0,
+          "change": -1,
+          "series": []
+        },
+        {
+          "name": "prep_time_benchmark",
+          "total": 0,
+          "change": -1,
+          "series": []
+        },
+        {
+          "name": "wait_time_past_target_sum",
+          "total": 0,
+          "change": 0,
+          "series": []
+        }
+      ],
+      "service": {
+        "rejected": {
+          "total": 0,
+          "pct": 0
+        },
+        "cancelled": {
+          "total": 0,
+          "pct": 0
+        },
+        "latePrepared": {
+          "total": 0,
+          "pct": 0
+        },
+        "inaccurate": {
+          "total": 0,
+          "pct": 0
+        },
+        "totalItemClaims": 0,
+        "claimedItems": []
+      },
+      "servicePeriodVerified": false,
+      "disagreements": []
+    }
+  ]
+}

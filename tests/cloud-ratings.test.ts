@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import type {AddressInfo} from 'node:net';
+import {createServer} from 'node:http';
 import {createApp} from '../src/app.ts';
 import {fetchLatestRatings} from '../src/services/latest-ratings-proxy.ts';
 import {displayStatus} from '../src/services/rating-status.ts';
@@ -25,8 +26,23 @@ const projected={ok:true,selector:'all',storeCount:2,
   ratings:[{...keeta,status:'ACCEPTABLE'},{...talabat,status:'HEALTHY'}],
   platforms:[{...platform('talabat',[talabat]),ratings:[{...talabat,status:'HEALTHY'}]},
     {...platform('keeta',[keeta]),ratings:[{...keeta,status:'ACCEPTABLE'}]}]};
+let nextTestPort=49152;
 async function serve(fetcher:typeof fetch,action:(base:string)=>Promise<void>,settings=config){
-  const server=createApp(settings,undefined,fetcher).listen(0,'127.0.0.1');await new Promise<void>(r=>server.once('listening',r));
+  // Windows can assign a port blocked by Fetch when listen(0) is used.
+  // Bind only in a high range outside Fetch's blocked ports; retain real HTTP tests.
+  // Never reuse a port across servers: Fetch can retain pooled connections after close.
+  const server=createServer(createApp(settings,undefined,fetcher));
+  for(let attempt=0;attempt<64;attempt++){
+    const port=nextTestPort++;if(port>65535)throw Error('TEST_PORT_RANGE_EXHAUSTED');
+    try{
+      await new Promise<void>((resolve,reject)=>{
+        const cleanup=()=>{server.off('error',onError);server.off('listening',onListening);};
+        const onError=(error:Error)=>{cleanup();reject(error);};
+        const onListening=()=>{cleanup();resolve();};
+        server.once('error',onError);server.once('listening',onListening);server.listen(port,'127.0.0.1');
+      });break;
+    }catch(error:any){if(error?.code!=='EADDRINUSE'||attempt===63)throw error;}
+  }
   try{await action(`http://127.0.0.1:${(server.address() as AddressInfo).port}`);}finally{await new Promise<void>((r,j)=>server.close(e=>e?j(e):r()));}
 }
 
@@ -157,11 +173,11 @@ test('dashboard packages local identity artwork, sticky platform navigation and 
 test('Keeta and Talabat freshness accommodates four-hour schedules without hiding missed cycles',()=>{
  const source=fs.readFileSync('public/app.js','utf8'),segment=source.slice(source.indexOf('function cloudHealth('),source.indexOf('function cloudPlatformCards('));
  const now=Date.parse('2026-10-06T12:00:00Z'),context=vm.createContext({Date:{now:()=>now},timestamp:Date.parse});vm.runInContext(segment+';globalThis.health=cloudHealth',context);
- for(const platform of ['talabat','keeta','deliveroo']){
+ for(const platform of ['talabat','keeta']){
   const health=(hours:number)=>context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()});
   assert.equal(health(3),'LIVE');assert.equal(health(4.99),'LIVE');assert.equal(health(5),'DELAYED');assert.equal(health(8),'DELAYED');assert.equal(health(8.01),'STALE');assert.equal(health(-1),'UNKNOWN');
   assert.equal(context.health({platform,state:'ERROR'}),'ERROR');assert.equal(context.health({platform,state:'EMPTY'}),'EMPTY');assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:'invalid'}),'UNKNOWN');
  }
- for(const [hours,expected] of [[3,'LIVE'],[24,'LIVE'],[25.99,'LIVE'],[26,'DELAYED'],[48,'DELAYED'],[48.01,'STALE']] as const)assert.equal(context.health({platform:'noon',state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()}),expected);
+ for(const platform of ['noon','deliveroo'])for(const [hours,expected] of [[3,'LIVE'],[24,'LIVE'],[25.99,'LIVE'],[26,'DELAYED'],[48,'DELAYED'],[48.01,'STALE']] as const)assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()}),expected);
  assert.equal(context.health({platform:'careem',state:'SUCCESS',syncTimestamp:new Date(now-3*3600000).toISOString()}),'STALE');
 });

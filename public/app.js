@@ -28,6 +28,7 @@ const detailContent = document.getElementById('detailContent');
 const talabatViewTabs = document.getElementById('talabatViewTabs');
 const keetaViewTabs = document.getElementById('keetaViewTabs');
 const noonViewTabs = document.getElementById('noonViewTabs');
+const deliverooViewTabs = document.getElementById('deliverooViewTabs');
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 const formatRating = value => value === null ? '—' : Number(value).toFixed(1);
@@ -150,6 +151,8 @@ function updatePlatformTabs() {
 }
 
 function updateTalabatViews() {
+  deliverooViewTabs.hidden=!(state.tab==='deliveroo'||state.tab==='deliveroo-operations');
+  for(const button of deliverooViewTabs.querySelectorAll('[data-deliveroo-view]'))button.classList.toggle('active',button.dataset.deliverooView===state.tab);
   const visible=state.tab==='talabat'||state.tab==='performance';
   talabatViewTabs.hidden=!visible;
   for(const button of talabatViewTabs.querySelectorAll('[data-talabat-view]'))button.classList.toggle('active',button.dataset.talabatView===state.tab);
@@ -165,6 +168,7 @@ async function renderCurrent(force=false) {
   if(state.tab==='performance'){await renderPerformance();return;}
   if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
   if(state.tab==='noon-performance'){await renderNoonPerformance();return;}
+  if(state.tab==='deliveroo-operations'){await renderDeliverooOperations(force);return;}
   if(state.cloudRatings){
     if(['overview','talabat','keeta','noon','deliveroo'].includes(state.tab))await renderCloudRatings(force);
     else renderDisconnected(state.tab);
@@ -270,8 +274,8 @@ function cloudHealth(result) {
   if (!result || result.state === 'ERROR' || result.sessionHealth === 'EXPIRED') return 'ERROR';
   if (result.state === 'EMPTY') return 'EMPTY';
   const age = Date.now() - timestamp(result.syncTimestamp);
-  const scheduledEveryFourHours=['talabat','keeta','deliveroo'].includes(String(result.platform||'').toLowerCase());
-  const scheduledDaily=String(result.platform||'').toLowerCase()==='noon';
+  const scheduledEveryFourHours=['talabat','keeta'].includes(String(result.platform||'').toLowerCase());
+  const scheduledDaily=['noon','deliveroo'].includes(String(result.platform||'').toLowerCase());
   const delayedAfter=scheduledDaily?26*60*60*1000:scheduledEveryFourHours?5*60*60*1000:90*60*1000;
   const staleAfter=scheduledDaily?48*60*60*1000:scheduledEveryFourHours?8*60*60*1000:2*60*60*1000;
   return !Number.isFinite(age) || age < 0 ? 'UNKNOWN' : age > staleAfter ? 'STALE' : age >= delayedAfter ? 'DELAYED' : 'LIVE';
@@ -634,6 +638,7 @@ talabatViewTabs.addEventListener('click',event=>{
   const button=event.target.closest('[data-talabat-view]');if(!button)return;
   state.tab=button.dataset.talabatView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();
 });
+deliverooViewTabs.addEventListener('click',event=>{const button=event.target.closest('[data-deliveroo-view]');if(!button)return;state.tab=button.dataset.deliverooView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();});
 noonViewTabs.addEventListener('click',event=>{const button=event.target.closest('[data-noon-view]');if(!button)return;state.tab=button.dataset.noonView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();});
 keetaViewTabs.addEventListener('click',event=>{const button=event.target.closest('[data-keeta-view]');if(!button)return;state.tab=button.dataset.keetaView;updateTalabatViews();history.replaceState(null,'','#'+state.tab);renderCurrent();});
 
@@ -645,7 +650,7 @@ for (const closer of document.querySelectorAll('[data-close-detail]')) closer.ad
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedStore = null; ++detailRequest; detailPanel.classList.remove('open'); detailPanel.setAttribute('aria-hidden', 'true'); } });
 
 const initialTab = location.hash.slice(1);
-if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance'].includes(initialTab)) {
+if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance','deliveroo-operations'].includes(initialTab)) {
   state.tab = initialTab;
   for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
 }
@@ -656,6 +661,7 @@ document.addEventListener('rcc-auth-reset',()=>{
  if(state.timer){window.clearInterval(state.timer);state.timer=null;}
  if(typeof performanceState!=='undefined'){++performanceState.generation;performanceState.cache=null;performanceState.checkedAt=0;}
  if(typeof keetaPerformanceState!=='undefined'){keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;}
+ if(typeof deliverooOperationsState!=='undefined'){++deliverooOperationsState.request;deliverooOperationsState.cache=null;}
  if(typeof noonPerformanceState!=='undefined'){++noonPerformanceState.request;noonPerformanceState.cache=null;noonPerformanceState.checkedAt=0;if(noonPerformanceState.poll)window.clearInterval(noonPerformanceState.poll);noonPerformanceState.poll=null;}
  if(typeof growthState!=='undefined'){++growthState.generation;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;}
  selectedStore=null;++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');detailContent.innerHTML='';
