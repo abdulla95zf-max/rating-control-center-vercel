@@ -7,6 +7,7 @@
   if(['al noof','hay hoshi','al bdai a suburb','hoshi'].includes(key))return 'Hoshi';
   if(['al dhait south','al dhait rak al dhait south','rak'].includes(key))return 'RAK';
   if(['al barsha 1','al barsha','barsha'].includes(key))return 'Barsha';
+  if(['oud al muteena','oud muteena','al muteena','muteena'].includes(key))return 'Muteena';
   if(['al hamidiya 2','ajman'].includes(key))return 'Ajman';
   if(['al darfrah','al dafrah','mushrif mall al dafrah'].includes(key))return 'AbuDhabi';
   return original;

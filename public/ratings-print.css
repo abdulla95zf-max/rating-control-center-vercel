@@ -14,3 +14,11 @@
 .report-platform-logo{display:block;max-width:180px;height:44px;width:auto;object-fit:contain}.platform-title:has(.report-platform-logo){margin-bottom:6px}.report[data-platform="keeta"]{border-top-color:#078950}.report[data-platform="keeta"] .location-card-title{border-bottom-color:#ffde00}.report[data-platform="noon"]{border-top-color:#fde819}.report[data-platform="careem"]{border-top-color:#00b86b}.report[data-platform="deliveroo"]{border-top-color:#2ccbc0}.report[data-platform="deliveroo"] .location-card-title{border-bottom-color:#2ccbc0}.report[data-platform="careem"] .location-card-title{border-bottom-color:#00b86b}.report[data-platform="noon"] .location-card-title{border-bottom-color:#fde819}
 
 .report-control-logo{display:block;width:155px;height:auto}.report-identity{flex:0 0 auto}@media print{.report-control-logo{width:145px}}@media(max-width:650px){.report-control-logo{width:125px}}
+
+.location-platform-logo{display:block;width:18px;height:18px;object-fit:contain;margin:0 auto 4px}.location-platform-name{font-size:9px;font-weight:600}.report-control-logo{width:180px}@media print{.report-control-logo{width:165px}}
+
+@media(max-width:600px){.report-control-logo{width:125px}}
+
+@media screen and (max-width:650px){.report{padding:20px 16px}.report-header{flex-wrap:wrap}.print-controls{gap:10px;flex-wrap:wrap}.report-control-logo{width:125px}}
+@media screen and (max-width:450px){.location-brand-row{flex-direction:column;align-items:flex-start;gap:7px;padding:10px}.location-brand-ratings{width:100%;justify-content:space-between}.location-platform-rating{flex:1}.location-brand-ratings .rating-value{min-width:36px;font-size:16px;padding:3px 5px}.report-identity{margin-left:auto}}
+@media screen and (max-width:800px){.location-cards{column-count:1}}

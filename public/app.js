@@ -106,11 +106,15 @@ function storeIdentity(row) {
 function displayStoreName(row){const identity=storeIdentity(row);return identity.brand==='Other'?identity.branch:identity.displayName;}
 function groupCloudRows(rows) {
   const groups = new Map();
-  for (const row of rows) {
+  for (const [index,row] of rows.entries()) {
     const identity = storeIdentity(row);
-    const group = groups.get(identity.key) || { ...identity, rows: [] };
+    const displayKey=keyWords(identity.brand)+'|'+keyWords(identity.branch);
+    // Join platform aliases for display; never discard two stores from one platform.
+    let joinKey=displayKey;
+    if(groups.get(joinKey)?.rows.some(r=>r.platform===row.platform))joinKey+='|'+row.platform+'|'+(row.storeIdentityKey||row.storeId||index);
+    const group = groups.get(joinKey) || { ...identity, key:joinKey===displayKey?identity.key:identity.key+'|'+joinKey.slice(displayKey.length+1), rows: [] };
     group.rows.push({ ...row, displayName: identity.displayName, brand: identity.brand, branch: identity.branch });
-    groups.set(identity.key, group);
+    groups.set(joinKey, group);
   }
   return [...groups.values()].map(group => ({ ...group, rows: group.rows.sort((a,b) => a.platform.localeCompare(b.platform)) }));
 }

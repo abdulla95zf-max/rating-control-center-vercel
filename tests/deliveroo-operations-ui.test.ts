@@ -1,8 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
 import {readDeliverooOperations} from '../src/services/deliveroo-operations.ts';
 test('UI switches period values, shows source mismatch, hides zero-order prep and renders scoped data only',async()=>{
- const body=fs.readFileSync('public/deliveroo-operations.js','utf8'),main:any={innerHTML:'',querySelectorAll:()=>[]};
- const context:any={main,document:{getElementById:()=>null},refreshState:{querySelector:()=>({})},escapeHtml:(v:any)=>String(v??'').replace(/[<>&"]/g,(c:string)=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])),ago:()=>'',Intl,Date,console};vm.createContext(context);vm.runInContext(body,context);
+ const body=fs.readFileSync('public/deliveroo-operations.js','utf8'),main:any={innerHTML:'',dataset:{},querySelector:()=>null,querySelectorAll:()=>[]};
+ const context:any={main,window:{innerWidth:1280},BranchLabels:{branch:(v:any)=>v},document:{getElementById:()=>null},refreshState:{querySelector:()=>({})},escapeHtml:(v:any)=>String(v??'').replace(/[<>&"]/g,(c:string)=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])),ago:()=>'',Intl,Date,console};vm.createContext(context);vm.runInContext(body,context);
  for(const days of [7,30]){const fixture=JSON.parse(fs.readFileSync(`tests/fixtures/operations-${days}.json`,'utf8'));const data=await readDeliverooOperations(days,{query:async()=>({rows:[{payload:fixture}]})});context.data=data;context.days=days;
  vm.runInContext("deliverooOperationsState.cache=data;deliverooOperationsState.days=days;deliverooOperationsState.branch='621364';paintDeliverooOperations();",context);
  assert.ok(main.innerHTML.includes(days===7?'77':'356'));assert.ok(main.innerHTML.includes(days===7?'2026-10-03':'2026-09-10'));assert.ok(!main.innerHTML.includes('style='));
