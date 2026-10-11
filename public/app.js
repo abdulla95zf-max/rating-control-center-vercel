@@ -157,7 +157,7 @@ function updatePlatformTabs() {
 function updateTalabatViews() {
   deliverooViewTabs.hidden=!(state.tab==='deliveroo'||state.tab==='deliveroo-operations');
   for(const button of deliverooViewTabs.querySelectorAll('[data-deliveroo-view]'))button.classList.toggle('active',button.dataset.deliverooView===state.tab);
-  const visible=state.tab==='talabat'||state.tab==='performance';
+  const visible=state.tab==='talabat'||state.tab==='performance'||state.tab==='talabat-reviews';
   talabatViewTabs.hidden=!visible;
   for(const button of talabatViewTabs.querySelectorAll('[data-talabat-view]'))button.classList.toggle('active',button.dataset.talabatView===state.tab);
   noonViewTabs.hidden=!(state.tab==='noon'||state.tab==='noon-performance');
@@ -168,6 +168,7 @@ function updateTalabatViews() {
 
 async function renderCurrent(force=false) {
   updateTalabatViews();
+  if(state.tab==='talabat-reviews'){await renderTalabatReviews(force);return;}
   if(state.tab==='growth'){await renderGrowth();return;}
   if(state.tab==='performance'){await renderPerformance();return;}
   if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
@@ -654,12 +655,13 @@ for (const closer of document.querySelectorAll('[data-close-detail]')) closer.ad
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedStore = null; ++detailRequest; detailPanel.classList.remove('open'); detailPanel.setAttribute('aria-hidden', 'true'); } });
 
 const initialTab = location.hash.slice(1);
-if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance','deliveroo-operations'].includes(initialTab)) {
+if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance','deliveroo-operations','talabat-reviews'].includes(initialTab)) {
   state.tab = initialTab;
-  for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (state.tab === 'performance' ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
+  for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (['performance','talabat-reviews'].includes(state.tab) ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
 }
 document.addEventListener('rcc-theme-change',()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();});
 document.addEventListener('rcc-auth-reset',()=>{
+ if(typeof reviewsState!=='undefined'){reviewsState.request++;reviewsState.cache=null;reviewsState.pending=false;reviewsState.pendingKey=null;reviewsState.key='';reviewsState.checkedAt=0;reviewsState.store='';}
  ++cloudViewEpoch;ratingsReports.clear();overviewReports.clear();state.cloudResponse=null;state.busy=false;
  currentActions=[];currentDataChecks=[];currentRecentChanges=[];globalThis.ratingAccessOptions=null;document.getElementById('ratingsExportDialog')?.remove();
  if(state.timer){window.clearInterval(state.timer);state.timer=null;}
