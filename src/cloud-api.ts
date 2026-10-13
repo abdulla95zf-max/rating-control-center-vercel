@@ -1,3 +1,4 @@
+import {createWatchdogHandler} from './services/collector-watchdog.ts';
 import {readTalabatReviews} from './services/talabat-reviews.ts';
 import {readDeliverooOperations,scopeDeliverooOperations} from './services/deliveroo-operations.ts';
 import {withDeliverooRatings,readDeliverooHistory} from './services/deliveroo-ratings.ts';
@@ -24,6 +25,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     response.setHeader('X-Content-Type-Options', 'nosniff');
     const send = (status: number, body: unknown) => {response.statusCode = status; response.end(JSON.stringify(body));};
     const requestUrl=new URL(request.url||'','https://dashboard.invalid');
+    if(route==='config'&&requestUrl.searchParams.get('watchdog')==='1')return createWatchdogHandler(env,fetcher)(request,response);
     if(route==='performance'&&request.method==='POST'&&requestUrl.searchParams.get('dataset')==='keeta'){
       if(!sameOrigin(request))return send(403,{error:'Forbidden'});if([...requestUrl.searchParams.keys()].some(k=>k!=='dataset')||requestUrl.searchParams.getAll('dataset').length!==1)return send(400,{error:'PERIOD_INVALID'});const user=await authenticate(request,response);if(!user)return;
       if(!['admin','portfolio_manager'].includes(user.role))return send(403,{error:'Administrator or portfolio manager required.'});
