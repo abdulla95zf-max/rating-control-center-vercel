@@ -35,6 +35,21 @@ test('operational queue groups all breaches by exact shop ID while retaining low
  const u=ui();u.set([{shopId:'1',shopName:'Same',orders:100,cancelRate:3,offline:4,prep:19,missing:2},{shopId:'2',shopName:'Same',orders:10,cancelRate:3,offline:4,prep:19,missing:2}]);
  const rows=u.run('kpActions(snap)');assert.equal(rows.length,2);assert.equal(rows.find((r:any)=>r.shopId==='1').issues.length,4);assert.equal(rows.find((r:any)=>r.shopId==='2').issues.length,1);assert.match(u.run('kpOperations(snap,kpActions(snap))'),/kp-issue-badge/);
 });
+
+test('operational empty state distinguishes missing inputs from measured healthy metrics',()=>{
+ const u=ui();u.set([{shopId:'1',shopName:'Branch <x>',orders:null,cancelled:null,cancelRate:null,offline:null,prep:null,missing:null}]);
+ const incomplete=u.run('kpOperations(snap,kpActions(snap))');assert.match(incomplete,/Insufficient operational data/);assert.match(incomplete,/Assessment incomplete/);assert.match(incomplete,/Orders, Cancellation, Offline, Preparation, Missing\/wrong orders/);assert.match(incomplete,/Branch &lt;x&gt;/);assert.doesNotMatch(incomplete,/No operational breaches\./);
+ u.set([{shopId:'1',shopName:'Healthy',orders:100,cancelled:0,cancelRate:0,offline:0,prep:12,missing:0}]);
+ const complete=u.run('kpOperations(snap,kpActions(snap))');assert.match(complete,/1\/1 branches/);assert.match(complete,/No measured operational breaches in the tracked metrics/);assert.doesNotMatch(complete,/Assessment incomplete/);
+ u.set([]);assert.match(u.run('kpOperations(snap,kpActions(snap))'),/No branches available for operational assessment/);
+});
+
+test('incomplete coverage retains measured actions and zero-order inapplicable rates are not missing',()=>{
+ const u=ui();u.set([{shopId:'1',shopName:'Partial',orders:100,cancelled:0,cancelRate:0,offline:null,prep:19,missing:0}]);
+ const html=u.run('kpOperations(snap,kpActions(snap))');assert.match(html,/Prep time/);assert.match(html,/Partial: Offline/);assert.match(html,/0\/1 branches/);
+ u.set([{shopId:'2',shopName:'No orders',orders:0,cancelled:0,cancelRate:null,offline:0,prep:null,missing:null}]);
+ assert.equal(u.run('kpOperationCoverage(snap).missing.length'),0);assert.match(u.run('kpOperations(snap,kpActions(snap))'),/Low volume/);
+});
 test('comparison color follows actual change, preserves zero and leaves unknowns neutral',()=>{
  const u=ui();assert.match(u.run("kpComparison({value:'0',popValues:['10'],popValue:'-100%'})"),/down/);assert.match(u.run("kpComparison({value:'10',popValues:['0'],popValue:'—'})"),/up/);assert.doesNotMatch(u.run("kpComparison({value:null,popValues:['10']})"),/kp-change/);assert.equal(u.run("kpDateRange('2026-10-01','2026-10-07')"),'1–7 Oct 2026');
 });
