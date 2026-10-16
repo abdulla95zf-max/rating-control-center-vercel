@@ -46,3 +46,21 @@ test('period and tStar requests reuse the existing protected Performance route',
  const tstar={ok:true,platform:'talabat',state:'SUCCESS',observedAt:'2026-09-26T10:00:00.000Z',receivedAt:'2026-09-26T10:00:01.000Z',scopeCount:1,activeCount:1,rows:[{storeId:'1',storeName:'Kabab Fareej, Test',tier:'ADVANCED',periodFrom:'2026-09-01',periodTo:'2026-09-30',metrics:{avoidableWaitingTime:1,inaccurateOrders:2,offlineRate:3,failRate:4}}]};
  let requested='';const result=await fetchTstar(config,async url=>{requested=String(url);return Response.json(tstar);});assert.equal(requested,'https://example.vercel.app/api/performance/latest?dataset=tstar');assert.equal(result.rows[0]?.metrics.failRate,4);
 });
+
+test('T-Star exposes an inherited branch filter and can restore all branches or change brand',()=>{
+ const nodes=new Map<string,any>(),main={innerHTML:'',querySelectorAll:()=>[]};
+ const context=vm.createContext({Intl,console,main,state:{cloudResponse:{ratings:[]}},escapeHtml:String,
+  storeIdentity:({storeName}:any)=>({brand:storeName.split(', ')[0],displayName:storeName.replace(', ',' — ')}),
+  document:{getElementById:(id:string)=>{if(!nodes.has(id))nodes.set(id,{});return nodes.get(id);}}});
+ vm.runInContext(readFileSync('public/performance.js','utf8'),context);
+ const row=(id:string,name:string)=>({storeId:id,storeName:name,tier:'ADVANCED',periodFrom:'2026-10-01',periodTo:'2026-10-31',metrics:{}});
+ context.fixture={activeCount:2,scopeCount:2,rows:[row('1','Fareej, Wasl'),row('2','FRB, Mirdif')]};
+ vm.runInContext("performanceState.period='monthly';performanceState.branch='1';performanceState.cache={tstar:fixture};paintTstarMonthly()",context);
+ assert.match(main.innerHTML,/id="performanceBranch"/);assert.match(main.innerHTML,/<option value="1" selected>Fareej — Wasl/);assert.match(main.innerHTML,/1 shown · 2 active/);
+ nodes.get('performanceBranch').onchange({target:{value:''}});
+ assert.match(main.innerHTML,/2 shown · 2 active/);assert.match(main.innerHTML,/<td data-label="Branch">FRB — Mirdif/);
+ nodes.get('performanceBranch').onchange({target:{value:'1'}});nodes.get('performanceBrand').onchange({target:{value:'FRB'}});
+ assert.equal(vm.runInContext('performanceState.branch',context),'');assert.match(main.innerHTML,/1 shown · 2 active/);assert.match(main.innerHTML,/<td data-label="Branch">FRB — Mirdif/);
+ vm.runInContext("performanceState.branch='inaccessible';paintTstarMonthly()",context);
+ assert.equal(vm.runInContext('performanceState.branch',context),'');
+});
