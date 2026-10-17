@@ -47,3 +47,4 @@ html[data-theme] .frb-design #platformTabs .tab.active{background:#a1ecc4;border
 html[data-theme] .frb-design #platformTabs .tab[data-tab=overview] .tab-logo{filter:none}
 html[data-theme] .frb-design :is(.action-readiness,.perf-quality,.monthly-quality,.monthly-explainer){background:var(--panel-2);color:var(--muted);border-color:var(--line)}
 .frb-design .frb-directory-title{font-size:21px;letter-spacing:-.5px;font-weight:600;margin:30px 0 16px;scroll-margin-top:140px}
+@media(max-width:700px){.frb-design .topbar .account-menu{width:auto;order:0;max-width:none;justify-content:flex-end}.frb-design .refresh-state span:last-child{display:inline}.frb-design .topbar .account-menu #accountName{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.frb-design .topbar:has(#manageUsers:not([hidden])) .account-menu{width:100%;justify-content:flex-start;order:3}}

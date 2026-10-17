@@ -1,9 +1,9 @@
 (() => {
   const key='rcc-theme',root=document.documentElement;
-  let theme='dark',saved=null;
+  let theme='light',saved=null;
   try{saved=localStorage.getItem(key);}catch{}
   if(saved==='light'||saved==='dark')theme=saved;
-  else if(globalThis.matchMedia?.('(prefers-color-scheme: light)').matches)theme='light';
+  // New visitors start with the approved pearl/forest theme; saved choices are retained.
   function apply(value,persist=false){
     theme=value;root.dataset.theme=value;root.style.colorScheme=value;
     if(persist)try{localStorage.setItem(key,value);}catch{}
