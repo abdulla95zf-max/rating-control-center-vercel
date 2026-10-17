@@ -22,12 +22,13 @@ export function growthRow(identity:string,name:string,period:GrowthPeriod,curren
 const freshness=(period:GrowthPeriod,observedAt:unknown,now:Date)=>{if(!validGrowthPeriod(period))return 'PERIOD_NOT_COMPARABLE';if(period.to>=today(now))return 'PERIOD_INCOMPLETE';const lag=days(period.to,today(now))-1;if(lag>3)return 'REPORT_STALE';if(typeof observedAt!=='string'||!Number.isFinite(Date.parse(observedAt))||Date.parse(observedAt)>now.getTime()+300000||now.getTime()-Date.parse(observedAt)>48*3600000)return 'COLLECTION_STALE';return null;};
 /** Talabat's confirmed no-order export pattern; applies only to Growth, never raw storage. */
 // Exact branch-days independently verified in Talabat Order History.
-// Evidence: handoff22 (15Oct six stores) and52 (16Oct eight stores).
+// Evidence: handoff22/52 and54 native Order History confirmations.
 // This evidence does not apply to other dates/stores or override positive trading values.
 const confirmedNoOrderDays=new Set([
  '681284:2026-10-01','729490:2026-10-03','748506:2026-10-03',
  ...['1122623','623338','681220','729490','751781','795639'].map(id=>id+':2026-10-15'),
- ...['1122623','23533','623338','658433','748506','751781','765720','795639'].map(id=>id+':2026-10-16')
+ ...['1122623','23533','623338','658433','748506','751781','765720','795639'].map(id=>id+':2026-10-16'),
+ '658433:2026-10-10','681284:2026-10-07','751540:2026-10-07','751540:2026-10-14'
 ]);
 export function talabatZeroOrderDay(row:any):boolean{
  const v=row.raw_metrics;if(row.raw_present!==true||!v||typeof v!=='object'||Array.isArray(v))return false;

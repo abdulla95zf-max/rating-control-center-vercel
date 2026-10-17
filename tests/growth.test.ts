@@ -88,3 +88,7 @@ test('Independently confirmed Oct15/16 no-order days recover Growth without zero
  }
  for(const id of ['1122623','623338','681220','729490','751781','795639']){const raw={...noOrders(),store_id:id,report_date:'2026-10-15',raw_metrics:{...noOrders().raw_metrics,'Placed an order':null}};assert.equal(talabatZeroOrderDay(raw),true);assert.equal(talabatZeroOrderDay({...raw,report_date:'2026-10-17'}),false);assert.equal(talabatZeroOrderDay({...raw,sales:'25',orders:'1'}),false);}
 });
+
+test('Remaining three excluded stores use only their newly corroborated historical zero days',()=>{
+ for(const [store_id,report_date]of [['658433','2026-10-10'],['681284','2026-10-07'],['751540','2026-10-07'],['751540','2026-10-14']]){const r={...noOrders(),store_id,report_date,raw_metrics:{...noOrders().raw_metrics,'Placed an order':'2'}};assert.equal(talabatZeroOrderDay(r),true);assert.equal(talabatZeroOrderDay({...r,report_date:'2026-10-17'}),false);assert.equal(talabatZeroOrderDay({...r,orders:'1',sales:'100'}),false);assert.equal(talabatZeroOrderDay({...r,raw_metrics:{...r.raw_metrics,'Cancelled Orders':'1'}}),false);}
+});
