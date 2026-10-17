@@ -61,3 +61,17 @@ test('Operator-confirmed no-order days stay restricted to exact store/date and b
   assert.equal(talabatZeroOrderDay({...r,metrics:{...r.metrics,'Online Orders':'1'}}),false);
  }
 });
+
+test('Growth rejects separated weeks and reports history read timeouts without raw errors',async()=>{
+ const data:any={state:'SUCCESS',snapshot:{periodFrom:p.from,periodTo:p.to,comparisonFrom:'2026-09-16',comparisonTo:'2026-09-22',observedAt:now.toISOString(),shops:[]}};
+ assert.equal((await readKeetaGrowth(data,{query:async()=>assert.fail('invalid period must not query')},now)).state,'ERROR');
+ await assert.rejects(readTalabatGrowth(talabat(),{query:async()=>{throw Object.assign(Error('private SQL details'),{code:'57014'})}},now),/^Error: HISTORY_READ_TIMEOUT$/);
+});
+test('Growth source navigation transfers exact branch and report period, clearing inherited filters',()=>{
+ const state:any={},performanceState:any={search:'unrelated',period:'monthly'},keetaPerformanceState:any={},noonPerformanceState:any={};let renders=0;
+ const c=vm.createContext({Intl,escapeHtml:String,state,performanceState,keetaPerformanceState,noonPerformanceState,detailPanel:{classList:{remove(){}},setAttribute(){}},tabs:{querySelectorAll:()=>[]},history:{replaceState(){}},renderCurrent:()=>renders++});
+ vm.runInContext(fs.readFileSync('public/growth.js','utf8'),c);
+ c.row={identity:'TB_AE;123',brand:'Brand',branch:'Hoshi',period:p};vm.runInContext("grOpenSource(row,'talabat')",c);assert.equal(performanceState.date,p.to);assert.equal(performanceState.branch,'123');assert.equal(performanceState.period,'daily');assert.equal(performanceState.search,'');
+ c.row={...c.row,identity:'KEETA;456'};vm.runInContext("grOpenSource(row,'keeta')",c);assert.equal(keetaPerformanceState.from,p.from);assert.equal(keetaPerformanceState.to,p.to);assert.equal(keetaPerformanceState.customerShop,'456');assert.equal(keetaPerformanceState.operationSearch,'Hoshi');
+ c.row={...c.row,identity:'NOON;R;O'};vm.runInContext("grOpenSource(row,'noon')",c);assert.equal(noonPerformanceState.preset,'custom');assert.equal(noonPerformanceState.period.startDate,p.from);assert.equal(noonPerformanceState.branch,'Hoshi');assert.equal(noonPerformanceState.brand,'Brand');assert.equal(renders,3);
+});

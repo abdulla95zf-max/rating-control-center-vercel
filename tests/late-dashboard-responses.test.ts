@@ -32,3 +32,8 @@ test('old API 401 cannot expire a newer login',async()=>{
  const apiSource=source('app.js').match(/let apiAuthGeneration=0;[\s\S]*?\n}\n/)![0];
  vm.runInContext(apiSource,c);const old=vm.runInContext("api('/old')",c);const rejected=assert.rejects(old,/AUTH_STATE_CHANGED/);vm.runInContext('++apiAuthGeneration',c);resolve({status:401,ok:false,json:async()=>({error:'expired'})});await rejected;assert.equal(expired,0);
 });
+
+test('Growth partial error cache expires quickly while successful reports stay cached',async()=>{
+ const h=harness();const first=h.run('grLoad()');h.requests[0].resolve({platforms:[{state:'ERROR'}]});await first;
+ h.run('growthState.checkedAt=Date.now()-16000');const retry=h.run('grLoad()');assert.equal(h.requests.length,2);h.requests[1].resolve({platforms:[{state:'SUCCESS'}]});await retry;h.run('growthState.checkedAt=Date.now()-16000');await h.run('grLoad()');assert.equal(h.requests.length,2);
+});
