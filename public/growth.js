@@ -1,4 +1,4 @@
-const growthState={cache:null,checkedAt:0,pending:null,generation:0,platform:'talabat',brand:'',location:'',view:'declines',sort:'loss'};
+const growthState={cache:null,checkedAt:0,pending:null,generation:0,authGeneration:0,platform:'talabat',brand:'',location:'',view:'declines',sort:'loss'};
 const grEsc=v=>escapeHtml(v??'—'),grFmt=(v,unit='')=>typeof v==='number'&&Number.isFinite(v)?new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(v)+unit:'—',grSigned=(v,unit='')=>typeof v==='number'?(v>0?'+':'')+grFmt(v,unit):'—';
 const grReasons={METRICS_MISSING:'Sales or order metrics unavailable',SALES_ORDERS_MISMATCH:'Sales and orders do not reconcile',CURRENT_DAYS_MISSING:'Current week has missing days',PREVIOUS_DAYS_MISSING:'Previous week has missing days',PREVIOUS_REPORT_MISSING:'Exact previous-week report not saved',PERIOD_NOT_COMPARABLE:'Comparison is not two complete 7-day periods',PERIOD_INCOMPLETE:'Current period is still incomplete',REPORT_STALE:'Report ends more than 3 days ago',COLLECTION_STALE:'Collection is older than 48 hours or its time is invalid'};
 const grBasis={talabat:'Gross sales · Successful orders',keeta:'Sales · Valid orders (not earnings)',noon:'Dashboard revenue · Orders (not item revenue)'};
@@ -6,7 +6,16 @@ function grRows(platform){return (platform?.rows||[]).map(row=>({...row,...store
 function grSummary(rows){const eligible=rows.filter(r=>r.eligible),declines=eligible.filter(r=>r.delta<0),loss=declines.reduce((n,r)=>n-r.delta,0);return {eligible,declines,loss,current:eligible.reduce((n,r)=>n+r.current.sales,0),previous:eligible.reduce((n,r)=>n+r.previous.sales,0),excluded:rows.length-eligible.length};}
 function grSort(rows,sort){return [...rows].sort((a,b)=>sort==='name'?a.displayName.localeCompare(b.displayName):sort==='percent'?(a.deltaPercent??Infinity)-(b.deltaPercent??Infinity):sort==='orders'?(a.ordersDelta??Infinity)-(b.ordersDelta??Infinity):a.delta-b.delta||a.identity.localeCompare(b.identity));}
 globalThis.GrowthCore={summary:grSummary,sort:grSort};
-async function grLoad(force=false){if(!force&&growthState.cache&&Date.now()-growthState.checkedAt<300000)return growthState.cache;if(growthState.pending)return growthState.pending;growthState.pending=api('/api/dashboard/performance/latest?dataset=growth').then(data=>{growthState.cache=data;growthState.checkedAt=Date.now();return data;}).finally(()=>{growthState.pending=null;});return growthState.pending;}
+async function grLoad(force=false){
+ if(!force&&growthState.cache&&Date.now()-growthState.checkedAt<300000)return growthState.cache;
+ if(growthState.pending)return growthState.pending;
+ const authGeneration=growthState.authGeneration;
+ const pending=api('/api/dashboard/performance/latest?dataset=growth').then(data=>{
+  if(authGeneration!==growthState.authGeneration)throw new Error('AUTH_STATE_CHANGED');
+  growthState.cache=data;growthState.checkedAt=Date.now();return data;
+ }).finally(()=>{if(growthState.pending===pending)growthState.pending=null;});
+ growthState.pending=pending;return pending;
+}
 function grNavigate(platform,brand='',location=''){growthState.platform=platform;growthState.brand=brand;growthState.location=location;state.tab='growth';++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');for(const tab of tabs.querySelectorAll('[data-tab]'))tab.classList.toggle('active',tab.dataset.tab==='growth');history.replaceState(null,'','#growth');renderCurrent();}
 async function renderGrowth(force=false){const generation=++growthState.generation;if(!state.cloudRatings){main.innerHTML='<section class="error-card"><h2>Growth requires cloud Performance data</h2><p>Open the deployed dashboard to read the authorized saved reports.</p></section>';return;}if(force||!growthState.cache)main.innerHTML='<section class="loading-card">Comparing saved Performance reports…</section>';try{await grLoad(force);if(state.tab!=='growth'||generation!==growthState.generation)return;paintGrowth();}catch{if(state.tab!=='growth'||generation!==growthState.generation)return;main.innerHTML='<section class="error-card"><h2>Growth unavailable</h2><p>Saved Performance reports could not be read.</p><button class="tab" id="growthRetry">Retry</button></section>';document.getElementById('growthRetry').onclick=()=>renderGrowth(true);}}
 function paintGrowth(){

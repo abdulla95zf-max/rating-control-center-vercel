@@ -122,9 +122,12 @@ const severity = {CRITICAL:0,WARNING:1,ACCEPTABLE:2,HEALTHY:3,UNKNOWN:4};
 const groupStatus = group => group.rows.reduce((status,row) => severity[row.status] < severity[status] ? row.status : status, 'UNKNOWN');
 const groupRating = group => { const values=group.rows.map(row=>row.rating).filter(value=>value!==null);return values.length?Math.min(...values):null; };
 
+let apiAuthGeneration=0;
 async function api(path) {
+  const authGeneration=apiAuthGeneration;
   const response = await fetch(path, { headers: { accept: 'application/json' }, cache: 'no-store' });
   const body = await response.json();
+  if (authGeneration!==apiAuthGeneration) throw new Error('AUTH_STATE_CHANGED');
   if (response.status === 401) globalThis.dashboardAuth?.expired();
   if (!response.ok) throw new Error(body.error || `Request failed: ${response.status}`);
   return body;
@@ -684,15 +687,16 @@ if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'p
 }
 document.addEventListener('rcc-theme-change',()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();});
 document.addEventListener('rcc-auth-reset',()=>{
+ ++apiAuthGeneration;
  if(typeof reviewsState!=='undefined'){reviewsState.request++;reviewsState.cache=null;reviewsState.pending=false;reviewsState.pendingKey=null;reviewsState.key='';reviewsState.checkedAt=0;reviewsState.store='';}
  ++cloudViewEpoch;ratingsReports.clear();overviewReports.clear();state.cloudResponse=null;state.busy=false;
  currentActions=[];currentDataChecks=[];currentRecentChanges=[];globalThis.ratingAccessOptions=null;document.getElementById('ratingsExportDialog')?.remove();
  if(state.timer){window.clearInterval(state.timer);state.timer=null;}
  if(typeof performanceState!=='undefined'){++performanceState.generation;performanceState.cache=null;performanceState.checkedAt=0;}
- if(typeof keetaPerformanceState!=='undefined'){keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;}
+ if(typeof keetaPerformanceState!=='undefined'){keetaPerformanceState.generation=(keetaPerformanceState.generation??0)+1;keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;keetaPerformanceState.loading=false;keetaPerformanceState.message='';}
  if(typeof deliverooOperationsState!=='undefined'){++deliverooOperationsState.request;deliverooOperationsState.cache=null;}
  if(typeof noonPerformanceState!=='undefined'){++noonPerformanceState.request;noonPerformanceState.cache=null;noonPerformanceState.checkedAt=0;if(noonPerformanceState.poll)window.clearInterval(noonPerformanceState.poll);noonPerformanceState.poll=null;}
- if(typeof growthState!=='undefined'){++growthState.generation;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;}
+ if(typeof growthState!=='undefined'){++growthState.generation;++growthState.authGeneration;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;}
  selectedStore=null;++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');detailContent.innerHTML='';
  main.innerHTML='<section class="loading-card">Loading authorized saved reports…</section>';
 });
