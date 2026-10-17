@@ -1,5 +1,7 @@
 # Combined Talabat Reviews read path (disabled)
 
+Operational update, 2026-10-17: the three new collector tables have now been created and verified in the existing Neon production database with explicit user approval. They are empty. This does not enable this read path or the collector; deployment, ingestion completeness, independent authentication and cloud execution still need validation.
+
 The default read mode remains `legacy`. The server-only `TALABAT_REVIEWS_READ_MODE=combined` enables the prepared compatibility path. It is not a request parameter. No environment setting, deployment or live migration was changed during implementation.
 
 The existing branch registry/role checks run before opening the combined transaction. Authorized branch codes are enforced on every combined query. A read-only repeatable-read snapshot supplies counts, paginated rows, analysis corpus, orders and collection coverage. Missing new tables or conflicting known old/new order links cause a read error, never a false empty-success result. The full authorized branch history is checked for link conflicts, even outside the displayed dates.
