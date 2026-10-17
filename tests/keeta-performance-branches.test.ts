@@ -57,3 +57,12 @@ test('comparison color follows actual change, preserves zero and leaves unknowns
 test('customer exposure and funnel counts use source customer codes rather than item UV codes',()=>{
  const u=ui();u.set({conversion:[{code:'shop_expose_user_num',value:'55755',popValues:['50000']},{code:'shop_entry_user_num',value:'12965'},{code:'shop_cartadd_user_num',value:'3000'},{code:'shop_submit_user_num',value:'1600'},{code:'shop_pay_user_num',value:'1588'}]});assert.equal(u.run('kpCustomer(snap,true)[11].row.value'),'55755');assert.match(u.run('kpCustomerCharts(snap,true)'),/55755|12965|1588/);
 });
+
+test('Keeta snapshot freshness handles exact boundaries and invalid timestamps',()=>{
+ const u=ui(),now=Date.parse('2026-10-17T08:00:00Z');
+ for(const [hours,expected]of [[0,'FRESH'],[26,'FRESH'],[26.001,'DELAYED'],[48,'DELAYED'],[48.001,'STALE']]){u.set({at:new Date(now-Number(hours)*3600000).toISOString(),now});assert.equal(u.run('kpFreshness(snap.at,snap.now)'),expected);}
+ for(const at of [null,undefined,'','not a date',123,new Date(now+1000).toISOString()]){u.set({at,now});assert.equal(u.run('kpFreshness(snap.at,snap.now)'),'UNKNOWN');}
+});
+test('Keeta freshness banner labels save time separately from report completeness',()=>{
+ const u=ui();u.set({observedAt:null});const html=u.run('kpFreshnessBanner(snap)');assert.match(html,/data-health="UNKNOWN"/);assert.match(html,/Save time unavailable or invalid/);assert.match(html,/not completeness of source metrics/);assert.match(html,/Historical periods stay historical/);
+});
