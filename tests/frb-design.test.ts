@@ -21,3 +21,9 @@ test('approved light default preserves explicit theme preferences and works with
   vm.createContext(context);vm.runInContext(fs.readFileSync('public/theme.js','utf8'),context);assert.equal(root.dataset.theme,saved==='dark'?'dark':'light');assert.equal(root.style.colorScheme,root.dataset.theme);
  }
 });
+test('rating distribution survives the production no-inline-style policy and reconciles its proportions',()=>{
+ const html=overview({HEALTHY:4,ACCEPTABLE:5,WARNING:6,CRITICAL:36,UNKNOWN:1},52);
+ assert.doesNotMatch(html,/style=/);const widths=[...html.matchAll(/<rect x="([\d.]+)" y="0" width="([\d.]+)"/g)].map(m=>({x:Number(m[1]),width:Number(m[2])}));
+ assert.equal(widths.length,5);assert.ok(Math.abs(widths.reduce((n,s)=>n+s.width,0)+20-1000)<0.001);assert.ok(Math.abs(widths[3].width/widths[0].width-9)<0.0001);assert.ok(Math.abs(widths.at(-1)!.x+widths.at(-1)!.width-1000)<0.001);
+ const empty=overview({HEALTHY:0,ACCEPTABLE:0,WARNING:0,CRITICAL:0,UNKNOWN:0},0);assert.doesNotMatch(empty,/NaN|Infinity/);
+});
