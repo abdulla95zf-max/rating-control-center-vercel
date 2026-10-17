@@ -5,7 +5,7 @@ const grBasis={talabat:'Gross sales · Successful orders',keeta:'Sales · Valid 
 
 function grRecommendationCard(row){
  const r=row.recommendation;if(!r)return '<section class="gr-detail"><h3>Suggested next check</h3><p>Recommendation evidence is unavailable. Refresh saved reports before choosing an intervention.</p></section>';
- const confidence=({MEDIUM:'Medium · direction is supported; cause is unverified',LOW:'Low · inspect the small sample first',INSUFFICIENT:'Insufficient · verify data first'})[r.confidence]||'Unverified';
+ const confidence=({MEDIUM:'Medium · direction is supported; cause is unverified',LOW:'Low · verify the signal before intervening',INSUFFICIENT:'Insufficient · verify data first'})[r.confidence]||'Unverified';
  return `<section class="gr-detail gr-recommendation"><span class="gr-eyebrow">SUGGESTED NEXT CHECK</span><h3>${grEsc(r.title)}</h3><p>${grEsc(r.action)}</p><p class="gr-confidence">Confidence: ${grEsc(confidence)}</p><details open><summary>Evidence</summary><ul>${(r.evidence||[]).map(e=>'<li>'+grEsc(e)+'</li>').join('')}</ul></details><details><summary>What remains unknown</summary><ul>${(r.unknowns||[]).map(e=>'<li>'+grEsc(e)+'</li>').join('')}</ul></details>${r.qualityCheck?'<aside class="gr-quality"><strong>Separate quality check</strong><p>'+grEsc(r.qualityCheck.evidence)+'</p><p>'+grEsc(r.qualityCheck.action)+'</p></aside>':''}</section>`;
 }
 async function grReviewEvidence(row){
