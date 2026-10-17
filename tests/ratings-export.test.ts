@@ -29,7 +29,7 @@ test('location cards retain every brand, keep missing ratings, and prioritize th
 
 test('Excel keeps each platform observation on its own row and unknown dates explicit',()=>{
  const input=[{displayName:'Mixed — Branch',rows:[{platform:'talabat',rating:4.1,status:'HEALTHY',timestamp:'2026-10-05T23:00:00-04:00'},{platform:'keeta',rating:3.9,status:'WARNING',timestamp:'2026-10-06 05:00:00'}]},{displayName:'Missing — Branch',rows:[{platform:'talabat',rating:4,timestamp:'invalid'}]}];
- const r=api.fromGroups(input,{generatedAt:'2026-10-07T00:00:00Z'});assert.deepEqual(Array.from(r.rows[0].observations),['2026-10-06T03:00:00.000Z','2026-10-06T05:00:00.000Z']);assert.equal(r.unknownObservations,2);assert.equal(r.oldestObservedAt,'2026-10-06T03:00:00.000Z');
+ const r=api.fromGroups(input,{generatedAt:'2026-10-07T00:00:00Z'});assert.deepEqual(Array.from(r.rows[0].observations),['2026-10-06T03:00:00.000Z','2026-10-06T05:00:00.000Z']);assert.equal(r.unknownObservations,1);assert.equal(r.oldestObservedAt,'2026-10-06T03:00:00.000Z');
  const sheet=entries(api.excel(r)).get('xl/worksheets/sheet1.xml')!;
- assert.match(sheet,/Talabat observed \(UTC\)/);assert.match(sheet,/Keeta observed \(UTC\)/);assert.match(sheet,/<c r="E7"[^>]*>.*?2026-10-06 03:00:00 UTC/);assert.match(sheet,/<c r="F7"[^>]*>.*?2026-10-06 05:00:00 UTC/);assert.match(sheet,/<c r="E8"[^>]*>.*?>Unknown</);assert.match(sheet,/Unknown dates: 2/);assert.match(sheet,/Exported 2026-10-07 00:00:00 UTC/);assert.doesNotMatch(sheet,/As of /);
+ assert.match(sheet,/Talabat observed \(UTC\)/);assert.match(sheet,/Keeta observed \(UTC\)/);assert.match(sheet,/<c r="E7"[^>]*>.*?2026-10-06 03:00:00 UTC/);assert.match(sheet,/<c r="F7"[^>]*>.*?2026-10-06 05:00:00 UTC/);assert.match(sheet,/<c r="E8"[^>]*>.*?>Unknown</);assert.match(sheet,/Unknown dates: 1/);assert.match(sheet,/<c r="F8"[^>]*>.*?>No platform data</);assert.match(sheet,/Exported 2026-10-07 00:00:00 UTC/);assert.doesNotMatch(sheet,/As of /);
 });
