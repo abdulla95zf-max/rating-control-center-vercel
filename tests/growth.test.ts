@@ -75,3 +75,16 @@ test('Growth source navigation transfers exact branch and report period, clearin
  c.row={...c.row,identity:'KEETA;456'};vm.runInContext("grOpenSource(row,'keeta')",c);assert.equal(keetaPerformanceState.from,p.from);assert.equal(keetaPerformanceState.to,p.to);assert.equal(keetaPerformanceState.customerShop,'456');assert.equal(keetaPerformanceState.operationSearch,'Hoshi');
  c.row={...c.row,identity:'NOON;R;O'};vm.runInContext("grOpenSource(row,'noon')",c);assert.equal(noonPerformanceState.preset,'custom');assert.equal(noonPerformanceState.period.startDate,p.from);assert.equal(noonPerformanceState.branch,'Hoshi');assert.equal(noonPerformanceState.brand,'Brand');assert.equal(renders,3);
 });
+
+test('Independently confirmed Oct15/16 no-order days recover Growth without zeroing unknown days',async()=>{
+ const scopeIds=['1122623','23533','623338','658433','748506','751781','765720','795639'];const latest=new Date('2026-10-17T12:00:00Z');
+ for(const id of scopeIds){const history=Array.from({length:14},(_,i)=>({source_key:'source',store_id:id,report_date:new Date(Date.parse('2026-10-03')+i*86400000).toISOString().slice(0,10),present:true,orders:'10',sales:'500'}));
+ const blank={...noOrders(),raw_metrics:{...noOrders().raw_metrics,'Placed an order':null,'Impressions':null,'Viewed your menu':null},metrics:{'Scheduled Open Time (Minutes)':'720'}};
+ history[13]={...history[13],...blank} as any;
+ const data={state:'SUCCESS',reportDate:'2026-10-16',receivedAt:latest.toISOString(),rows:[{storeId:id,present:true,values:{'Successful Orders':null,'Gross Sales':null}}]};
+ const r=await readTalabatGrowth(data,{query:async()=>({rows:history})},latest);assert.equal(r.rows[0].eligible,true,id);assert.equal(r.rows[0].current.orders,60);assert.equal(r.rows[0].current.sales,3000);assert.equal(history[13].orders,null);
+ // Another unverified day remains a blocker, even in the same confirmed store.
+ history[12]={...history[12],sales:null,orders:null} as any;const blocked=await readTalabatGrowth(data,{query:async()=>({rows:history})},latest);assert.equal(blocked.rows[0].reason,'CURRENT_DAYS_MISSING',id);
+ }
+ for(const id of ['1122623','623338','681220','729490','751781','795639']){const raw={...noOrders(),store_id:id,report_date:'2026-10-15',raw_metrics:{...noOrders().raw_metrics,'Placed an order':null}};assert.equal(talabatZeroOrderDay(raw),true);assert.equal(talabatZeroOrderDay({...raw,report_date:'2026-10-17'}),false);assert.equal(talabatZeroOrderDay({...raw,sales:'25',orders:'1'}),false);}
+});
