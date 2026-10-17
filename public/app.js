@@ -170,6 +170,7 @@ function updateTalabatViews() {
 }
 
 async function renderCurrent(force=false) {
+  globalThis.FRBDesign?.sync(state.tab);
   updateTalabatViews();
   if(state.tab==='talabat-reviews'){await renderTalabatReviews(force);return;}
   if(state.tab==='growth'){await renderGrowth();return;}
@@ -259,7 +260,7 @@ async function renderTalabat() {
     <div class="page-heading"><div><h2>Talabat stores</h2><p>${formatNumber(stores.length)} stores match the current view</p></div></div>
     ${healthBanner(platform)}
     <div class="toolbar">
-      <input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search store name" autocomplete="off">
+      <input class="input" id="storeSearch" type="search" aria-label="Search brand or branch" value="${escapeHtml(state.search)}" placeholder="Search store name" autocomplete="off">
       <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
       <select class="select" id="locationFilter" aria-label="Filter by location"><option value="">All locations</option>${locations.map(location=>`<option value="${escapeHtml(location)}" ${state.location===location?'selected':''}>${escapeHtml(location)}</option>`).join('')}</select>
       <select class="select" id="storeSort" aria-label="Sort stores">
@@ -413,16 +414,18 @@ function paintCloudRatings(response) {
   const recentChanges=!selectedPlatform?renderRecentChanges(allGroups):'';
   const actionCenter=!selectedPlatform?overviewActionPanel(allGroups):'';
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Latest saved ratings · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${selectedPlatform?`<div class="ratings-freshness">${statusHtml(overallHealth)}<span>Last sync <strong>${escapeHtml(formatTime(active[0]?.syncTimestamp))}</strong></span></div>`:''}</div>
+    ${!selectedPlatform&&globalThis.FRBDesign?FRBDesign.overview({counts,total:viewGroups.length,platforms:platformResults}):''}
     ${selectedPlatform?noonSessionWarning(active[0]):cloudPlatformCards(platformResults)}
-    <section class="kpi-grid rating-status-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>
-    ${selectedPlatform?'':`<div class="overview-panels">${recentChanges}${actionCenter}</div>${typeof renderGrowthOverview==='function'?'<section class="gr-overview" id="growthOverview"><h3>Sales decline priorities</h3><p>Reading saved comparisons…</p></section>':''}`}
-    <div class="toolbar"><input class="input" id="storeSearch" type="search" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
+    ${selectedPlatform||!globalThis.FRBDesign?`<section class="kpi-grid rating-status-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>`:''}
+    ${selectedPlatform?'':`<div class="overview-panels">${actionCenter}${recentChanges}</div>${typeof renderGrowthOverview==='function'?'<section class="gr-overview" id="growthOverview"><h3>Sales decline priorities</h3><p>Reading saved comparisons…</p></section>':''}`}
+    <h3 class="frb-directory-title" id="frbBranchDirectory" tabindex="-1">Branches & ratings</h3><div class="toolbar"><input class="input" id="storeSearch" type="search" aria-label="Search brand or branch" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
     <select class="select" id="brandFilter" aria-label="Filter by brand"><option value="">All brands</option>${brands.map(brand=>`<option value="${escapeHtml(brand)}" ${state.brand===brand?'selected':''}>${escapeHtml(brand)}</option>`).join('')}</select>
     <select class="select" id="locationFilter" aria-label="Filter by location"><option value="">All locations</option>${locations.map(location=>`<option value="${escapeHtml(location)}" ${state.location===location?'selected':''}>${escapeHtml(location)}</option>`).join('')}</select>
     <select class="select" id="storeSort" aria-label="Sort stores">${[['name_asc','Branch name · A to Z'],['name_desc','Branch name · Z to A'],['rating_asc','Rating · lowest first'],['rating_desc','Rating · highest first'],['severity_asc','Status · best first'],['severity_desc','Status · most severe first'],['observed_desc','Observed · newest first'],['observed_asc','Observed · oldest first']].map(([value,label]) => `<option value="${value}" ${state.sort === value ? 'selected' : ''}>${label}</option>`).join('')}</select></div>
     <div class="ratings-table-actions"><div class="status-filters">${['','HEALTHY','ACCEPTABLE','WARNING','CRITICAL','UNKNOWN'].map(status => `<button class="filter-chip ${state.status === status ? 'active' : ''}" data-status="${status}">${status || 'All statuses'}</button>`).join('')}</div>${ratingExportControls(exportGroups.length)}</div>
     ${selectedPlatform ? renderPlatformTable(filteredGroups) : renderOverviewTable(filteredGroups)}`;
   attachTalabatControls();
+  const exploreGrowth=document.getElementById('frbExploreGrowth');if(exploreGrowth)exploreGrowth.onclick=event=>{event.preventDefault();grNavigate(growthState.platform);};
   if(!selectedPlatform&&typeof renderGrowthOverview==='function')renderGrowthOverview();
   attachRatingExports(exportGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
@@ -507,7 +510,7 @@ function attachTalabatControls() {
   document.getElementById('locationFilter')?.addEventListener('change', event => { state.location = event.target.value; renderCurrent(); });
   document.getElementById('storeSort')?.addEventListener('change', event => { state.sort = event.target.value; renderCurrent(); });
   for(const button of main.querySelectorAll('[data-rating-sort]'))button.addEventListener('click',()=>{const key=button.dataset.ratingSort,current=state.sort.startsWith(key+'_');state.sort=key+'_'+(current&&!state.sort.endsWith('_desc')?'desc':'asc');renderCurrent();});
-  for (const button of main.querySelectorAll('[data-status]')) button.addEventListener('click', () => { state.status = button.dataset.status || ''; renderCurrent(); });
+  for (const button of main.querySelectorAll('[data-status]')) button.addEventListener('click', async () => { const jump=Boolean(button.closest('.frb-attention-card')),view=state.tab;state.status = button.dataset.status || '';await renderCurrent();if(jump&&state.tab===view){const directory=document.getElementById('frbBranchDirectory');directory?.scrollIntoView({block:'start'});directory?.focus({preventScroll:true});} });
 }
 
 function attachCloudStoreClicks(groups) {
