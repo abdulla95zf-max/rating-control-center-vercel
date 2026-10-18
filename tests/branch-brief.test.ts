@@ -39,3 +39,11 @@ test('ratings match the selected canonical brand and location without mixing nea
  const response={ratings:[{storeName:'Kabab Fareej — Ajman',rating:4.1},{storeName:'FRB Kabab — Ajman',rating:4.8},{storeName:'Kabab Fareej — Hoshi',rating:3.9}]};
  const selected=core.ratingsFor(response,group);assert.equal(selected.length,1);assert.equal(selected[0].rating,4.1);
 });
+
+test('brand cards honor the requested priority and branch choices stay within the selected authorized brand',()=>{
+ const groups=core.catalog(report([row('Morwarid','RAK'),row('FRB Kabab','Hoshi'),row('Kabab Fareej','Ajman'),row('FRB Shawarma','Barsha'),row('Kabab Fareej','Al Qusais')]));
+ assert.deepEqual(Array.from(core.brands(groups)),['Kabab Fareej','FRB Shawarma','FRB Kabab','Morwarid']);
+ assert.deepEqual(Array.from(core.branches(groups,'Kabab Fareej'),(g:any)=>g.branch),['Ajman','Al Qusais']);
+ assert.equal(core.branches(groups,'Unauthorized brand').length,0);
+ assert.equal(core.branches(groups,'FRB Kabab')[0].entries[0].row.identity,'TB_AE;123');
+});
