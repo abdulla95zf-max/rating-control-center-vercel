@@ -1,0 +1,71 @@
+/* Compact evidence views: semantic numbers remain visible, whitespace is deliberate. */
+.frb-brand-native,.frb-brand-native-label{display:none!important}
+.frb-brand-filter{margin:17px 0 14px;min-width:0}
+.frb-brand-heading{font-size:11px;font-weight:550;color:var(--muted);margin:0 0 9px}
+.frb-brand-cards{display:flex;flex-wrap:wrap;gap:8px}
+html[data-theme] .frb-brand-card{position:relative;display:flex;align-items:center;gap:10px;min-height:62px;padding:9px 28px 9px 11px;border:1px solid var(--line);border-radius:13px;background:var(--panel);color:var(--text);font-family:inherit;font-size:12px;text-align:left;cursor:pointer;box-shadow:0 2px 8px #1c332905;transition:background .16s,border-color .16s;flex:1 1 132px;max-width:190px;min-width:130px}
+html[data-theme] .frb-brand-card[aria-pressed=true]{border-color:var(--healthy);background:var(--frb-soft);box-shadow:inset 0 0 0 1px var(--healthy)}
+.frb-brand-card:hover{border-color:var(--healthy)}.frb-brand-card:focus-visible{outline:3px solid var(--healthy);outline-offset:3px}
+.frb-brand-logo{display:grid;place-items:center;width:44px;height:44px;background:#fff;border:1px solid #e4e9df;border-radius:10px;flex:none;overflow:hidden}
+.frb-brand-logo img{width:100%;height:100%;object-fit:contain;padding:2px;box-sizing:border-box}
+.frb-brand-initial{background:var(--panel-2);color:var(--healthy);border-color:var(--line);font-size:12px;font-weight:650}
+.frb-brand-name{font-weight:550;line-height:1.45;overflow-wrap:anywhere}.frb-brand-check{position:absolute;right:9px;top:8px;font-size:12px;color:var(--healthy);visibility:hidden}.frb-brand-card[aria-pressed=true] .frb-brand-check{visibility:visible}
+.frb-brand-inline{flex-basis:100%;width:100%;margin:12px 0 0}.frb-brand-inline .frb-brand-cards{gap:6px}.frb-brand-inline .frb-brand-card{flex-basis:130px;min-width:105px;min-height:48px;padding:7px 20px 7px 8px;font-size:10px;gap:7px}.frb-brand-inline .frb-brand-logo{width:30px;height:30px;border-radius:8px}
+.frb-design .action-header:has(.frb-brand-inline){flex-wrap:wrap}.frb-design .toolbar:has(.frb-brand-native){grid-template-columns:minmax(160px,1.4fr) repeat(2,minmax(130px,1fr))}
+.frb-design .gr-filters:has(.frb-brand-native){grid-template-columns:repeat(2,minmax(0,1fr))}
+.frb-management .branch-tools:has(.frb-brand-native){grid-template-columns:minmax(160px,1fr) 150px minmax(180px,280px)}
+.frb-management .directory-card>.frb-brand-filter{margin:18px 22px 14px}
+/* A readable sync badge on the dark heading, in both content themes. */
+html[data-theme] body.frb-design .frb-section-hero .ratings-freshness{background:#ffffff12;border:1px solid #b3cca454;border-radius:12px;padding:11px 14px;color:#dbe8d2;box-shadow:none}
+html[data-theme] body.frb-design .frb-section-hero .ratings-freshness strong{color:#f3f8ef}
+html[data-theme] body.frb-design .frb-section-hero .ratings-freshness>span{color:#dbe8d2}
+/* Short status tiles with an unmistakable status rail, not a quantitative progress bar. */
+html[data-theme] .frb-design .rating-status-grid .kpi-card{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:78px;padding:14px 18px 24px;border-radius:15px;box-shadow:0 3px 12px #1c332906}
+.frb-design .rating-status-grid .kpi-card .kpi-label{font-size:11px;margin:0}.frb-design .rating-status-grid .kpi-card .kpi-value{font-size:29px;line-height:1;margin:0;font-weight:550}
+.frb-design .rating-status-grid .kpi-card::before{left:14px;right:14px;top:auto;bottom:10px;width:auto;height:6px;border-radius:4px}
+/* Refined, compact tables with one coherent numeric hierarchy. */
+html[data-theme] .frb-design :is(.perf-table,.gr-table,.do-branch-table){font-size:12px}
+html[data-theme] .frb-design :is(.perf-table,.gr-table,.do-branch-table) th{background:var(--panel-2);color:var(--muted);font-size:11px;padding:12px 15px;font-weight:550}
+html[data-theme] .frb-design :is(.perf-table,.gr-table,.do-branch-table) td{padding:12px 15px;font-size:12px;line-height:1.5;font-weight:450;vertical-align:middle}
+html[data-theme] .frb-design :is(.perf-table,.gr-table,.do-branch-table) tbody tr:nth-child(even){background:color-mix(in srgb,var(--panel-2) 34%,var(--panel))}
+html[data-theme] .frb-design :is(.perf-table,.gr-table,.do-branch-table) tbody tr:hover{background:var(--frb-soft)}
+.frb-design .perf-table td:not(:first-child){font-variant-numeric:tabular-nums;font-weight:550}
+.frb-design .gr-table td small{font-size:10px;line-height:1.45;margin-top:3px}
+.frb-design .gr-open{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;min-height:32px;text-decoration:none;font-size:12px;line-height:1.45}
+.frb-design .gr-open strong{font-weight:600}.frb-design .gr-open span{color:var(--muted);font-size:11px;margin:0}
+.frb-design .gr-next-check{max-width:280px;font-size:10px;line-height:1.45;margin:3px 0 0}
+.frb-design .gr-share{height:5px;margin-top:6px;max-width:110px;margin-left:auto}.frb-design .gr-share-fill{fill:var(--critical)}
+.frb-row-identity{position:relative}.frb-row-logo{position:absolute;left:14px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:31px;height:31px;background:#fff;border:1px solid #e4e9df;border-radius:8px;overflow:hidden;pointer-events:none}
+.frb-row-logo img{width:100%;height:100%;object-fit:contain;padding:1px;box-sizing:border-box}
+html[data-theme] .frb-design td.frb-row-identity{padding-left:57px}
+/* Operational actions become concise evidence tiles instead of full-width paragraphs. */
+.frb-design .kp-actions .action-header{padding:17px 19px 12px}.frb-design .kp-actions .action-header h3{font-size:18px}
+.frb-design .kp-actions>.perf-note{padding:0 19px;margin:10px 0 14px;font-size:11px}
+.frb-design .kp-actions .action-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 15px 14px;list-style:none;margin:0}
+.frb-design .kp-actions .action-row{display:grid;grid-template-columns:24px minmax(0,1fr);gap:9px;padding:13px;border:1px solid var(--line);border-radius:13px;background:var(--bg);align-items:start;min-width:0}
+.frb-design .kp-actions .action-rank{display:grid;place-items:center;width:22px;height:22px;border-radius:7px;background:color-mix(in srgb,var(--warning) 12%,var(--panel));color:var(--warning);font-size:11px;line-height:1}
+.frb-design .kp-actions .action-row strong{font-size:12px;font-weight:600}.frb-design .kp-actions .action-row small{font-size:11px;line-height:1.6;margin-top:7px;color:var(--muted)}
+.frb-design .kp-issue-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}.frb-design .kp-issue-badge{font-size:10px;padding:3px 7px;border-radius:7px;border:1px solid color-mix(in srgb,var(--warning) 35%,var(--line));background:color-mix(in srgb,var(--warning) 7%,var(--panel));color:var(--warning)}
+.frb-design .kp-actions .action-full-list{margin:0 18px 16px}
+.frb-design .kp-columns{padding:13px 15px;border:1px solid var(--line);border-radius:14px;background:var(--panel);margin:14px 0}
+.frb-design .kp-columns summary{font-size:12px;font-weight:550;cursor:pointer;min-height:30px}.frb-design .kp-columns label{font-size:11px;display:inline-flex;align-items:center;gap:6px;margin:5px 13px 5px 0;line-height:1.5}
+.frb-design .kp-columns input{accent-color:var(--healthy);width:15px;height:15px}
+.frb-items-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:17px 0 10px}.frb-items-head h3{font-size:17px;margin:0;font-weight:550;letter-spacing:-.25px}.frb-items-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.frb-items-footer{display:flex;justify-content:center;margin:14px 0 22px}.frb-items-footer .tab{min-height:40px;padding:9px 17px}
+/* Small operational summaries share a row. No percentages across overlapping complaints. */
+.frb-operation-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}
+.frb-operation-summary>.np-panel{margin:0;min-width:0;padding:18px}
+.frb-operation-summary:has(.np-complaints){grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr))}
+.frb-operation-summary .np-complaints{max-width:none}
+.frb-design .np-complaints{max-width:700px}.frb-design .np-complaints header{margin-bottom:12px}.frb-design .np-complaints h3{font-size:17px}.frb-design .np-complaints .np-issues{margin:0;padding:0;display:grid;gap:7px}
+.frb-design .np-complaints .np-issues li{display:flex;justify-content:flex-start;gap:12px;align-items:center;padding:9px 11px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:12px}
+.frb-design .np-complaints .np-issues strong{margin-left:auto;min-width:28px;text-align:center;border-radius:6px;padding:3px 7px;background:var(--panel-2);font-size:12px}
+.frb-design .np-complaints .perf-note{font-size:10px;line-height:1.65;margin:11px 0 0}
+.frb-cancel-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px}.frb-cancel-metrics>div{padding:13px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:6px}
+.frb-cancel-metrics span{font-size:11px;line-height:1.5;color:var(--muted)}.frb-cancel-metrics strong{font-size:22px;font-weight:550;line-height:1.2;font-variant-numeric:tabular-nums}.frb-cancel-metrics small{font-size:10px;color:var(--muted);grid-column:1/-1}
+.frb-wait-rows{display:grid;gap:13px;margin:14px 0}.frb-wait-row header{display:flex;justify-content:space-between;gap:12px;font-size:12px;margin:0 0 7px}.frb-wait-row strong{font-weight:550}.frb-wait-row svg{width:100%;height:9px;display:block}.frb-wait-track{fill:var(--panel-2)}.frb-wait-fill{fill:var(--healthy)}.frb-wait-row:nth-child(2) .frb-wait-fill{fill:var(--warning)}.frb-wait-row:nth-child(3) .frb-wait-fill{fill:var(--critical)}
+@media(max-width:900px){.frb-design .kp-actions .action-list{grid-template-columns:1fr}.frb-operation-summary{grid-template-columns:1fr}.frb-brand-card{flex-basis:155px}.frb-brand-inline .frb-brand-card{flex-basis:125px}}
+@media(max-width:700px){.frb-brand-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.frb-brand-card{min-width:0!important;min-height:58px!important;padding:8px 20px 8px 9px!important;font-size:11px!important}.frb-brand-logo{width:36px;height:36px;border-radius:8px}.frb-brand-inline .frb-brand-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.frb-design .toolbar:has(.frb-brand-native){grid-template-columns:1fr 1fr}.frb-design .toolbar #storeSearch{grid-column:1/-1}.frb-design .gr-filters:has(.frb-brand-native){grid-template-columns:1fr}.frb-design .rating-status-grid .kpi-card{min-height:72px!important;padding:12px 12px 23px!important;gap:5px}.frb-design .rating-status-grid .kpi-card .kpi-label{font-size:9px}.frb-design .rating-status-grid .kpi-card .kpi-value{font-size:24px}.frb-design .rating-status-grid .kpi-card::before{left:10px;right:10px}.frb-design .gr-table td.frb-row-identity{padding-left:44px}.frb-row-logo{left:0;width:29px;height:29px}.frb-items-head{align-items:start;flex-direction:column}.frb-operation-summary{gap:12px}.frb-management .branch-tools:has(.frb-brand-native){grid-template-columns:1fr}.frb-brand-inline .frb-brand-heading{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.frb-brand-card{transition:none}}
+@media(max-width:700px){html[data-theme] .frb-brand-card{max-width:none}}
+@media(max-width:700px){html[data-theme] .frb-design .rating-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible;gap:8px}.frb-design .rating-status-grid .kpi-card{min-width:0}}

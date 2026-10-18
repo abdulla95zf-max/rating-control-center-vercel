@@ -28,6 +28,9 @@
   }
   const noonDates=container.querySelector('.np-date-controls'),noonBrand=container.querySelector('#npBrand');
   if(noonDates&&noonBrand&&!noonDates.contains(noonBrand)){const filters=noonBrand.closest('.perf-controls');if(filters){filters.classList.add('np-inline-brand');noonDates.append(filters);}}
+  const operationSummary=container.querySelector('.frb-operation-summary'),complaints=container.querySelector('.np-complaints');
+  if(operationSummary&&complaints&&!operationSummary.contains(complaints))operationSummary.prepend(complaints);
+  polishRows();
   for(const chart of container.querySelectorAll('[data-frb-chart]')){
    if(chart.dataset.frbBound)continue;chart.dataset.frbBound='true';
    try{const config=JSON.parse(chart.dataset.frbChart);let key=config.metrics[0].key,expanded=false;
@@ -42,7 +45,15 @@
   const segments=rows.map((r,i)=>{const length=r.value/total*circumference,part=`<circle class="frb-slice frb-slice-${i%5}" cx="80" cy="80" r="54" stroke-dasharray="${length} ${circumference-length}" stroke-dashoffset="${-offset}"/>`;offset+=length;return part;}).join('');
   return `<section class="np-panel frb-composition"><header><div><span class="frb-chart-eyebrow">ORDER MIX</span><h3>${esc(title)}</h3></div></header><div class="frb-composition-content"><svg viewBox="0 0 160 160" role="img" aria-label="${esc(title)}: ${esc(rows.map(r=>r.label+' '+fmt(r.value)+' orders').join(', '))}"><g transform="rotate(-90 80 80)">${segments}</g><text x="80" y="79" text-anchor="middle" class="frb-ring-total">${esc(fmt(total))}</text><text x="80" y="98" text-anchor="middle" class="frb-ring-label">reported orders</text></svg><ul>${rows.map((r,i)=>`<li><span><i class="frb-slice-${i%5}" aria-hidden="true"></i>${esc(r.label)}</span><strong>${esc(fmt(r.value))}</strong><small>${esc(fmt(r.value/total*100))}%</small></li>`).join('')}</ul></div><p class="perf-note">${esc(period||'Selected saved period')} · Share of reported meal-time orders.${denominator!==total?' Meal-time total differs from the selected report total ('+esc(fmt(number(denominator)))+'); missing coverage is not zero.':''}</p></section>`;
  }
- globalThis.FRBVisuals={comparison,chartBody,composition};
+ function polishRows(){
+  if(!globalThis.FRBBrands)return;
+  for(const cell of document.querySelectorAll('.perf-table tbody td:first-child,.gr-table tbody td:first-child,.do-branch-table tbody td:first-child')){
+   if(cell.dataset.frbIdentity)continue;cell.dataset.frbIdentity='true';
+   const name=cell.querySelector('strong')?.textContent||cell.textContent,asset=FRBBrands.match(name);if(!asset)continue;
+   const frame=document.createElement('span');frame.className='frb-row-logo';frame.setAttribute('aria-hidden','true');const img=document.createElement('img');img.src=asset;img.alt='';img.width=31;img.height=31;img.loading='lazy';frame.append(img);cell.classList.add('frb-row-identity');cell.prepend(frame);
+  }
+ }
+ globalThis.FRBVisuals={comparison,chartBody,composition,polishRows};
  const main=document.getElementById('mainContent');
  if(main){new MutationObserver(()=>decorate(main)).observe(main,{childList:true});new MutationObserver(()=>decorate(main)).observe(document.body,{attributes:true,attributeFilter:['data-frb-page']});decorate(main);}
  /* Management pages share the same identity without duplicating their controls. */
