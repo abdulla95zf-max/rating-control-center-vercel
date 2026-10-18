@@ -35,3 +35,6 @@ Low latest ratings (existing WARNING/CRITICAL source status) are repeated in the
 
 
 Branch Lens loading uses an inline optical SVG/CSS sequence (orbiting light, aperture breathing and a data trace), with a polite busy status in the selected language. No image/video requests, timers, artificial progress or minimum display duration. All animations stop under prefers-reduced-motion; the graphic remains visible. Shared auth, request generation, error and immediate-success paths remain unchanged.
+
+
+The shared site visual layer extends Lens’s restrained green/optical language to Overview, Growth, rating, Performance and Reviews mastheads, using context-specific decorative SVG motifs marked aria-hidden. The motifs never represent source measurements. Shared loading emblems gain counter-rotating rings; charts, focus and hover treatments use consistent detail. No data readers, filtering, permissions or calculations change. Reduced-motion disables the added rotations and transitions.
