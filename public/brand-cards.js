@@ -2,6 +2,8 @@
 (() => {
  const assets={'kabab fareej':'kabab-fareej','kabab al fareej':'kabab-fareej','frb kabab':'frb-kabab','frb shawarma':'frb-shawarma','kabab al sham':'kabab-al-sham','morwarid':'morwarid','marwareed':'morwarid','taazaa mumbai':'taazaa-mumbai','taazaa':'taazaa-mumbai','leekh':'leekh','tanoorna ghyr':'tanoorna-ghyr'};
  const key=value=>String(value).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ const priority=['kabab-fareej','frb-shawarma','frb-kabab','taazaa-mumbai','kabab-al-sham','leekh','morwarid','tanoorna-ghyr'];
+ const rank=option=>!option.value?-1:(priority.indexOf(assets[key(option.value||option.textContent)])<0?priority.length:priority.indexOf(assets[key(option.value||option.textContent)]));
  const asset=value=>assets[key(value)]?'/brands/'+assets[key(value)]+'.webp':null;
  const match=value=>{const text=key(value),name=Object.keys(assets).sort((a,b)=>b.length-a.length).find(name=>text===name||text.startsWith(name+' '));return name?asset(name):null;};
  const ids=['brandFilter','performanceBrand','growthBrand','npBrand','doBrand','branchBrand','actionBrand','recentBrand'];
@@ -9,7 +11,7 @@
  function sync(){
   for(const id of ids){
    const select=document.getElementById(id);if(!select)continue;
-   const options=Array.from(select.options).filter(o=>!o.hidden),signature=JSON.stringify(options.map(o=>[o.value,o.textContent,o.disabled]));
+   const options=Array.from(select.options).filter(o=>!o.hidden).sort((a,b)=>rank(a)-rank(b)),signature=JSON.stringify(options.map(o=>[o.value,o.textContent,o.disabled]));
    let entry=state.get(select);
    if(!entry){
     const root=document.createElement('section');root.className='frb-brand-filter';root.setAttribute('aria-label',id==='actionBrand'?'Operational Center brand filter':id==='recentBrand'?'Recent Changes brand filter':'Brand filter');
