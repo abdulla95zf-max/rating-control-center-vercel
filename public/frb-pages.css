@@ -153,6 +153,7 @@ html[data-theme] body.frb-management .user-avatar{background:var(--panel-2);colo
  html[data-theme] .frb-design .frb-section-hero>.tab{justify-self:start;margin:0;min-height:40px;padding:8px 12px;font-size:11px}
  .frb-design .np-date-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;padding:14px}
  .frb-design .np-date-controls label{width:100%;min-width:0!important;max-width:none;flex:none!important}
+ .frb-design .np-date-controls .perf-controls label{grid-column:auto}
  .frb-design .np-date-controls label:has(#npPresetSelect){grid-column:1/-1}
  .frb-design .np-date-controls .np-health,.frb-design .np-date-controls .perf-note{grid-column:1/-1;width:100%}
  .frb-design .np-date-controls .input{width:100%;font-size:12px}
