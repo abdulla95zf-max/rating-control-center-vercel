@@ -39,6 +39,9 @@ test('brief explicitly renders exact current/previous sales and service evidence
  const r={...row(d()),current:{sales:15000,orders:50},previous:{sales:18000,orders:100},aov:300,previousAov:180,period,recommendation:{confidence:'LOW'}};
  const html=c.BranchBriefView.render({group:{brand:'Kabab Fareej',branch:'Ajman'},entries:[{valid:true,platform:'keeta',change:-3000,percent:-100/6,row:r}],language:'fa',ratingsHtml:''});
  assert.match(html,/15,000/);assert.match(html,/18,000/);assert.match(html,/-3,000/);assert.match(html,/برداشت احتمالی/);assert.match(html,/اثبات‌نشده/);assert.match(html,/نسبت توصیفی/);assert.doesNotMatch(html,/NaN|Infinity|style=/);
+ const growing={...r,current:{sales:20000,orders:120},recommendation:{code:'STABLE_OR_GROWING',confidence:'MEDIUM'}};
+ const service=c.BranchBriefView.render({group:{brand:'Kabab Fareej',branch:'Ajman'},entries:[{valid:true,platform:'keeta',change:2000,percent:11.11,row:growing}],language:'fa',ratingsHtml:''});
+ assert.match(service,/از اینجا شروع کن/);assert.match(service,/زمان آماده‌شدن غذا/);assert.doesNotMatch(service,/کندی آماده‌سازی ممکن است/);
 });
 test('invalid comparison suppresses operational explanations even when raw diagnostic numbers are present',()=>{
  const html=c.BranchBriefView.render({group:{brand:'<script>',branch:'<unsafe>'},entries:[{valid:false,platform:'talabat',reason:'SOURCE_AMBIGUOUS',row:row(d())}],language:'fa',ratingsHtml:''});
