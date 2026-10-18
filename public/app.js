@@ -696,7 +696,7 @@ document.addEventListener('rcc-auth-reset',()=>{
  currentActions=[];currentDataChecks=[];currentRecentChanges=[];globalThis.ratingAccessOptions=null;document.getElementById('ratingsExportDialog')?.remove();
  if(state.timer){window.clearInterval(state.timer);state.timer=null;}
  if(typeof performanceState!=='undefined'){++performanceState.generation;performanceState.cache=null;performanceState.checkedAt=0;}
- if(typeof keetaPerformanceState!=='undefined'){keetaPerformanceState.generation=(keetaPerformanceState.generation??0)+1;keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;keetaPerformanceState.loading=false;keetaPerformanceState.message='';}
+ if(typeof keetaPerformanceState!=='undefined'){if(keetaPerformanceState.poll)globalThis.clearTimeout?.(keetaPerformanceState.poll);keetaPerformanceState.poll=null;keetaPerformanceState.generation=(keetaPerformanceState.generation??0)+1;keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;keetaPerformanceState.loading=false;keetaPerformanceState.message='';}
  if(typeof deliverooOperationsState!=='undefined'){++deliverooOperationsState.request;deliverooOperationsState.cache=null;}
  if(typeof noonPerformanceState!=='undefined'){++noonPerformanceState.request;noonPerformanceState.cache=null;noonPerformanceState.checkedAt=0;if(noonPerformanceState.poll)window.clearInterval(noonPerformanceState.poll);noonPerformanceState.poll=null;}
  if(typeof growthState!=='undefined'){++growthState.generation;++growthState.authGeneration;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;}

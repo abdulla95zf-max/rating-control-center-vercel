@@ -1,6 +1,22 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
 import {validateKeetaPeriod,enqueueKeetaPerformance} from '../src/services/keeta-performance-requests.ts';
 import {readKeetaPeriod} from '../src/services/keeta-periods.ts';
+
+test('latest weekly Keeta report includes manually collected periods and ranks source dates before collection time',async()=>{
+ const queries:any[]=[];
+ const db={query:async(q:any)=>{queries.push(q);const manual=q.text.includes('period_snapshots');return {rows:[{payload:{periodFrom:manual?'2026-10-11':'2026-10-10',periodTo:manual?'2026-10-17':'2026-10-16',shops:[],items:[],customers:{}},observed_at:manual?'2026-10-18T05:30:00Z':'2026-10-18T06:00:00Z'}]};}};
+ const result=await readKeetaPeriod(undefined,db);
+ assert.equal(result.snapshot?.periodTo,'2026-10-17');
+ assert.ok(queries.every(q=>q.text.includes('period_to-period_from=6')&&q.text.includes('period_to DESC')&&q.values.length===0));
+});
+
+test('latest Keeta reader supports missing period table and rejects malformed weekly payload',async()=>{
+ const payload={periodFrom:'2026-10-10',periodTo:'2026-10-16',shops:[],items:[],customers:{}};
+ const db={query:async(q:any)=>{if(q.text.includes('period_snapshots'))throw Object.assign(Error(),{code:'42P01'});return {rows:[{payload,observed_at:'2026-10-18T06:00:00Z'}]};}};
+ assert.equal((await readKeetaPeriod(undefined,db)).snapshot?.periodTo,'2026-10-16');
+ payload.periodTo='2026-10-17';
+ await assert.rejects(readKeetaPeriod(undefined,db),/KEETA_PERFORMANCE_READ_FAILED/);
+});
 test('Keeta periods exclude today and invalid calendar dates',()=>{const now=new Date('2026-10-08T08:00:00Z');assert.deepEqual(validateKeetaPeriod('2026-10-07','2026-10-07',now),{startDate:'2026-10-07',endDate:'2026-10-07'});for(const pair of [['2026-02-30','2026-03-01'],['2026-10-08','2026-10-08'],['2026-01-01','2026-10-07']])assert.throws(()=>validateKeetaPeriod(pair[0],pair[1],now));});
 test('Exact Keeta periods reuse existing weekly records and prefer newest exact snapshot',async()=>{const period={startDate:'2026-09-30',endDate:'2026-10-06'},requests:any[]=[],payload={periodFrom:period.startDate,periodTo:period.endDate,shops:[],items:[],customers:{}};const db={query:async(q:any)=>{requests.push(q);return {rows:[{payload,observed_at:q.text.includes('period_snapshots')?'2026-10-08T08:00:00Z':'2026-10-07T08:00:00Z'}]};}};const result=await readKeetaPeriod(period,db);assert.equal(result.snapshot?.observedAt,'2026-10-08T08:00:00.000Z');assert.ok(requests.every(q=>q.values[0]===period.startDate&&q.values[1]===period.endDate));});
 test('Keeta collection requires administrator authority and configured token before DB access',async()=>{const pool:any={connect:()=>{throw Error('DB touched');}},period={startDate:'2026-10-01',endDate:'2026-10-06'};await assert.rejects(enqueueKeetaPerformance({id:'u',role:'viewer'} as any,period,{},fetch,pool),/ADMIN_REQUIRED/);await assert.rejects(enqueueKeetaPerformance({id:'u',role:'admin'} as any,period,{},fetch,pool),/DISPATCH_NOT_CONFIGURED/);});

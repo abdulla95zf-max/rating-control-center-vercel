@@ -1,0 +1,32 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=(name:string)=>fs.readFileSync(new URL('../public/'+name,import.meta.url),'utf8');
+test('default saved reports and explicit empty ranges stay distinct',async()=>{
+ const urls:string[]=[],timers:Function[]=[];
+ const context=vm.createContext({Intl,URLSearchParams,escapeHtml:String,state:{tab:'keeta-performance'},main:{innerHTML:''},document:{getElementById:()=>null},setTimeout:(f:Function)=>{timers.push(f);return timers.length;},clearTimeout:()=>{},api:async(url:string)=>{urls.push(url);return {state:'EMPTY',snapshot:null};}});
+ vm.runInContext(source('keeta-performance.js'),context);
+ vm.runInContext('kpPeriodListeners=()=>{};paintKeetaPerformance=()=>{}',context);
+ await vm.runInContext('renderKeetaPerformance(true)',context);
+ assert.match(urls[0],/dataset=keeta&latest=1$/);
+ vm.runInContext("keetaPerformanceState.period='7d'",context);
+ await vm.runInContext('renderKeetaPerformance(true)',context);
+ assert.match(urls[1],/startDate=.*endDate=/);
+ assert.equal(urls.length,2);
+ const missing=vm.runInContext('kpMissingReport()',context);
+ assert.match(missing,/No saved report for/);assert.match(missing,/Open latest saved report/);
+ vm.runInContext("keetaPerformanceState.cache.request={status:'RUNNING'};kpPoll()",context);
+ assert.equal(timers.length,1);
+ vm.runInContext("state.tab='growth'",context);timers[0]();assert.equal(urls.length,2);
+});
+test('Noon starts with latest saved report while explicit ranges remain date-bound',async()=>{
+ const urls:string[]=[];
+ const context=vm.createContext({Intl,URLSearchParams,state:{tab:'noon-performance'},main:{innerHTML:''},api:async(url:string)=>{urls.push(url);return {state:'EMPTY',snapshot:null};}});
+ vm.runInContext(source('noon-performance.js'),context);vm.runInContext('paintNoonPerformance=()=>{}',context);
+ await vm.runInContext('renderNoonPerformance(true)',context);
+ assert.equal(urls[0],'/api/dashboard/performance/latest?dataset=noon');
+ vm.runInContext("noonPerformanceState.preset='last7'",context);
+ await vm.runInContext('renderNoonPerformance(true)',context);
+ assert.match(urls[1],/startDate=.*endDate=/);
+});
