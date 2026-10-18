@@ -47,3 +47,8 @@ test('invalid comparison suppresses operational explanations even when raw diagn
  const html=c.BranchBriefView.render({group:{brand:'<script>',branch:'<unsafe>'},entries:[{valid:false,platform:'talabat',reason:'SOURCE_AMBIGUOUS',row:row(d())}],language:'fa',ratingsHtml:''});
  assert.doesNotMatch(html,/کندی آماده‌سازی ممکن است|<script>|<unsafe>/);assert.match(html,/&lt;script&gt;/);assert.match(html,/disabled/);
 });
+
+test('low latest rating appears as a dated independent issue on its platform even without service metrics',()=>{
+ const html=c.BranchBriefView.render({group:{brand:'Kabab Fareej',branch:'Ajman'},entries:[{valid:false,platform:'noon',row:{eligible:false,current:{sales:null,orders:null},previous:{sales:null,orders:null}}}],language:'fa',ratingsHtml:'',ratingSignals:[{platform:'noon',rating:3.8,status:'CRITICAL',observedAt:'18 Oct 2026, 12:34',health:'LIVE'},{platform:'keeta',rating:4.2,status:'WARNING',observedAt:'other date'}]});
+ assert.match(html,/امتیاز مشتریان در وضعیت بحرانی/);assert.match(html,/3.8/);assert.match(html,/18 Oct 2026, 12:34/);assert.match(html,/مستقل از بازهٔ فروش/);assert.doesNotMatch(html,/4.2|other date|NaN|Infinity/);
+});

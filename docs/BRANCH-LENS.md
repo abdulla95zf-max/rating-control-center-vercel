@@ -26,3 +26,6 @@ Logo assets reuse the optimized WebP files. The brand rail stays on one row with
 
 
 The branch directory is the union of independently authorized Growth and ratings identities. Missing sales-source reads cannot erase rating-directory brands. All three supported sales platforms retain an explicit report slot with unavailable reason when no row was received. Placeholders contain null metrics and no fabricated source identity; diagnosis/evidence navigation remain disabled. A partial-load notice exposes failed platforms and a retry control. If the Growth request fails entirely but scoped ratings succeed, the directory still works with unavailable comparisons. This does not repair upstream read failures or fabricate sales.
+
+
+Low latest ratings (existing WARNING/CRITICAL source status) are repeated in the same platform’s issues panel with exact rating, timestamp and source health. They remain explicitly independent of weekly sales and do not establish a cause. Rating issues can appear even when the sales comparison or operational metrics are unavailable; other platforms’ ratings never leak into that panel. Summary issue counts include only signals rendered in supported platform panels.
