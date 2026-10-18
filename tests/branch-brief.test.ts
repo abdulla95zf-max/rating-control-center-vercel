@@ -47,3 +47,17 @@ test('brand cards honor the requested priority and branch choices stay within th
  assert.equal(core.branches(groups,'Unauthorized brand').length,0);
  assert.equal(core.branches(groups,'FRB Kabab')[0].entries[0].row.identity,'TB_AE;123');
 });
+
+test('failed sales sources cannot erase authorized rating-directory brands or silently remove a platform',()=>{
+ const data={platforms:[{platform:'talabat',state:'ERROR',errorCode:'HISTORY_READ_TIMEOUT',rows:[]},{platform:'keeta',state:'SUCCESS',rows:[row()]}]};
+ const ratings={ratings:[{storeName:'Kabab Fareej — Ajman'},{storeName:'FRB Shawarma — Barsha'}]};
+ const groups=core.catalog(data,ratings);
+ assert.equal(groups.length,2);
+ const fareej=groups.find((g:any)=>g.brand==='Kabab Fareej');
+ assert.deepEqual(Array.from(fareej.entries,(e:any)=>e.platform).sort(),['keeta','noon','talabat']);
+ const missing=fareej.entries.find((e:any)=>e.platform==='talabat');
+ assert.equal(missing.row.reason,'HISTORY_READ_TIMEOUT');assert.equal(core.assess(missing,fareej.entries).valid,false);assert.equal(missing.row.current.sales,null);assert.equal(missing.row.identity,undefined);
+ const shawarma=groups.find((g:any)=>g.brand==='FRB Shawarma');assert.equal(shawarma.entries.length,3);assert.ok(shawarma.entries.every((e:any)=>!core.assess(e,shawarma.entries).valid));
+ assert.equal(core.catalog(data,{ratings:[]}).length,1);
+});
+
