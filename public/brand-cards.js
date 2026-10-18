@@ -1,8 +1,8 @@
 /* Progressive enhancement of existing brand filters; option values remain the authority. */
 (() => {
- const assets={'kabab fareej':'kabab-fareej','kabab al fareej':'kabab-fareej','frb kabab':'frb-kabab','frb shawarma':'frb-shawarma','kabab al sham':'kabab-al-sham','morwarid':'morwarid','marwareed':'morwarid','taazaa mumbai':'taazaa-mumbai','taazaa':'taazaa-mumbai'};
+ const assets={'kabab fareej':'kabab-fareej','kabab al fareej':'kabab-fareej','frb kabab':'frb-kabab','frb shawarma':'frb-shawarma','kabab al sham':'kabab-al-sham','morwarid':'morwarid','marwareed':'morwarid','taazaa mumbai':'taazaa-mumbai','taazaa':'taazaa-mumbai','leekh':'leekh','tanoorna ghyr':'tanoorna-ghyr'};
  const key=value=>String(value).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
- const asset=value=>assets[key(value)]?'/brands/'+assets[key(value)]+'.png':null;
+ const asset=value=>assets[key(value)]?'/brands/'+assets[key(value)]+'.webp':null;
  const match=value=>{const text=key(value),name=Object.keys(assets).sort((a,b)=>b.length-a.length).find(name=>text===name||text.startsWith(name+' '));return name?asset(name):null;};
  const ids=['brandFilter','performanceBrand','growthBrand','npBrand','doBrand','branchBrand','actionBrand','recentBrand'];
  const state=new WeakMap();let pendingFocus=null;
@@ -40,3 +40,4 @@
  if(typeof document==='undefined')return;
  new MutationObserver(sync).observe(document.body,{childList:true,subtree:true});sync();
 })();
+

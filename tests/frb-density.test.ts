@@ -16,8 +16,8 @@ test('Keeta Visible columns starts open and honors a deliberate close',()=>{
 });
 test('supplied logos map to confirmed brand identities and never substitute a different brand logo',()=>{
  const c:any={};vm.createContext(c);vm.runInContext(fs.readFileSync('public/brand-cards.js','utf8'),c);
- assert.equal(c.FRBBrands.asset('FRB Kabab'),'/brands/frb-kabab.png');assert.equal(c.FRBBrands.asset('FRB Shawarma'),'/brands/frb-shawarma.png');assert.equal(c.FRBBrands.asset('Taazaa Mumbai'),'/brands/taazaa-mumbai.png');assert.equal(c.FRBBrands.asset('Leekh'),null);assert.equal(c.FRBBrands.match('Kabab Fareej — Hoshi'),'/brands/kabab-fareej.png');assert.equal(c.FRBBrands.match('Unknown Kabab Fareej'),null);
- for(const name of ['Kabab Fareej','FRB Kabab','FRB Shawarma','Kabab Al Sham','Morwarid','Taazaa Mumbai'])assert.ok(fs.existsSync('public'+c.FRBBrands.asset(name)));
+ assert.equal(c.FRBBrands.asset('FRB Kabab'),'/brands/frb-kabab.webp');assert.equal(c.FRBBrands.asset('FRB Shawarma'),'/brands/frb-shawarma.webp');assert.equal(c.FRBBrands.asset('Taazaa Mumbai'),'/brands/taazaa-mumbai.webp');assert.equal(c.FRBBrands.asset('Leekh'),'/brands/leekh.webp');assert.equal(c.FRBBrands.asset('Tanoorna Ghyr'),'/brands/tanoorna-ghyr.webp');assert.equal(c.FRBBrands.match('Kabab Fareej — Hoshi'),'/brands/kabab-fareej.webp');assert.equal(c.FRBBrands.match('Unknown Kabab Fareej'),null);
+ for(const name of ['Kabab Fareej','FRB Kabab','FRB Shawarma','Kabab Al Sham','Morwarid','Taazaa Mumbai','Leekh','Tanoorna Ghyr'])assert.ok(fs.existsSync('public'+c.FRBBrands.asset(name)));
 });
 test('wait distribution uses one source count scale and distinguishes unknown from genuine zero',()=>{
  const c:any={Intl,escapeHtml:String};vm.createContext(c);vm.runInContext(fs.readFileSync('public/noon-performance.js','utf8'),c);
@@ -29,3 +29,4 @@ test('Noon item list defaults to five highest quantities and expands without cha
  c.rows=rows;let html=vm.runInContext('npItemTable(rows,{revenue:360})',c);assert.match(html,/Top sellers/);assert.match(html,/View all 8 items/);assert.equal((html.match(/<tr>/g)||[]).length,6);assert.ok(html.indexOf('Meal 7')<html.indexOf('Meal 6'));assert.doesNotMatch(html,/Meal 0<\/strong>/);
  vm.runInContext('noonPerformanceState.expanded=true',c);html=vm.runInContext('npItemTable(rows,{revenue:360})',c);assert.equal((html.match(/<tr>/g)||[]).length,9);assert.match(html,/Show top 5/);assert.match(html,/Item revenue 360 AED/);
 });
+
