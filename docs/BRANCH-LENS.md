@@ -32,3 +32,6 @@ Low latest ratings (existing WARNING/CRITICAL source status) are repeated in the
 
 
 2026-10-18 management rule: preparation strictly above14minutes is a primary issue on every supported platform, even if it improved versus the prior period. PREP_HIGH takes priority over PREP_WORSE without duplicating the preparation issue. Exactly14minutes is not high. Existing matched-period validity and cautious causal hypothesis gates remain.
+
+
+Branch Lens loading uses an inline optical SVG/CSS sequence (orbiting light, aperture breathing and a data trace), with a polite busy status in the selected language. No image/video requests, timers, artificial progress or minimum display duration. All animations stop under prefers-reduced-motion; the graphic remains visible. Shared auth, request generation, error and immediate-success paths remain unchanged.
