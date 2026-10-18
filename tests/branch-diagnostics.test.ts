@@ -41,7 +41,7 @@ test('brief explicitly renders exact current/previous sales and service evidence
  assert.match(html,/15,000/);assert.match(html,/18,000/);assert.match(html,/-3,000/);assert.match(html,/برداشت احتمالی/);assert.match(html,/اثبات‌نشده/);assert.match(html,/نسبت توصیفی/);assert.doesNotMatch(html,/NaN|Infinity|style=/);
  const growing={...r,current:{sales:20000,orders:120},recommendation:{code:'STABLE_OR_GROWING',confidence:'MEDIUM'}};
  const service=c.BranchBriefView.render({group:{brand:'Kabab Fareej',branch:'Ajman'},entries:[{valid:true,platform:'keeta',change:2000,percent:11.11,row:growing}],language:'fa',ratingsHtml:''});
- assert.match(service,/از اینجا شروع کن/);assert.match(service,/زمان آماده‌شدن غذا/);assert.doesNotMatch(service,/کندی آماده‌سازی ممکن است/);
+ assert.match(service,/از اینجا شروع کن/);assert.match(service,/ظرفیت آشپزخانه/);assert.doesNotMatch(service,/کندی آماده‌سازی ممکن است/);
 });
 test('invalid comparison suppresses operational explanations even when raw diagnostic numbers are present',()=>{
  const html=c.BranchBriefView.render({group:{brand:'<script>',branch:'<unsafe>'},entries:[{valid:false,platform:'talabat',reason:'SOURCE_AMBIGUOUS',row:row(d())}],language:'fa',ratingsHtml:''});
@@ -51,4 +51,14 @@ test('invalid comparison suppresses operational explanations even when raw diagn
 test('low latest rating appears as a dated independent issue on its platform even without service metrics',()=>{
  const html=c.BranchBriefView.render({group:{brand:'Kabab Fareej',branch:'Ajman'},entries:[{valid:false,platform:'noon',row:{eligible:false,current:{sales:null,orders:null},previous:{sales:null,orders:null}}}],language:'fa',ratingsHtml:'',ratingSignals:[{platform:'noon',rating:3.8,status:'CRITICAL',observedAt:'18 Oct 2026, 12:34',health:'LIVE'},{platform:'keeta',rating:4.2,status:'WARNING',observedAt:'other date'}]});
  assert.match(html,/امتیاز مشتریان در وضعیت بحرانی/);assert.match(html,/3.8/);assert.match(html,/18 Oct 2026, 12:34/);assert.match(html,/مستقل از بازهٔ فروش/);assert.doesNotMatch(html,/4.2|other date|NaN|Infinity/);
+});
+
+test('preparation above 14 minutes is a top-level issue on every platform even when improving',()=>{
+ for(const platform of ['talabat','keeta','noon']){
+  const diag=d();diag.operations=[{code:'prep',unit:'minutes',current:19.43,previous:19.94}];
+  const model=analyze(row(diag,120),platform);assert.equal(model.issues[0].code,'PREP_HIGH');assert.equal(model.hypothesis,null);
+  diag.operations[0].current=14;assert.equal(analyze(row(diag),platform).issues.length,0);
+  diag.operations[0].current=14.01;assert.equal(analyze(row(diag),platform).issues[0].code,'PREP_HIGH');
+  diag.operations[0].current=null as any;assert.equal(analyze(row(diag),platform).issues.length,0);
+ }
 });
