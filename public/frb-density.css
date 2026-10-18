@@ -1,4 +1,8 @@
 /* Compact evidence views: semantic numbers remain visible, whitespace is deliberate. */
+/* One compact, horizontally scrollable brand row at every viewport width. */
+html[data-theme] body .frb-brand-cards{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:7px;padding:2px 2px 8px;scroll-padding-inline:2px}
+html[data-theme] body .frb-brand-cards .frb-brand-card{flex:1 0 auto;min-width:0!important;max-width:none;min-height:54px!important;padding:8px 18px 8px 9px!important;gap:7px;font-size:11px!important;white-space:nowrap}
+html[data-theme] body .frb-brand-cards .frb-brand-logo{width:30px;height:30px;border-radius:8px}
 /* Keep brand words intact when desktop cards wrap into a second row. */
 html[data-theme] body .frb-brand-card{flex-basis:170px;min-width:170px}
 .frb-brand-name{word-break:normal;overflow-wrap:normal!important}
