@@ -44,10 +44,11 @@
  function sync(tab='overview'){
   if(!document.body.classList.contains('frb-design'))return;
   const parent=['performance','talabat-reviews'].includes(tab)?'talabat':tab.replace(/-(?:performance|operations)$/,'');
-  const title=tab==='performance'?'Talabat · Performance':tab==='talabat-reviews'?'Talabat · Reviews':tab==='overview'?'Overview':tab==='growth'?'Growth':tab.split('-').map(s=>s[0].toUpperCase()+s.slice(1)).join(' · ');
+  const title=tab==='performance'?'Talabat · Performance':tab==='talabat-reviews'?'Talabat · Reviews':tab==='overview'?'Overview':tab==='growth'?'Growth':tab==='brief'?'Branch Lens':tab.split('-').map(s=>s[0].toUpperCase()+s.slice(1)).join(' · ');
   const current=document.getElementById('frbCurrentPage');if(current)current.textContent=title;
   document.body.dataset.frbPage=tab;
   for(const button of nav.querySelectorAll('[data-tab]')){const active=button.dataset.tab===parent;button.classList.toggle('active',active);button.setAttribute('aria-current',active?'page':'false');}
  }
  sync(location.hash.slice(1)||'overview');drawer(false);
 })();
+

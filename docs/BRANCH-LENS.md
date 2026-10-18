@@ -1,0 +1,13 @@
+# Branch Lens
+
+Read-only branch briefing at `/#brief`. Uses the existing authenticated Growth endpoint and shared ratings reader; no AI service, new route, database change, collector dispatch, credentials or additional paid dependency.
+
+The text box resolves branch names, including explicit Persian brand/location aliases, from the current authorized saved comparisons only. It supports branch lookup, not arbitrary natural-language questions. Ambiguous or unmatched text requires exact selection; it never silently chooses a different branch. Every server-filtered source ID is retained. Canonical display aliases group cross-platform results, while multiple rows for the same platform make that platform ambiguous and suppress its conclusion.
+
+Each platform keeps its original date pair, metric basis, completeness exclusions and recommendation. Client movement is recomputed from finite current/previous sales; missing and zero are distinct. A zero previous baseline has no percent-change claim. Small samples and low confidence remain explicit. No cross-platform sales/profit total or composite score is invented. Each recommendation is a next check, not a proven cause; English source evidence/unknowns and the existing exact-branch detail drawer remain accessible. Persian recommendation copy is a fixed translation of the existing rule codes. Unknown rule codes do not generate invented advice.
+
+Current ratings are separate dated snapshots matched on canonical brand/location, with individual platform health and source status. They are not time-aligned to weekly sales or averaged. Reviews, Deliveroo operational reports and profit are not assessed in this view. Missing platforms are not evidence of healthy performance. The overview uses 3 supported sales platforms as the coverage universe; absent/ineligible comparisons count as unavailable.
+
+Language switch preserves the selected branch. Input drafts are retained, background renders do not interrupt focused lookup controls, and auth reset clears state and invalidates pending work. Uses shared auth-generation protections and scoped server readers. No sensitive branch context is written to browser storage or URLs.
+
+Validation: pure core checks cover Persian/English lookup, ambiguity and authorized-scope boundaries, same-platform collisions, null/zero/failed/stale comparisons, zero baseline, independent arithmetic, source identities and exact ratings match. Local synthetic browser checks cover Persian result, English switch, evidence drawer, light/dark and 390px layout. Full suite and deployed checks are recorded in checkpoint64. Synthetic results are not production evidence.

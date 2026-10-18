@@ -172,6 +172,7 @@ function updateTalabatViews() {
 async function renderCurrent(force=false) {
   globalThis.FRBDesign?.sync(state.tab);
   updateTalabatViews();
+  if(state.tab==='brief'){await renderBranchBrief();return;}
   if(state.tab==='talabat-reviews'){await renderTalabatReviews(force);return;}
   if(state.tab==='growth'){await renderGrowth();return;}
   if(state.tab==='performance'){await renderPerformance();return;}
@@ -684,7 +685,7 @@ for (const closer of document.querySelectorAll('[data-close-detail]')) closer.ad
 document.addEventListener('keydown', event => { if (event.key === 'Escape') { selectedStore = null; ++detailRequest; detailPanel.classList.remove('open'); detailPanel.setAttribute('aria-hidden', 'true'); } });
 
 const initialTab = location.hash.slice(1);
-if (['overview', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance','deliveroo-operations','talabat-reviews'].includes(initialTab)) {
+if (['overview', 'brief', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliveroo', 'performance','keeta-performance','noon-performance','deliveroo-operations','talabat-reviews'].includes(initialTab)) {
   state.tab = initialTab;
   for (const button of tabs.querySelectorAll('.tab')) button.classList.toggle('active', button.dataset.tab === (['performance','talabat-reviews'].includes(state.tab) ? 'talabat' : state.tab==='keeta-performance'?'keeta':state.tab==='noon-performance'?'noon':state.tab));
 }
