@@ -30,7 +30,7 @@
      const button=document.createElement('button');button.type='button';button.className='frb-brand-card';button.dataset.brandValue=option.value;button.disabled=option.disabled;
      const image=asset(option.value||option.textContent),frame=document.createElement('span');frame.className='frb-brand-logo';frame.setAttribute('aria-hidden','true');
      if(image){const img=document.createElement('img');img.src=image;img.alt='';img.width=44;img.height=44;img.loading='lazy';img.decoding='async';frame.append(img);}else{frame.classList.add('frb-brand-initial');frame.textContent=option.value?option.textContent.trim().slice(0,2).toUpperCase():'All';}
-     const name=document.createElement('span');name.className='frb-brand-name';name.textContent=option.value?option.textContent:'All brands';const check=document.createElement('span');check.className='frb-brand-check';check.setAttribute('aria-hidden','true');check.textContent='✓';button.append(frame,name,check);entry.group.append(button);
+     const name=document.createElement('span');name.className='frb-brand-name';name.textContent=option.value?option.textContent:'All brands';const check=document.createElement('span');check.className='frb-brand-check';check.setAttribute('aria-hidden','true');button.append(frame,name);entry.group.append(button);
     }
    }
    for(const button of entry.group.children){const selected=button.dataset.brandValue===select.value;button.setAttribute('aria-pressed',String(selected));}
@@ -42,4 +42,5 @@
  if(typeof document==='undefined')return;
  new MutationObserver(sync).observe(document.body,{childList:true,subtree:true});sync();
 })();
+
 
