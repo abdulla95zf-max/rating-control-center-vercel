@@ -3,6 +3,7 @@
 !.env.example
 .secrets/
 artifacts/
+outputs/
 *.sqlite
 *.sqlite-*
 *.db
