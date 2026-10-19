@@ -1,4 +1,5 @@
 import {resetDashboardPassword} from './password-reset.ts';
+import {dashboardDatabaseConfig} from './database-config.ts';
 import {recordFailedLogin} from './login-attempts.ts';
 import {retryableInitializer,parseSessionCookie} from './auth-resilience.ts';
 import {deleteDashboardUser} from './user-deletion.ts';
@@ -21,7 +22,7 @@ let pool:Pool|undefined;
 function database(){
  const url=process.env.DATABASE_URL?.trim();
  if(!url)throw new Error('AUTH_NOT_CONFIGURED');
- pool??=new Pool({connectionString:url,max:3,connectionTimeoutMillis:8_000,idleTimeoutMillis:10_000,ssl:url.includes('localhost')?false:{rejectUnauthorized:false}});
+ pool??=new Pool(dashboardDatabaseConfig(url));
  return pool;
 }
 export function authDatabase(){return database();}
