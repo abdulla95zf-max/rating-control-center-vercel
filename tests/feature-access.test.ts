@@ -17,10 +17,10 @@ test('feature permissions distinguish legacy full access from explicit none and 
  for(const value of [{},'lens',['unknown'],['lens','lens'],[1],undefined])assert.throws(()=>parseFeatures(value),/INVALID_FEATURES/);
  assert.deepEqual(storedFeatures(['unknown']),[]);assert.equal(parseFeatures(null),null);
 });
-test('only owner may assign sections; ordinary admins inherit rather than expand permissions',()=>{
+test('only owner may assign sections; ordinary admins cannot grant access through account creation',()=>{
  const actor={role:'admin',is_owner:false,feature_access:['users.manage','talabat.ratings']};
  for(const features of [null,[],['lens']])assert.throws(()=>selectFeatureAccess({features},actor),/OWNER_REQUIRED/);
- assert.deepEqual(selectFeatureAccess({},actor),actor.feature_access);
+ assert.deepEqual(selectFeatureAccess({},actor),[]);
  assert.deepEqual(selectFeatureAccess({},actor,{feature_access:['lens']}),['lens']);
  assert.deepEqual(selectFeatureAccess({features:[]},{is_owner:true}),[]);
  assert.throws(()=>selectFeatureAccess({features:[]},{is_owner:true},{is_owner:true}),/OWNER_ACCESS_FIXED/);

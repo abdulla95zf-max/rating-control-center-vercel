@@ -40,7 +40,9 @@ export function selectFeatureAccess(input:any,actor:any,target?:any){
   if(target?.is_owner&&features!==null)throw Error('OWNER_ACCESS_FIXED');
   return features;
  }
- return target?storedFeatures(target.feature_access):actor.is_owner?null:storedFeatures(actor.feature_access);
+ // Creating an account is not permission to grant any site sections.
+ // Ordinary administrators leave new accounts awaiting the owner's assignment.
+ return target?storedFeatures(target.feature_access):actor.is_owner?null:[];
 }
 export function filterRatingFeatures<T extends {ratings:any[];platforms:any[];storeCount:number}>(data:T,user:FeatureUser):T{
  const platforms=data.platforms.filter(p=>hasFeature(user,ratingFeature(p.platform)));

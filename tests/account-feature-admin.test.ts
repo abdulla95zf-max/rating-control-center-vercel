@@ -25,7 +25,7 @@ test('owner is hidden from admins; feature updates, account creation and session
   // Deliberately stale request says full access, but database actor now has fewer sections.
   await assert.rejects(updateUser(admin,'viewer',input),/ACCOUNT_ACCESS_DENIED/);
   const created=await createUser(admin,{username:'newviewer',password:'synthetic-test-only',displayName:'New viewer',role:'viewer',scopes:[]});
-  assert.deepEqual((await listUsers(owner)).find(u=>u.id===created)?.features,['users.manage','talabat.ratings']);
+  assert.deepEqual((await listUsers(owner)).find(u=>u.id===created)?.features,[]);
   await assert.rejects(createUser(admin,{username:'blocked',password:'synthetic-test-only',displayName:'Blocked',role:'admin',features:null}),/OWNER_REQUIRED/);
   assert.equal(Number((await db.query("SELECT count(*) AS count FROM dashboard_users WHERE username='blocked'")).rows[0].count),0);
   await db.exec("ALTER TABLE dashboard_audit_log ADD CONSTRAINT audit_reject CHECK(event<>'user_updated') NOT VALID");
