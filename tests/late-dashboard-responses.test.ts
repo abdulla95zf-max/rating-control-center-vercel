@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const source=(name:string)=>fs.readFileSync(new URL('../public/'+name,import.meta.url),'utf8');
+const source=(name:string)=>fs.readFileSync(new URL('../public/'+name,import.meta.url),'utf8').replace(/\r\n/g,'\n');
 function harness(){
  const requests:any[]=[];
  const main={innerHTML:'new page'};

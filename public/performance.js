@@ -37,6 +37,7 @@ function projectedTier(row){
 }
 function performanceCoverage(rows){const keys=performanceViews.funnel.map(x=>x[0]);const present=rows.filter(r=>r.present);if(!present.length)return 'No report rows in this selection';const cells=present.flatMap(r=>keys.map(k=>performanceNumber(r.values[k])));const filled=cells.filter(v=>v!==null).length;return filled===0?'Funnel data unavailable from Talabat':filled===cells.length?'Funnel fields populated':'Funnel data partially available';}
 async function renderPerformance(force=false){
+ if(globalThis.dashboardAuth?.user){if(!dashboardAuth.can('talabat.performance'))performanceState.period='monthly';else if(performanceState.period==='monthly'&&!dashboardAuth.can('talabat.tstar'))performanceState.period='daily';}
  const p=performanceState,key=p.period==='daily'?'daily:'+p.date:p.period;const generation=++p.generation;
  if(force||!p.cache||p.cacheKey!==key||Date.now()-p.checkedAt>300000){
   main.innerHTML='<section class="loading-card">Loading saved Performance report…</section>';
@@ -46,7 +47,7 @@ async function renderPerformance(force=false){
  if(state.tab!=='performance')return;
  if(p.period==='monthly')paintTstarMonthly();else paintPerformance();
 }
-function performancePeriodTabs(){const p=performanceState;return `<nav class="period-tabs" aria-label="Performance period">${[['daily','Daily'],['weekly','Last 7 days'],['monthly','T-Star period']].map(([value,label])=>`<button class="tab ${p.period===value?'active':''}" data-performance-period="${value}">${label}</button>`).join('')}</nav>`;}
+function performancePeriodTabs(){const p=performanceState;return `<nav class="period-tabs" aria-label="Performance period">${[['daily','Daily'],['weekly','Last 7 days'],['monthly','T-Star period']].filter(([v])=>!globalThis.dashboardAuth?.user||dashboardAuth.can(v==='monthly'?'talabat.tstar':'talabat.performance')).map(([value,label])=>`<button class="tab ${p.period===value?'active':''}" data-performance-period="${value}">${label}</button>`).join('')}</nav>`;}
 function attachPerformancePeriodTabs(){for(const button of main.querySelectorAll('[data-performance-period]'))button.onclick=()=>{performanceState.period=button.dataset.performancePeriod;performanceState.date='';performanceState.cache=null;renderPerformance();};}
 function paintPerformance(){
  const p=performanceState,data=p.cache,all=performanceRows(data),rows=performanceFiltered(data);

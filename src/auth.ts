@@ -1,3 +1,5 @@
+import {withAccountAdmin} from './account-admin.ts';
+import {storedFeatures,rowFeatureUser,canManageAccount,assertManageAccount,selectFeatureAccess,type Feature} from './feature-access.ts';
 import {resetDashboardPassword} from './password-reset.ts';
 import {dashboardDatabaseConfig} from './database-config.ts';
 import {recordFailedLogin} from './login-attempts.ts';
@@ -16,7 +18,7 @@ const USERNAME=/^[a-z0-9][a-z0-9._@-]{2,79}$/;
 const ROLES=['admin','portfolio_manager','brand_manager','branch_manager','viewer'] as const;
 export type DashboardRole=typeof ROLES[number];
 export type AccessScope={type:'brand'|'branch';key:string};
-export type AuthUser={id:string;username:string;displayName:string;role:DashboardRole;scopes:AccessScope[];mustChangePassword:boolean;isOwner:boolean};
+export type AuthUser={id:string;username:string;displayName:string;role:DashboardRole;scopes:AccessScope[];mustChangePassword:boolean;isOwner:boolean;features?:Feature[]|null};
 
 let pool:Pool|undefined;
 function database(){
@@ -34,7 +36,7 @@ async function hashPassword(value:string){const salt=randomBytes(16),key=await s
 async function verifyPassword(value:string,encoded:string){try{const [kind,n,r,p,salt,key]=encoded.split('$');if(kind!=='scrypt'||!n||!r||!p||!salt||!key)return false;const expected=Buffer.from(key,'base64'),actual=await scrypt(value,Buffer.from(salt,'base64'),expected.length,{N:Number(n),r:Number(r),p:Number(p),maxmem:64*1024*1024}) as Buffer;return expected.length===actual.length&&timingSafeEqual(expected,actual);}catch{return false;}}
 function parseScopes(value:unknown):AccessScope[]{if(!Array.isArray(value))return [];const seen=new Set<string>(),out:AccessScope[]=[];for(const item of value){if(!item||typeof item!=='object')continue;const type=(item as any).type,key=text((item as any).key,200);if((type!=='brand'&&type!=='branch')||!key)continue;const signature=type+'\0'+key;if(!seen.has(signature)){seen.add(signature);out.push({type,key});}}return out.slice(0,200);}
 function validRoleScopes(role:DashboardRole,scopes:AccessScope[]){return role==='brand_manager'?scopes.length>0&&scopes.every(scope=>scope.type==='brand'):role==='branch_manager'?scopes.length>0&&scopes.every(scope=>scope.type==='branch'):true;}
-function publicUser(row:any):AuthUser{return {id:String(row.id),username:String(row.username),displayName:String(row.display_name),role:row.role as DashboardRole,scopes:parseScopes(row.scopes),mustChangePassword:Boolean(row.must_change_password),isOwner:Boolean(row.is_owner)};}
+function publicUser(row:any):AuthUser{return {id:String(row.id),username:String(row.username),displayName:String(row.display_name),role:row.role as DashboardRole,scopes:parseScopes(row.scopes),mustChangePassword:Boolean(row.must_change_password),isOwner:Boolean(row.is_owner),features:row.is_owner?null:storedFeatures(row.feature_access)};}
 
 const schema=retryableInitializer(async()=>{
   const db=database();
@@ -46,6 +48,7 @@ const schema=retryableInitializer(async()=>{
    failed_attempts integer NOT NULL DEFAULT 0, locked_until timestamptz,
    created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), last_login_at timestamptz)`);
   await db.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS is_owner boolean NOT NULL DEFAULT false`);
+  await db.query(`ALTER TABLE dashboard_users ADD COLUMN IF NOT EXISTS feature_access jsonb`);
   await db.query(`CREATE TABLE IF NOT EXISTS dashboard_sessions(
    token_hash text PRIMARY KEY, user_id text NOT NULL REFERENCES dashboard_users(id) ON DELETE CASCADE,
    session_version integer NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), expires_at timestamptz NOT NULL)`);
@@ -76,9 +79,29 @@ export async function readJson(request:IncomingMessage,limit=16_384){const chunk
 export async function login(input:any,response:ServerResponse){await schema();const u=username(input?.username),p=typeof input?.password==='string'?input.password:'';if(!u||!p)return null;const result=await database().query('SELECT * FROM dashboard_users WHERE username=$1',[u]);const row=result.rows[0];if(!row||!row.active||row.locked_until&&new Date(row.locked_until).getTime()>Date.now()||!await verifyPassword(p,row.password_hash)){if(row)await recordFailedLogin(database(),row.id);return null;}await database().query('UPDATE dashboard_users SET failed_attempts=0,locked_until=NULL,last_login_at=now() WHERE id=$1',[row.id]);await newSession(row.id,row.session_version,response);await audit(row.id,'login',row.id,{});return publicUser(row);}
 export async function logout(request:IncomingMessage,response:ServerResponse,user:AuthUser){const token=cookieToken(request);if(token)await database().query('DELETE FROM dashboard_sessions WHERE token_hash=$1',[hashToken(token)]);setCookie(response,'',0);await audit(user.id,'logout',user.id,{});}
 export async function changePassword(user:AuthUser,current:string,next:string,response:ServerResponse){const valid=password(next);if(!valid)return false;const result=await database().query('SELECT password_hash,session_version FROM dashboard_users WHERE id=$1',[user.id]);if(!result.rowCount||!await verifyPassword(current,result.rows[0].password_hash))return false;const version=Number(result.rows[0].session_version)+1;await database().query('UPDATE dashboard_users SET password_hash=$2,must_change_password=false,session_version=$3,failed_attempts=0,locked_until=NULL,updated_at=now() WHERE id=$1',[user.id,await hashPassword(valid),version]);await database().query('DELETE FROM dashboard_sessions WHERE user_id=$1',[user.id]);await newSession(user.id,version,response);await audit(user.id,'password_changed',user.id,{});return true;}
-export async function listUsers(){await schema();const result=await database().query('SELECT id,username,display_name,role,scopes,active,must_change_password,is_owner,created_at,last_login_at FROM dashboard_users ORDER BY display_name,username');return result.rows.map(row=>({...publicUser(row),active:Boolean(row.active),createdAt:row.created_at,lastLoginAt:row.last_login_at}));}
-export async function createUser(actor:AuthUser,input:any){await schema();const u=username(input?.username),name=text(input?.displayName,120),p=password(input?.password),role=ROLES.includes(input?.role)?input.role as DashboardRole:null,scopes=parseScopes(input?.scopes);if(!u)throw new Error('INVALID_USERNAME');if(!name)throw new Error('INVALID_DISPLAY_NAME');if(!p)throw new Error('INVALID_PASSWORD');if(!role)throw new Error('INVALID_ROLE');if(!validRoleScopes(role,scopes))throw new Error('INVALID_SCOPE');const id=randomUUID();try{await database().query('INSERT INTO dashboard_users(id,username,display_name,password_hash,role,scopes,active,must_change_password) VALUES($1,$2,$3,$4,$5,$6,true,false)',[id,u,name,await hashPassword(p),role,JSON.stringify(scopes)]);}catch(error:any){if(error?.code==='23505')throw new Error('USERNAME_EXISTS');throw error;}await audit(actor.id,'user_created',id,{role,scopes});return id;}
-export async function updateUser(actor:AuthUser,id:string,input:any){await schema();if(id===actor.id&&input.active===false)throw new Error('SELF_DISABLE');const target=await database().query('SELECT is_owner FROM dashboard_users WHERE id=$1',[id]);if(!target.rowCount)throw new Error('USER_NOT_FOUND');if(target.rows[0].is_owner&&!actor.isOwner)throw new Error('OWNER_REQUIRED');const role=ROLES.includes(input?.role)?input.role as DashboardRole:null,name=text(input?.displayName,120),scopes=parseScopes(input?.scopes);if(!role||!name||typeof input?.active!=='boolean'||!validRoleScopes(role,scopes)||target.rows[0].is_owner&&(role!=='admin'||input.active!==true))throw new Error('INVALID_USER');const result=await database().query('UPDATE dashboard_users SET display_name=$2,role=$3,scopes=$4,active=$5,session_version=session_version+1,updated_at=now() WHERE id=$1 RETURNING id',[id,name,role,JSON.stringify(scopes),input.active]);await database().query('DELETE FROM dashboard_sessions WHERE user_id=$1',[id]);await audit(actor.id,'user_updated',id,{role,scopes,active:input.active});}
+export async function listUsers(actor:AuthUser){await schema();const result=await database().query('SELECT id,username,display_name,role,scopes,active,must_change_password,is_owner,feature_access,created_at,last_login_at FROM dashboard_users WHERE ($1::boolean OR is_owner=false) ORDER BY display_name,username',[actor.isOwner]);return result.rows.map(row=>({...publicUser(row),canManage:canManageAccount(actor,rowFeatureUser(row)),active:Boolean(row.active),createdAt:row.created_at,lastLoginAt:row.last_login_at}));}
+export async function createUser(actor:AuthUser,input:any){
+ await schema();const u=username(input?.username),name=text(input?.displayName,120),p=password(input?.password),role=ROLES.includes(input?.role)?input.role as DashboardRole:null,scopes=parseScopes(input?.scopes);
+ if(!u)throw Error('INVALID_USERNAME');if(!name)throw Error('INVALID_DISPLAY_NAME');if(!p)throw Error('INVALID_PASSWORD');if(!role)throw Error('INVALID_ROLE');if(!validRoleScopes(role,scopes))throw Error('INVALID_SCOPE');
+ const id=randomUUID(),hashed=await hashPassword(p);
+ try{return await withAccountAdmin(database(),actor.id,async(client,live)=>{
+  const features=selectFeatureAccess(input,live);
+  await client.query('INSERT INTO dashboard_users(id,username,display_name,password_hash,role,scopes,active,must_change_password,feature_access) VALUES($1,$2,$3,$4,$5,$6,true,false,$7)',[id,u,name,hashed,role,JSON.stringify(scopes),features===null?null:JSON.stringify(features)]);
+  await client.query('INSERT INTO dashboard_audit_log(actor_user_id,event,target_user_id,detail) VALUES($1,$2,$3,$4)',[actor.id,'user_created',id,JSON.stringify({role,scopes,features})]);return id;
+ });}catch(error:any){if(error?.code==='23505')throw Error('USERNAME_EXISTS');throw error;}
+}
+export async function updateUser(actor:AuthUser,id:string,input:any){
+ await schema();if(id===actor.id&&input.active===false)throw Error('SELF_DISABLE');
+ const role=ROLES.includes(input?.role)?input.role as DashboardRole:null,name=text(input?.displayName,120),scopes=parseScopes(input?.scopes);
+ if(!role||!name||typeof input?.active!=='boolean'||!validRoleScopes(role,scopes))throw Error('INVALID_USER');
+ await withAccountAdmin(database(),actor.id,async(client,live)=>{
+  const target=(await client.query('SELECT * FROM dashboard_users WHERE id=$1',[id])).rows[0];if(!target)throw Error('USER_NOT_FOUND');assertManageAccount(live,target);
+  const features=selectFeatureAccess(input,live,target);if(target.is_owner&&(role!=='admin'||!input.active))throw Error('INVALID_USER');
+  await client.query('UPDATE dashboard_users SET display_name=$2,role=$3,scopes=$4,active=$5,feature_access=$6,session_version=session_version+1,updated_at=now() WHERE id=$1',[id,name,role,JSON.stringify(scopes),input.active,features===null?null:JSON.stringify(features)]);
+  await client.query('DELETE FROM dashboard_sessions WHERE user_id=$1',[id]);
+  await client.query('INSERT INTO dashboard_audit_log(actor_user_id,event,target_user_id,detail) VALUES($1,$2,$3,$4)',[actor.id,'user_updated',id,JSON.stringify({role,scopes,active:input.active,features})]);
+ });
+}
 export async function resetPassword(actor:AuthUser,id:string,next:string){await schema();const valid=password(next);if(!valid)throw new Error('INVALID_PASSWORD');await resetDashboardPassword(database(),actor.id,id,await hashPassword(valid));}
 async function audit(actor:string|null,event:string,target:string|null,detail:unknown){await database().query('INSERT INTO dashboard_audit_log(actor_user_id,event,target_user_id,detail) VALUES($1,$2,$3,$4)',[actor,event,target,JSON.stringify(detail||{})]);}
 export async function setBranchActive(actor:AuthUser,id:string,active:boolean,reason:unknown){await schema();if(!actor.isOwner)throw new Error('OWNER_REQUIRED');if(!/^[0-9a-f-]{36}$/i.test(id)||typeof active!=='boolean')throw new Error('INVALID_BRANCH');const note=reason===undefined||reason===null||reason===''?'':text(reason,240);if(note===null)throw new Error('INVALID_BRANCH');const result=await database().query('UPDATE dashboard_branches SET active=$2,updated_at=now() WHERE id=$1 RETURNING display_name',[id,active]);if(!result.rowCount)throw new Error('BRANCH_NOT_FOUND');await audit(actor.id,active?'branch_activated':'branch_deactivated',null,{branchId:id,displayName:result.rows[0].display_name,reason:note});}

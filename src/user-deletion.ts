@@ -1,3 +1,4 @@
+import {assertManageAccount,hasFeature,rowFeatureUser} from './feature-access.ts';
 import type {Pool} from 'pg';
 
 /** Keep authorization, audit and session revocation atomic with account deletion. */
@@ -8,12 +9,13 @@ export async function deleteDashboardUser(db:Pick<Pool,'connect'>,actorId:string
   await client.query('BEGIN');
   // Serializes deletions with role/status updates, including concurrent requests.
   await client.query('LOCK TABLE dashboard_users IN SHARE ROW EXCLUSIVE MODE');
-  const actor=(await client.query('SELECT id,role,active FROM dashboard_users WHERE id=$1',[actorId])).rows[0];
-  if(!actor?.active||actor.role!=='admin')throw new Error('ADMIN_REQUIRED');
-  const target=(await client.query('SELECT id,username,role,active,is_owner FROM dashboard_users WHERE id=$1',[id])).rows[0];
+  const actor=(await client.query('SELECT id,role,active,is_owner,to_jsonb(dashboard_users)->\'feature_access\' AS feature_access FROM dashboard_users WHERE id=$1',[actorId])).rows[0];
+  if(!actor?.active||actor.role!=='admin'||!hasFeature(rowFeatureUser(actor),'users.manage'))throw new Error('ADMIN_REQUIRED');
+  const target=(await client.query('SELECT id,username,role,active,is_owner,to_jsonb(dashboard_users)->\'feature_access\' AS feature_access FROM dashboard_users WHERE id=$1',[id])).rows[0];
   if(!target)throw new Error('USER_NOT_FOUND');
   if(id===actorId)throw new Error('SELF_DELETE');
   if(target.is_owner)throw new Error('OWNER_DELETE');
+  assertManageAccount(actor,target);
   if(typeof confirmation!=='string'||confirmation!==target.username)throw new Error('DELETE_CONFIRMATION_REQUIRED');
   if(target.active&&target.role==='admin'){
    const count=Number((await client.query("SELECT COUNT(*)::int AS value FROM dashboard_users WHERE role='admin' AND active=true")).rows[0]?.value);

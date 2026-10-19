@@ -170,6 +170,9 @@ function updateTalabatViews() {
 }
 
 async function renderCurrent(force=false) {
+  const access=globalThis.RCCAccess,user=globalThis.dashboardAuth?.user;
+  if(access&&user){if(!access.canTab(user,state.tab)){state.tab=access.landing(user);history.replaceState(null,'','#'+state.tab);}access.apply(user);if(state.tab==='no-access'){main.innerHTML='<section class="empty-card"><h2>No sections assigned</h2><p>Ask the super administrator to assign your site access.</p></section>';return;}}
+
   globalThis.FRBDesign?.sync(state.tab);
   updateTalabatViews();
   if(state.tab==='brief'){await renderBranchBrief();return;}
@@ -347,6 +350,7 @@ function refreshOverviewActions(epoch){
  existing.outerHTML=overviewActionPanel(groups);attachActionCenter(groups);
 }
 function loadOverviewReports(force,epoch){
+ if(globalThis.dashboardAuth?.user&&!dashboardAuth.can('talabat.performance'))return;
  for(const path of [overviewPerformancePath,overviewHistoryPath]){
   const entry=overviewReports.peek(path);
   if(entry.pending||(!force&&entry.value&&Date.now()-entry.checkedAt<300000))continue;
@@ -662,7 +666,7 @@ function drawChart(canvas, history, key, color, options) {
 tabs.addEventListener('click', event => {
   const button = event.target.closest('[data-tab]');
   if (!button) return;
-  state.tab = button.dataset.tab;
+  state.tab = globalThis.RCCAccess?.platformTab(globalThis.dashboardAuth?.user,button.dataset.tab)||button.dataset.tab;
   ++performanceState.generation;selectedStore=null;++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');
   for (const tab of tabs.querySelectorAll('.tab')) tab.classList.toggle('active', tab === button);
   history.replaceState(null, '', `#${state.tab}`);
