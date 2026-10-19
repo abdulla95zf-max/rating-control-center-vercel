@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {PGlite} from '@electric-sql/pglite';
-import {featureCatalog,hasFeature,parseFeatures,storedFeatures,selectFeatureAccess,canManageAccount,filterRatingFeatures} from '../src/feature-access.ts';
+import {featureCatalog,defaultAccountFeatures,hasFeature,parseFeatures,storedFeatures,selectFeatureAccess,canManageAccount,filterRatingFeatures} from '../src/feature-access.ts';
 import {createCloudHandler} from '../src/cloud-api.ts';
 import {fetchGrowth} from '../src/services/growth.ts';
 import {resetDashboardPassword} from '../src/password-reset.ts';
@@ -17,10 +17,11 @@ test('feature permissions distinguish legacy full access from explicit none and 
  for(const value of [{},'lens',['unknown'],['lens','lens'],[1],undefined])assert.throws(()=>parseFeatures(value),/INVALID_FEATURES/);
  assert.deepEqual(storedFeatures(['unknown']),[]);assert.equal(parseFeatures(null),null);
 });
-test('only owner may assign sections; ordinary admins cannot grant access through account creation',()=>{
+test('only owner may customize sections; admin-created accounts receive only the owner-approved ratings default',()=>{
  const actor={role:'admin',is_owner:false,feature_access:['users.manage','talabat.ratings']};
  for(const features of [null,[],['lens']])assert.throws(()=>selectFeatureAccess({features},actor),/OWNER_REQUIRED/);
- assert.deepEqual(selectFeatureAccess({},actor),[]);
+ assert.deepEqual(selectFeatureAccess({},actor),defaultAccountFeatures);
+ assert.deepEqual(defaultAccountFeatures,['talabat.ratings','keeta.ratings','noon.ratings','deliveroo.ratings','careem.ratings']);
  assert.deepEqual(selectFeatureAccess({},actor,{feature_access:['lens']}),['lens']);
  assert.deepEqual(selectFeatureAccess({features:[]},{is_owner:true}),[]);
  assert.throws(()=>selectFeatureAccess({features:[]},{is_owner:true},{is_owner:true}),/OWNER_ACCESS_FIXED/);

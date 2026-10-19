@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {PGlite} from '@electric-sql/pglite';
 import {authDatabase,listUsers,createUser,updateUser} from '../src/auth.ts';
+import {defaultAccountFeatures} from '../src/feature-access.ts';
 
 test('owner is hidden from admins; feature updates, account creation and session revocation use live database privileges',async()=>{
  const oldUrl=process.env.DATABASE_URL;process.env.DATABASE_URL='postgres://test:test@127.0.0.1/test';
@@ -25,7 +26,7 @@ test('owner is hidden from admins; feature updates, account creation and session
   // Deliberately stale request says full access, but database actor now has fewer sections.
   await assert.rejects(updateUser(admin,'viewer',input),/ACCOUNT_ACCESS_DENIED/);
   const created=await createUser(admin,{username:'newviewer',password:'synthetic-test-only',displayName:'New viewer',role:'viewer',scopes:[]});
-  assert.deepEqual((await listUsers(owner)).find(u=>u.id===created)?.features,[]);
+  assert.deepEqual((await listUsers(owner)).find(u=>u.id===created)?.features,defaultAccountFeatures);
   await assert.rejects(createUser(admin,{username:'blocked',password:'synthetic-test-only',displayName:'Blocked',role:'admin',features:null}),/OWNER_REQUIRED/);
   assert.equal(Number((await db.query("SELECT count(*) AS count FROM dashboard_users WHERE username='blocked'")).rows[0].count),0);
   await db.exec("ALTER TABLE dashboard_audit_log ADD CONSTRAINT audit_reject CHECK(event<>'user_updated') NOT VALID");

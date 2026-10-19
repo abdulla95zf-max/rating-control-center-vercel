@@ -16,6 +16,7 @@ export const featureCatalog=[
  {id:'users.manage',group:'Administration',label:'User management (administrator role only)'},
 ] as const;
 export type Feature=typeof featureCatalog[number]['id'];
+export const defaultAccountFeatures:Feature[]=featureCatalog.filter(f=>f.id.endsWith('.ratings')).map(f=>f.id);
 export type FeatureUser={role:string;isOwner?:boolean;features?:Feature[]|null};
 const known=new Set<string>(featureCatalog.map(f=>f.id));
 export function parseFeatures(value:unknown):Feature[]|null{
@@ -40,9 +41,9 @@ export function selectFeatureAccess(input:any,actor:any,target?:any){
   if(target?.is_owner&&features!==null)throw Error('OWNER_ACCESS_FIXED');
   return features;
  }
- // Creating an account is not permission to grant any site sections.
- // Ordinary administrators leave new accounts awaiting the owner's assignment.
- return target?storedFeatures(target.feature_access):actor.is_owner?null:[];
+ // The owner's default policy grants only ratings on admin-created accounts.
+ // Brand/branch scopes still apply; all other sections require an owner grant.
+ return target?storedFeatures(target.feature_access):actor.is_owner?null:[...defaultAccountFeatures];
 }
 export function filterRatingFeatures<T extends {ratings:any[];platforms:any[];storeCount:number}>(data:T,user:FeatureUser):T{
  const platforms=data.platforms.filter(p=>hasFeature(user,ratingFeature(p.platform)));
