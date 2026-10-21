@@ -1,3 +1,4 @@
+import {reportRead,reportKey} from './report-read-cache.ts';
 import {readNoonSessionHealth} from './noon-session-health.ts';
 import {authDatabase,canAccess} from '../auth.ts';
 import type {AuthUser} from '../auth.ts';
@@ -39,7 +40,7 @@ export function validateNoonPerformance(value:any){
  const comparisons=new Set(reports.map((r:any)=>r.dashboard.comparisonStartDate+';'+r.dashboard.comparisonEndDate));if(comparisons.size!==1)invalid();
  return {version:1,observedAt:value.observedAt,period:{startDate:p.startDate,endDate:p.endDate,comparisonStartDate:reports[0].dashboard.comparisonStartDate,comparisonEndDate:reports[0].dashboard.comparisonEndDate},reports};
 }
-export async function readNoonPerformance(db:Database=authDatabase(),period?:{startDate:string;endDate:string}):Promise<any>{
+async function loadReport(db:Database=authDatabase(),period?:{startDate:string;endDate:string}):Promise<any>{
  try{
   const result=await db.query({text:period?'SELECT payload FROM noon_performance_snapshots WHERE period_from=$1 AND period_to=$2 ORDER BY observed_at DESC,created_at DESC,id DESC LIMIT 1':'SELECT payload FROM noon_performance_snapshots WHERE period_to-period_from=6 ORDER BY period_to DESC,observed_at DESC,created_at DESC,id DESC LIMIT 1',values:period?[period.startDate,period.endDate]:[],query_timeout:5000});
   const sessionHealth=await readNoonSessionHealth(db);
@@ -62,3 +63,5 @@ export async function scopeNoonPerformance(data:any,user:AuthUser,register=regis
  const allowed=stores.filter((r:any)=>{const b=registry.get(`rating:noon\0NOON;${r.restaurantId};${r.outletCode}`);return b?.active&&(user.role==='admin'||user.role==='portfolio_manager'||canAccess(user,b.brand,b.id)||canAccess(user,b.brand,b.canonicalKey));});
  return restrictNoonPerformance(data,new Set(allowed.map((r:any)=>r.outletCode)));
 }
+
+export function readNoonPerformance(db:Database=authDatabase(),period?:{startDate:string;endDate:string}):Promise<any>{return reportRead(db,reportKey('noon-performance',period),()=>loadReport(db,period),300_000);}

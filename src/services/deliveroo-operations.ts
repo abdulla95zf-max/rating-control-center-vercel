@@ -1,7 +1,8 @@
+import {reportRead,reportKey} from './report-read-cache.ts';
 import {authDatabase,canAccess} from '../auth.ts';import type {AuthUser} from '../auth.ts';
 import {registerBranchSources} from './branch-registry.ts';import {deliverooScope} from './deliveroo-scope.ts';import {validateOperations} from './deliveroo-operations-model.ts';
 type Database={query(text:any,values?:any[]):Promise<{rows:any[]}>};
-export async function readDeliverooOperations(days:number,db:Database=authDatabase()):Promise<any>{
+async function loadReport(days:number,db:Database=authDatabase()):Promise<any>{
  if(![7,30].includes(days))throw Error('OPERATIONS_PERIOD_INVALID');
  try{
   const result=await db.query({text:'SELECT payload FROM deliveroo_operations_snapshots WHERE days=$1 ORDER BY period_to DESC,observed_at DESC,created_at DESC,id DESC LIMIT 1',values:[days],query_timeout:5000});
@@ -20,3 +21,5 @@ export async function scopeDeliverooOperations(data:any,user:AuthUser,register=r
  const allowed=rows.filter((r:any)=>{const b=registry.get(`rating:deliveroo\0DELIVEROO;${r.orgId};${r.storeId}`);return b?.active&&(user.role==='admin'||user.role==='portfolio_manager'||canAccess(user,b.brand,b.id)||canAccess(user,b.brand,b.canonicalKey));});
  return restrictDeliverooOperations(data,new Set(allowed.map((r:any)=>r.storeId)));
 }
+
+export function readDeliverooOperations(days:number,db:Database=authDatabase()):Promise<any>{return reportRead(db,reportKey('deliveroo-operations',days),()=>loadReport(days,db),300_000);}

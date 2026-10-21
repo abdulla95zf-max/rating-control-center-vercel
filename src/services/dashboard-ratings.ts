@@ -1,3 +1,4 @@
+import {reportRead,reportKey} from './report-read-cache.ts';
 import {authDatabase} from '../auth.ts';
 import {fetchLatestRatings, RatingsProxyError, type CloudPlatformResult} from './latest-ratings-proxy.ts';
 import {readNoonRatings} from './noon-ratings.ts';
@@ -47,11 +48,11 @@ export async function readDashboardRatings(
   readers: Partial<RatingsReaders> = {}, deadline = Date.now() + 12_000
 ): Promise<DashboardRatings> {
   const defaults: RatingsReaders = {
-    upstream: signal => fetchLatestRatings({host: '', port: 0, talabatDatabasePath: '', publicDirectory: '',
+    upstream: signal => reportRead(fetcher,reportKey('ratings-upstream',env.RATINGS_API_URL,env.RATINGS_API_TOKEN),()=>fetchLatestRatings({host: '', port: 0, talabatDatabasePath: '', publicDirectory: '',
       autoRefreshSeconds: 60, ratingsApiUrl: env.RATINGS_API_URL || '', ratingsApiToken: env.RATINGS_API_TOKEN || ''},
-      (input, init) => fetcher(input, {...init, signal: init?.signal ? AbortSignal.any([signal, init.signal]) : signal})),
-    noon: signal => readNoonRatings(deadlineDatabase(signal, deadline)),
-    deliveroo: signal => readDeliverooRatings(deadlineDatabase(signal, deadline))
+      (input, init) => fetcher(input, {...init, signal: init?.signal ? AbortSignal.any([signal, init.signal]) : signal}))),
+    noon: signal => reportRead(authDatabase(),'noon-ratings',()=>readNoonRatings(deadlineDatabase(signal, deadline))),
+    deliveroo: signal => reportRead(authDatabase(),'deliveroo-ratings',()=>readDeliverooRatings(deadlineDatabase(signal, deadline)))
   };
   const read = {...defaults, ...readers};
   const jobs: Array<{platform: 'upstream' | 'noon' | 'deliveroo'; run: () => Promise<DashboardRatings | CloudPlatformResult>}> = [

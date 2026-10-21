@@ -144,7 +144,7 @@ async function initialize() {
 
   } catch (error) {
     renderError(error);
-  } finally { if(!globalThis.dashboardAuth||globalThis.dashboardAuth.user)state.timer = window.setInterval(()=>renderCurrent(true), state.refreshSeconds * 1000); }
+  } finally { if(!globalThis.dashboardAuth||globalThis.dashboardAuth.user)state.timer = window.setInterval(()=>{if(document.visibilityState==='visible')renderCurrent(false);}, state.refreshSeconds * 1000); }
 }
 
 function updatePlatformTabs() {

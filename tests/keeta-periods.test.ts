@@ -15,7 +15,7 @@ test('latest Keeta reader supports missing period table and rejects malformed we
  const db={query:async(q:any)=>{if(q.text.includes('period_snapshots'))throw Object.assign(Error(),{code:'42P01'});return {rows:[{payload,observed_at:'2026-10-18T06:00:00Z'}]};}};
  assert.equal((await readKeetaPeriod(undefined,db)).snapshot?.periodTo,'2026-10-16');
  payload.periodTo='2026-10-17';
- await assert.rejects(readKeetaPeriod(undefined,db),/KEETA_PERFORMANCE_READ_FAILED/);
+ await assert.rejects(readKeetaPeriod(undefined,{query:db.query}),/KEETA_PERFORMANCE_READ_FAILED/);
 });
 test('Keeta periods exclude today and invalid calendar dates',()=>{const now=new Date('2026-10-08T08:00:00Z');assert.deepEqual(validateKeetaPeriod('2026-10-07','2026-10-07',now),{startDate:'2026-10-07',endDate:'2026-10-07'});for(const pair of [['2026-02-30','2026-03-01'],['2026-10-08','2026-10-08'],['2026-01-01','2026-10-07']])assert.throws(()=>validateKeetaPeriod(pair[0],pair[1],now));});
 test('Exact Keeta periods reuse existing weekly records and prefer newest exact snapshot',async()=>{const period={startDate:'2026-09-30',endDate:'2026-10-06'},requests:any[]=[],payload={periodFrom:period.startDate,periodTo:period.endDate,shops:[],items:[],customers:{}};const db={query:async(q:any)=>{requests.push(q);return {rows:[{payload,observed_at:q.text.includes('period_snapshots')?'2026-10-08T08:00:00Z':'2026-10-07T08:00:00Z'}]};}};const result=await readKeetaPeriod(period,db);assert.equal(result.snapshot?.observedAt,'2026-10-08T08:00:00.000Z');assert.ok(requests.every(q=>q.values[0]===period.startDate&&q.values[1]===period.endDate));});
