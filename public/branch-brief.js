@@ -55,7 +55,7 @@
   main.querySelector('.bl-picker').onkeydown=e=>{if(e.key==='Escape'&&brief.open){e.preventDefault();close();}};
   document.getElementById('blRetrySources')?.addEventListener('click',()=>renderBranchBrief(true));
   document.getElementById('blRefresh').onclick=()=>renderBranchBrief(true);
-  for(const b of main.querySelectorAll('[data-brief-source]'))b.onclick=()=>{const entry=selected.entries[Number(b.dataset.briefSource)];openGrowthDetail(entry.row,entry.platform);};
+  for(const b of main.querySelectorAll('[data-brief-source]'))b.onclick=()=>{const entry=selected.entries[Number(b.dataset.briefSource)];if(entry.platform==='deliveroo'){deliverooOperationsState.days=7;deliverooOperationsState.brand='';deliverooOperationsState.branch=entry.row.identity.split(';').at(-1);state.tab='deliveroo-operations';history.replaceState(null,'','#deliveroo-operations');renderCurrent();return;}openGrowthDetail(entry.row,entry.platform);};
  }
  globalThis.renderBranchBrief=async(force=false)=>{const generation=++brief.generation;if(!state.cloudRatings){main.innerHTML='<section class="error-card">Branch Lens requires authorized cloud reports.</section>';return;}
   if(!brief.groups.length||force)main.innerHTML=loading();
