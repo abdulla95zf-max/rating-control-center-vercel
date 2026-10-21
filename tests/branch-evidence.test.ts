@@ -4,6 +4,16 @@ const period={from:'2026-10-14',to:'2026-10-20',previousFrom:'2026-10-07',previo
 function history(){return Array.from({length:14},(_,i)=>({report_date:new Date(Date.parse('2026-10-07T00:00:00Z')+i*86400000).toISOString().slice(0,10),present:true,orders:'10',metrics:{'Successful Orders':'10','Impressions':'1000','Viewed your menu':'100','Added items to cart':'40','Placed an order':'10','Average preparation time (minutes)':'15','Total AWT Duration (Minutes)':'20','Scheduled Open Time (Minutes)':'600','Unavailable time duration (Minutes)':'12','Cancelled Orders':'1','Total customer complaints received':'0','Orders from new customers':'3','Orders from returning customers':'7','Pro Revenue':'80','Revenue loss from rejections':'10'}}));}
 const context:any=vm.createContext({Intl});for(const name of ['branch-story','branch-evidence-view','branch-brief-view'])vm.runInContext(fs.readFileSync('public/'+name+'.js','utf8'),context);
 const metric=(d:any,code:string)=>d.evidence.metrics.find((m:any)=>m.code===code);
+
+test('Lens selects at most three relevant drivers and keeps full data collapsed',()=>{
+ const rows=history();for(let i=7;i<14;i++)rows[i]!.metrics['Viewed your menu']='70';
+ const diagnostics=talabatDiagnostics(rows,period),row={eligible:true,period,current:{sales:700,orders:70},previous:{sales:1400,orders:100},diagnostics};
+ const entry={valid:true,change:-700,platform:'talabat',row};
+ const html=context.BranchEvidenceView.drivers(entry,'en');assert.match(html,/Smaller baskets/);assert.match(html,/Fewer visits/);assert.ok((html.match(/<article>/g)||[]).length<=3);
+ rows[13]!.metrics['Viewed your menu']=null as any;row.diagnostics=talabatDiagnostics(rows,period);assert.doesNotMatch(context.BranchEvidenceView.drivers(entry,'en'),/Fewer visits/);
+ const details=context.BranchEvidenceView.render(row.diagnostics,'en');assert.match(details,/<details class="be-data-details">/);assert.doesNotMatch(details,/<details[^>]*\bopen\b/);assert.match(details,/data-sort-bound="1"/);
+ assert.equal(context.BranchEvidenceView.drivers({...entry,valid:false},'en'),'');
+});
 test('missing latest-day funnel preserves older dated values without turning a six-day subset into a weekly total',()=>{
  const rows=history();for(const key of ['Impressions','Viewed your menu','Added items to cart','Placed an order'])rows[13]!.metrics[key as keyof typeof rows[13]['metrics']]=null as any;
  const d=talabatDiagnostics(rows,period),m=metric(d,'menuViews');assert.equal(d.funnel.stages[0]!.current,null);assert.deepEqual(m.current,{knownDays:6,totalDays:7,complete:false,observed:600});assert.deepEqual(m.latest,{from:'2026-10-19',to:'2026-10-19',value:100});assert.equal(d.evidence.funnelDaily.length,14);assert.equal(d.evidence.funnelDaily.at(-1)?.menuViews,null);
