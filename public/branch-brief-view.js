@@ -2,7 +2,7 @@
 (() => {
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const known=v=>typeof v==='number'&&Number.isFinite(v),fmt=v=>known(v)?new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(v):'—',sign=v=>known(v)?(v>0?'+':'')+fmt(v):'—';
- const names={talabat:'Talabat',keeta:'Keeta',noon:'Noon'};
+ const names={talabat:'Talabat',keeta:'Keeta',noon:'Noon',deliveroo:'Deliveroo'};
  const labels={prep:['Preparation','آماده‌سازی'],wait:['Avoidable rider wait','انتظار قابل‌اجتناب پیک'],offline:['Offline','خارج از دسترس'],cancelled:['Cancelled / lost orders','سفارش لغوشده / ازدست‌رفته'],complaints:['Complaints','شکایت ثبت‌شده'],missing:['Missing / wrong orders','سفارش ناقص / اشتباه']};
  const stageLabels={menuViews:['Menu views','بازدید منو'],visitors:['Store visitors','بازدیدکنندهٔ فروشگاه'],cart:['Added to cart','افزودن به سبد'],placed:['Order placements','ثبت سفارش'],completed:['Completed orders','سفارش تکمیل‌شده'],orderingCustomers:['Ordering customers','مشتری سفارش‌دهنده']};
  const issueLabels={PREP_WORSE:['Preparation time increased','زمان آماده‌سازی افزایش یافته'],PREP_HIGH:['Preparation exceeds 14 minutes','زمان آماده‌سازی بیش از ۱۴ دقیقه است'],WAIT_WORSE:['Rider waiting increased','انتظار پیک افزایش یافته'],OFFLINE:['Offline time needs a check','زمان خارج‌از‌دسترس نیاز به بررسی دارد'],CANCELLED:['Orders were cancelled / lost','سفارش لغو یا از دست رفته'],COMPLAINTS:['Complaints need individual review','شکایت‌ها باید موردی بررسی شوند'],MISSING:['Missing / wrong items reported','کالای ناقص یا اشتباه گزارش شده']};

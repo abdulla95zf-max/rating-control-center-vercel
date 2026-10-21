@@ -23,6 +23,9 @@ test('period snapshots expose customers and service without claiming seven obser
  const d=keetaDiagnostics({business:{shop_valid_order_num:'10',shop_cancel_order_num:'1'},service:{shop_average_cooking_duration:'12'}},undefined,{pay:[{code:'shop_merchant_new_user_num',value:'5',popValues:['3']}],conversion:[]},period);
  const m=metric(d,'newCustomers');assert.equal(m.current.observed,5);assert.equal(m.previous.observed,3);assert.equal(m.current.knownDays,undefined);
  const html=context.BranchEvidenceView.render(d,'en');assert.match(html,/New customers/);assert.match(html,/Source period/);assert.doesNotMatch(html,/7\/7/);
+ const slow=keetaDiagnostics({business:{shop_valid_order_num:'10'},service:{shop_average_cooking_duration:'18'}},undefined,undefined,period);
+ slow.operations=[];
+ const signal=context.BranchEvidenceView.reviewSignals(slow).find(s=>s.code==='prep');assert.ok(signal);assert.equal(signal.knownDays,undefined);assert.equal(signal.from,period.from);assert.equal(signal.to,period.to);
 });
 test('Noon commercial values require matching source dates and retain unknown customer counts',()=>{
  const raw:any={startDate:period.from,endDate:period.to,comparisonStartDate:period.previousFrom,comparisonEndDate:period.previousTo,salesInsights:{mainInsights:{ordersCount:10}},customerInsights:{customerBaseInsights:{newCustomersOrdersCount:4,newCustomersRevenue:300}},operationInsights:{}};

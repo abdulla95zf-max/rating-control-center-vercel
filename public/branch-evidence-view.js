@@ -40,11 +40,11 @@
    const threshold=metric.code==='prep'?14:metric.code==='offline'?2:['cancelled','complaints','missing','rejectionLoss','salesLoss','rejected','latePrepared'].includes(metric.code)?0:null;
    if(threshold===null)continue;
    if(!known(strict)&&known(part?.observed)&&part.observed>threshold)value=part.observed;
-   if(metric.code==='prep'&&!(known(strict)&&strict>14)&&metric.latest?.from>=e.period.from&&known(metric.latest.value)&&metric.latest.value>14){value=metric.latest.value;from=metric.latest.from;to=metric.latest.to;knownDays=1;}
+   if(e.kind==='daily'&&metric.code==='prep'&&!(known(strict)&&strict>14)&&metric.latest?.from>=e.period.from&&known(metric.latest.value)&&metric.latest.value>14){value=metric.latest.value;from=metric.latest.from;to=metric.latest.to;knownDays=1;}
    if(value!==null)signals.push({code:metric.code,unit:metric.unit,value,from,to,knownDays,partial:!part?.complete});
   }
   return signals;
  }
- function signals(d,language){const fa=language==='fa',t=(en,per)=>fa?per:en;return reviewSignals(d).map(s=>`<li class="be-dated-issue"><strong>${esc((labels[s.code]||[s.code,s.code])[fa?1:0])} · ${t('dated observation to review','مشاهدهٔ تاریخ‌دار نیازمند بررسی')}</strong><span><bdi>${format(s.value)}</bdi> ${esc(s.unit)} · <bdi>${esc(s.from===s.to?s.to:s.from+' — '+s.to)}</bdi></span><small>${s.knownDays?esc(s.knownDays)+' '+t('observed days','روز دارای داده')+' · ':''}${t('A separate observation, not a complete weekly comparison or proof of a sales cause.','مشاهده‌ای مستقل است؛ نه مقایسهٔ کامل هفتگی و نه اثبات علت تغییر فروش.')}</small></li>`).join('');}
+ function signals(d,language){const fa=language==='fa',t=(en,per)=>fa?per:en;return reviewSignals(d).map(s=>`<li class="be-dated-issue"><strong>${esc((labels[s.code]||[s.code,s.code])[fa?1:0])} · ${t('dated observation to review','مشاهدهٔ تاریخ‌دار نیازمند بررسی')}</strong><span><bdi>${format(s.value)}</bdi> ${esc(s.unit==='minutes'?t('min','دقیقه'):s.unit==='orders'?t('orders','سفارش'):s.unit)} · <bdi>${esc(s.from===s.to?s.to:s.from+' — '+s.to)}</bdi></span><small>${s.knownDays?esc(s.knownDays)+' '+t('observed days','روز دارای داده')+' · ':''}${t('A separate observation, not a complete weekly comparison or proof of a sales cause.','مشاهده‌ای مستقل است؛ نه مقایسهٔ کامل هفتگی و نه اثبات علت تغییر فروش.')}</small></li>`).join('');}
  globalThis.BranchEvidenceView={render,funnel,reviewSignals,signals};
 })();
