@@ -5,6 +5,12 @@ import {scopeKeetaSnapshot} from '../src/services/keeta-snapshot-scope.ts';
 const now=new Date('2026-10-07T09:00:00Z'),p={from:'2026-09-30',to:'2026-10-06',previousFrom:'2026-09-23',previousTo:'2026-09-29'};
 const rows=()=>Array.from({length:14},(_,i)=>({source_key:'source',report_date:new Date(Date.parse('2026-09-23')+i*86400000).toISOString().slice(0,10),store_id:'1',present:true,orders:i<7?'20':'10',sales:i<7?'1200':'500'}));
 const talabat=()=>({state:'SUCCESS',reportDate:p.to,receivedAt:now.toISOString(),rows:[{storeId:'1',storeName:'Kabab Fareej — Barsha',present:true,values:{'Successful Orders':'10','Gross Sales':'500'}}]});
+
+test('Talabat caches transferable rows without copying driver parser functions',async()=>{
+ let reads=0;const db={query:async()=>{reads++;return {rows:rows(),_parsers:[()=>0]};}};
+ assert.equal((await readTalabatGrowth(talabat(),db,now)).rows[0].delta,-4900);
+ assert.equal((await readTalabatGrowth(talabat(),db,now)).rows[0].delta,-4900);assert.equal(reads,1);
+});
 test('Keeta direct historical comparison removes dependency on an old snapshot and stays scoped',async()=>{
  const comparison={from:p.previousFrom,to:p.previousTo,sales:8029,orders:110,verifiedBy:'SOURCE_CHANGE_RATIOS'};
  const data:any={state:'SUCCESS',snapshot:{periodFrom:p.from,periodTo:p.to,comparisonFrom:p.previousFrom,comparisonTo:p.previousTo,observedAt:now.toISOString(),shops:[{shopId:'1',business:{shop_income:'10,183.50',shop_valid_order_num:'130'},businessComparison:comparison},{shopId:'2',shopName:'Forbidden',businessComparison:comparison}]}};
