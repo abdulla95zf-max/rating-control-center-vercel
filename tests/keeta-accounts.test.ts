@@ -8,6 +8,12 @@ test('account identity supplies brand when Keeta shop codes contain only a locat
  assert.equal(keetaAccountShopName('frb-kabab','FRB Kabab — Ajman'),'FRB Kabab — Ajman');
 });
 const payload=(id:string)=>({periodFrom:'2026-10-15',periodTo:'2026-10-21',comparisonFrom:'2026-10-08',comparisonTo:'2026-10-14',shops:[{shopId:id,shopName:'Brand '+id,business:{shop_income:100}}],customers:{pay:[{value:9}],frequency:[],conversion:[],byShop:[{shopId:id,pay:[{value:3}]}]},items:[{product:'Brand '+id}],itemsByShop:[{shopId:id,items:[{product:id}]}],coverage:{business:true,service:true,opening:1,ready:1,customers:3,items:true,itemStores:1}});
+test('unverified historical frequency is withheld without hiding sales, pay or conversion; verified snapshots retain it',()=>{
+ const source:any=payload('1');source.customers.frequency=[{value:'35.28%'}];source.customers.byShop[0].frequency=[{value:'35.28%'}];
+ const read=()=>mergeKeetaAccounts([{accountKey:'frb-shawarma',payload:source,observedAt:'2026-10-22T08:00:00Z'}]);
+ const old=read();assert.deepEqual(old.customers.frequency,[]);assert.deepEqual(old.customers.byShop[0].frequency,[]);assert.equal(old.customers.pay[0].value,9);assert.equal(old.shops[0].business.shop_income,100);assert.equal(source.customers.frequency[0].value,'35.28%');
+ source.coverage.frequencyContextVerified=true;const current=read();assert.equal(current.customers.frequency[0].value,'35.28%');assert.equal(current.coverage.customers,3);
+});
 test('reports retain all accounts, choose latest per account, and never sum brand unique customers',()=>{
  const result=mergeKeetaAccounts([{accountKey:'kabab-fareej',payload:payload('1'),observedAt:'2026-10-22T04:00:00Z'},{accountKey:'frb-shawarma',payload:payload('2'),observedAt:'2026-10-22T05:00:00Z'}]);
  assert.equal(result.shops.length,2);assert.equal(result.observedAt,'2026-10-22T04:00:00.000Z');assert.deepEqual(result.customers.pay,[]);assert.deepEqual(result.items,[]);assert.equal(result.customers.byShop.length,2);

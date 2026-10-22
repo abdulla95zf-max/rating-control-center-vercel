@@ -14,8 +14,10 @@ export function mergeKeetaAccounts(input:{accountKey?:string;payload:any;observe
  const latest=new Map<string,{accountKey:string;payload:any;observedAt:string}>();
  for(const row of input){
   const accountKey=row.accountKey??'kabab-fareej',source=row.payload,at=new Date(row.observedAt as any).toISOString();
+  const hideFrequency=source?.coverage?.frequencyContextVerified!==true&&(source?.customers?.frequency?.length||(source?.customers?.byShop??[]).some((s:any)=>s.frequency?.length));
   const p=source&&{...source,shops:Array.isArray(source.shops)?source.shops.map((s:any)=>({...s,shopName:keetaAccountShopName(accountKey,s.shopName)})):source.shops,
-   customers:source.customers&&{...source.customers,byShop:(source.customers.byShop??[]).map((s:any)=>({...s,shopName:keetaAccountShopName(accountKey,s.shopName)}))},
+   ...(hideFrequency?{coverage:{...source.coverage,customers:Math.min(Number(source.coverage?.customers??3),2),frequencyContextVerified:false}}:{}),
+   customers:source.customers&&{...source.customers,...(hideFrequency&&source.customers.frequency?{frequency:[]}:{}),byShop:(source.customers.byShop??[]).map((s:any)=>({...s,...(hideFrequency&&s.frequency?{frequency:[]}:{}),shopName:keetaAccountShopName(accountKey,s.shopName)}))},
    itemsByShop:(source.itemsByShop??[]).map((s:any)=>({...s,shopName:keetaAccountShopName(accountKey,s.shopName)}))};
   if(!allowed.includes(accountKey)||!p||!Array.isArray(p.shops)||!Array.isArray(p.items)||!p.customers||!/^\d{4}-\d{2}-\d{2}$/.test(p.periodFrom)||!/^\d{4}-\d{2}-\d{2}$/.test(p.periodTo))throw Error('KEETA_PERFORMANCE_READ_FAILED');
   const old=latest.get(accountKey);
@@ -40,5 +42,5 @@ export function mergeKeetaAccounts(input:{accountKey?:string;payload:any;observe
  const all=(key:string)=>included.every(r=>r.payload.coverage?.[key]===true),sum=(key:string)=>included.reduce((n,r)=>n+Number(r.payload.coverage?.[key]??0),0);
  const observedAt=included.map(r=>r.observedAt).sort()[0]!;
  return {...first.payload,observedAt,shops,customers:{pay:[],frequency:[],conversion:[],byShop},items:[],itemsByShop,accountReports,
-  accountCoverage:{included:included.map(r=>r.accountKey),missing},coverage:{business:all('business'),service:all('service'),opening:sum('opening'),ready:sum('ready'),customers:Math.min(...included.map(r=>Number(r.payload.coverage?.customers??0))),items:all('items'),itemStores:sum('itemStores')}};
+  accountCoverage:{included:included.map(r=>r.accountKey),missing},coverage:{frequencyContextVerified:all('frequencyContextVerified'),business:all('business'),service:all('service'),opening:sum('opening'),ready:sum('ready'),customers:Math.min(...included.map(r=>Number(r.payload.coverage?.customers??0))),items:all('items'),itemStores:sum('itemStores')}};
 }

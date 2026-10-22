@@ -10,7 +10,7 @@ export function scopeKeetaSnapshot(snapshot:any,allowedIds:ReadonlySet<string>){
  const byShop=(snapshot.customers?.byShop??[]).filter((shop:any)=>effectiveIds.has(String(shop.shopId)));
  const customers=oneAccount?{...oneAccount.customers,byShop}:brandScopeAvailable?{...snapshot.customers,byShop}:{pay:[],frequency:[],conversion:[],byShop};
  const itemsByShop=(snapshot.itemsByShop??[]).filter((shop:any)=>effectiveIds.has(String(shop.shopId)));
- const result={...snapshot,shops,customers,items:oneAccount?oneAccount.items:brandScopeAvailable?snapshot.items:[],itemsByShop,brandScopeAvailable};
+ const result={...snapshot,shops,customers,coverage:oneAccount?oneAccount.coverage:snapshot.coverage,items:oneAccount?oneAccount.items:brandScopeAvailable?snapshot.items:[],itemsByShop,brandScopeAvailable};
  if(snapshot.accountReports){result.accountReports=accountReports;result.accountCoverage={included:accountReports.map((a:any)=>a.accountKey),missing:[]};}
  return result;
 }
