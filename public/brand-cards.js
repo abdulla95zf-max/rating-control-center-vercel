@@ -6,7 +6,7 @@
  const rank=option=>!option.value?-1:(priority.indexOf(assets[key(option.value||option.textContent)])<0?priority.length:priority.indexOf(assets[key(option.value||option.textContent)]));
  const asset=value=>assets[key(value)]?'/brands/'+assets[key(value)]+'.webp':null;
  const match=value=>{const text=key(value),name=Object.keys(assets).sort((a,b)=>b.length-a.length).find(name=>text===name||text.startsWith(name+' '));return name?asset(name):null;};
- const ids=['brandFilter','performanceBrand','growthBrand','npBrand','doBrand','branchBrand','actionBrand','recentBrand'];
+ const ids=['brandFilter','performanceBrand','growthBrand','npBrand','doBrand','branchBrand','actionBrand','recentBrand','kpAccount'];
  const state=new WeakMap();let pendingFocus=null;
  function sync(){
   for(const id of ids){
