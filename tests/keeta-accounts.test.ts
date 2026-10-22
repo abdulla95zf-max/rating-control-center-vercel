@@ -1,6 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {mergeKeetaAccounts} from '../src/services/keeta-account-merge.ts';
+import {mergeKeetaAccounts,keetaAccountShopName} from '../src/services/keeta-account-merge.ts';
 import {scopeKeetaSnapshot} from '../src/services/keeta-snapshot-scope.ts';
+import {branchIdentity} from '../src/services/branch-identity.ts';
+test('account identity supplies brand when Keeta shop codes contain only a location',()=>{
+ for(const [profile,raw,expected,brand] of [['frb-shawarma','FRB-Barsha','FRB Shawarma — Barsha','FRB Shawarma'],['frb-kabab','FRB- Um Aldaman','FRB Kabab — Um Aldaman','FRB Kabab'],['kabab-al-sham','KS - Twar','Kabab Al Sham — Twar','Kabab Al Sham'],['taazaa-mumbai','RAK','Taazaa Mumbai — RAK','Taazaa Mumbai']]){const name=keetaAccountShopName(profile,raw);assert.equal(name,expected);assert.equal(branchIdentity(name).brand,brand);}
+ assert.equal(keetaAccountShopName('kabab-fareej','KF - Ajman'),'KF - Ajman');
+ assert.equal(keetaAccountShopName('frb-kabab','FRB Kabab — Ajman'),'FRB Kabab — Ajman');
+});
 const payload=(id:string)=>({periodFrom:'2026-10-15',periodTo:'2026-10-21',comparisonFrom:'2026-10-08',comparisonTo:'2026-10-14',shops:[{shopId:id,shopName:'Brand '+id,business:{shop_income:100}}],customers:{pay:[{value:9}],frequency:[],conversion:[],byShop:[{shopId:id,pay:[{value:3}]}]},items:[{product:'Brand '+id}],itemsByShop:[{shopId:id,items:[{product:id}]}],coverage:{business:true,service:true,opening:1,ready:1,customers:3,items:true,itemStores:1}});
 test('reports retain all accounts, choose latest per account, and never sum brand unique customers',()=>{
  const result=mergeKeetaAccounts([{accountKey:'kabab-fareej',payload:payload('1'),observedAt:'2026-10-22T04:00:00Z'},{accountKey:'frb-shawarma',payload:payload('2'),observedAt:'2026-10-22T05:00:00Z'}]);

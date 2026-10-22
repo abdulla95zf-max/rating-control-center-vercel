@@ -1,9 +1,22 @@
 /** Merge exact matching periods; never add unique-customer or product brand aggregates. */
+export function keetaAccountShopName(accountKey:unknown,value:unknown){
+ const labels:Record<string,string>={'frb-shawarma':'FRB Shawarma','frb-kabab':'FRB Kabab','taazaa-mumbai':'Taazaa Mumbai','kabab-al-sham':'Kabab Al Sham'};
+ const label=labels[String(accountKey)];if(!label||value===undefined||value===null)return value;
+ if(typeof value!=='string'||!value.trim()||value.length>1024)throw Error('KEETA_ACCOUNT_NAME_INVALID');
+ let branch=value.trim();
+ if(branch.toLowerCase().startsWith(label.toLowerCase()))branch=branch.slice(label.length);
+ else branch=branch.replace(/^(?:FRB|KS)\s*[-_:–—]\s*/i,'');
+ branch=branch.replace(/^\s*[-_:–—,]+\s*/,'').trim();
+ return label+(branch?' — '+branch:'');
+}
 export function mergeKeetaAccounts(input:{accountKey?:string;payload:any;observedAt:unknown}[]){
  const allowed=['kabab-fareej','frb-shawarma','frb-kabab','taazaa-mumbai','kabab-al-sham'];
  const latest=new Map<string,{accountKey:string;payload:any;observedAt:string}>();
  for(const row of input){
-  const accountKey=row.accountKey??'kabab-fareej',p=row.payload,at=new Date(row.observedAt as any).toISOString();
+  const accountKey=row.accountKey??'kabab-fareej',source=row.payload,at=new Date(row.observedAt as any).toISOString();
+  const p=source&&{...source,shops:Array.isArray(source.shops)?source.shops.map((s:any)=>({...s,shopName:keetaAccountShopName(accountKey,s.shopName)})):source.shops,
+   customers:source.customers&&{...source.customers,byShop:(source.customers.byShop??[]).map((s:any)=>({...s,shopName:keetaAccountShopName(accountKey,s.shopName)}))},
+   itemsByShop:(source.itemsByShop??[]).map((s:any)=>({...s,shopName:keetaAccountShopName(accountKey,s.shopName)}))};
   if(!allowed.includes(accountKey)||!p||!Array.isArray(p.shops)||!Array.isArray(p.items)||!p.customers||!/^\d{4}-\d{2}-\d{2}$/.test(p.periodFrom)||!/^\d{4}-\d{2}-\d{2}$/.test(p.periodTo))throw Error('KEETA_PERFORMANCE_READ_FAILED');
   const old=latest.get(accountKey);
   if(!old||p.periodTo>old.payload.periodTo||p.periodTo===old.payload.periodTo&&at>old.observedAt)latest.set(accountKey,{accountKey,payload:p,observedAt:at});
