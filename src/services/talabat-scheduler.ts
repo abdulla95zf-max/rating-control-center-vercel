@@ -18,9 +18,9 @@ export interface SchedulerStore{
 export function dueTalabatSlots(now:number,startAt:string):SchedulerSlot[]{
  if(!Number.isFinite(now)||!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.000Z$/.test(startAt)||!Number.isFinite(Date.parse(startAt))||new Date(Date.parse(startAt)).toISOString()!==startAt)throw Error('SCHEDULER_START_INVALID');
  const cutoff=Date.parse(startAt),day=new Date(now);day.setUTCHours(0,0,0,0);
- const dates:Record<Kind,number>={ratings:day.getTime()+Math.floor(new Date(now).getUTCHours()/4)*4*60*MINUTE+17*MINUTE,
+ const dates:Record<Kind,number>={ratings:day.getTime()+Math.floor(new Date(now).getUTCHours()/6)*6*60*MINUTE+17*MINUTE,
   performance:day.getTime()+(5*60+30)*MINUTE,tstar:day.getTime()+(5*60+45)*MINUTE};
- if(dates.ratings>now)dates.ratings-=4*60*MINUTE;
+ if(dates.ratings>now)dates.ratings-=6*60*MINUTE;
  for(const kind of ['performance','tstar'] as const)if(dates[kind]>now)dates[kind]-=24*60*MINUTE;
  return (Object.keys(workflows) as Kind[]).filter(kind=>dates[kind]>=cutoff&&dates[kind]<=now&&now-dates[kind]<=(kind==='ratings'?60:360)*MINUTE)
   .sort((a,b)=>dates[a]-dates[b]).map(kind=>({kind,at:new Date(dates[kind]).toISOString()}));

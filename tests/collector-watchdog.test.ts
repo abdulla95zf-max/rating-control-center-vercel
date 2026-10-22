@@ -9,17 +9,20 @@ function memory(){let saved:any=null,busy=false;
   const store:WatchdogStore={async locked(action){if(busy)return null;busy=true;try{return await action(saved,async next=>{saved=structuredClone(next);});}finally{busy=false;}}};
   return {store,get:()=>saved};
 }
-test('five-hour threshold uses successful sync; exact boundary is healthy',()=>{
-  assert.equal(evaluateWatchdog(rows(5),null,at).messages.length,0);
-  const plan=evaluateWatchdog(rows(5.01),null,at);
+test('per-platform schedule thresholds use successful sync; exact boundaries are healthy',()=>{
+  assert.equal(evaluateWatchdog(rows(24),null,at).next.platforms.keeta.health,'OK');
+  assert.equal(evaluateWatchdog(rows(26),null,at).next.platforms.keeta.health,'OK');
+  assert.equal(evaluateWatchdog(rows(7.01),null,at).next.platforms.talabat.health,'DELAYED');
+  assert.equal(evaluateWatchdog(rows(7),null,at).messages.length,0);
+  const plan=evaluateWatchdog(rows(26.01),null,at);
   assert.equal(plan.messages.length,2);assert.equal(plan.next.platforms.keeta.health,'DELAYED');
   const carried=rows(1);carried[1].timestamp='2026-09-01T00:00:00.000Z';carried[1].carriedForward=true;
   assert.equal(evaluateWatchdog(carried,null,at).next.platforms.keeta.health,'OK');
 });
 test('missing, error, empty, future and regressing timestamps cannot recover',()=>{
-  const old=evaluateWatchdog(rows(6),null,at).next;
+  const old=evaluateWatchdog(rows(8),null,at).next;
   for(const input of [[],rows(1).map((r:any)=>({...r,state:'ERROR'})),rows(1).map((r:any)=>({...r,state:'EMPTY'})),
-    rows(1).map((r:any)=>({...r,syncTimestamp:'invalid'})),rows(-1),rows(7)]){
+    rows(1).map((r:any)=>({...r,syncTimestamp:'invalid'})),rows(-1),rows(9)]){
     const plan=evaluateWatchdog(input,old,at);assert.equal(plan.next.platforms.talabat.health,'UNKNOWN');
     assert.equal(plan.next.platforms.talabat.lastSuccess,old.platforms.talabat.lastSuccess);
     assert.ok(plan.messages.every(m=>!m.includes('رفع شد')));
@@ -28,31 +31,31 @@ test('missing, error, empty, future and regressing timestamps cannot recover',()
 test('stale notification deduplicates; recovery only once; next outage alerts again',async()=>{
   const db=memory(),sent:string[]=[];let time=at;
   const notify=async(text:string)=>{sent.push(text);};
-  await runWatchdog(db.store,async()=>rows(6),notify,()=>time);assert.equal(sent.length,1);
-  time+=900_000;await runWatchdog(db.store,async()=>rows(6),notify,()=>time);assert.equal(sent.length,1);
+  await runWatchdog(db.store,async()=>rows(8),notify,()=>time);assert.equal(sent.length,1);
+  time+=900_000;await runWatchdog(db.store,async()=>rows(8),notify,()=>time);assert.equal(sent.length,1);
   time+=900_000;await runWatchdog(db.store,async()=>rows(1),notify,()=>time);assert.equal(sent.length,2);assert.match(sent[1]!,/رفع شد/);
   time+=900_000;await runWatchdog(db.store,async()=>rows(1),notify,()=>time);assert.equal(sent.length,2);
-  time+=900_000;await runWatchdog(db.store,async()=>rows(6),notify,()=>time);assert.equal(sent.length,3);
+  time+=900_000;await runWatchdog(db.store,async()=>rows(8),notify,()=>time);assert.equal(sent.length,3);
 });
 test('upstream failure is unknown, deduplicated and not false recovery',async()=>{
   const db=memory(),sent:string[]=[];let time=at;
   const notify=async(t:string)=>{sent.push(t);};
-  await runWatchdog(db.store,async()=>rows(6),notify,()=>time);
+  await runWatchdog(db.store,async()=>rows(8),notify,()=>time);
   time+=900_000;await runWatchdog(db.store,async()=>{throw Error('private');},notify,()=>time);
   assert.equal(db.get().platforms.keeta.health,'UNKNOWN');assert.doesNotMatch(sent[1]!,/private|رفع شد/);
   time+=900_000;await runWatchdog(db.store,async()=>{throw Error('private');},notify,()=>time);assert.equal(sent.length,2);
   time+=900_000;await runWatchdog(db.store,async()=>rows(1),notify,()=>time);assert.match(sent[2]!,/رفع شد/);
 });
 test('failed delivery leaves state unchanged and next check retries',async()=>{
-  const db=memory();await assert.rejects(runWatchdog(db.store,async()=>rows(6),async()=>{throw Error('failed');},()=>at));
+  const db=memory();await assert.rejects(runWatchdog(db.store,async()=>rows(8),async()=>{throw Error('failed');},()=>at));
   assert.equal(db.get(),null);let sent=0;
-  await runWatchdog(db.store,async()=>rows(6),async()=>{sent++;},()=>at+900_000);assert.equal(sent,1);
+  await runWatchdog(db.store,async()=>rows(8),async()=>{sent++;},()=>at+900_000);assert.equal(sent,1);
 });
 test('overlapping invocation does not notify twice; rapid repeat is throttled',async()=>{
   const db=memory();let release!:()=>void,entered!:()=>void,sent=0;
   const ready=new Promise<void>(r=>{entered=r;}),gate=new Promise<void>(r=>{release=r;});
-  const first=runWatchdog(db.store,async()=>{entered();await gate;return rows(6);},async()=>{sent++;},()=>at);
-  await ready;assert.equal(await runWatchdog(db.store,async()=>rows(6),async()=>{sent++;},()=>at),null);
+  const first=runWatchdog(db.store,async()=>{entered();await gate;return rows(8);},async()=>{sent++;},()=>at);
+  await ready;assert.equal(await runWatchdog(db.store,async()=>rows(8),async()=>{sent++;},()=>at),null);
   release();await first;assert.equal(sent,1);
   const result=await runWatchdog(db.store,async()=>assert.fail('throttled'),async()=>assert.fail(),()=>at+1000);
   assert.equal(result?.code,'THROTTLED');
@@ -89,7 +92,7 @@ test('Telegram rejection is redacted and not persisted',async()=>{
 test('validated upstream success alerts only the delayed platform and confirms Telegram acknowledgement',async()=>{
   const db=memory(),secret='s'.repeat(64),env={COLLECTOR_WATCHDOG_ENABLED:'1',COLLECTOR_WATCHDOG_SECRET:secret,
     TELEGRAM_BOT_TOKEN:'123456:test_token',TELEGRAM_CHAT_ID:'-123456',RATINGS_API_URL:'https://test.invalid/api/ratings/latest',RATINGS_API_TOKEN:'t'.repeat(64)};
-  const current=new Date().toISOString(),old=new Date(Date.now()-6*hour).toISOString();
+  const current=new Date().toISOString(),old=new Date(Date.now()-8*hour).toISOString();
   const platform=(name:string,stamp:string)=>{
     const row={platform:name,storeIdentityKey:name==='talabat'?'TB_AE;1':'KEETA;1',storeName:'Synthetic',rating:4.4,
       reviewCount:10,oneStarCount:0,timestamp:stamp,syncTimestamp:stamp,carriedForward:false,

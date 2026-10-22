@@ -170,14 +170,14 @@ test('dashboard packages local identity artwork, sticky platform navigation and 
 });
 
 
-test('Keeta and Talabat freshness accommodates four-hour schedules without hiding missed cycles',()=>{
+test('freshness accommodates daily Keeta and six-hour Talabat without hiding missed cycles',()=>{
  const source=fs.readFileSync('public/app.js','utf8'),segment=source.slice(source.indexOf('function cloudHealth('),source.indexOf('function cloudPlatformCards('));
  const now=Date.parse('2026-10-06T12:00:00Z'),context=vm.createContext({Date:{now:()=>now},timestamp:Date.parse});vm.runInContext(segment+';globalThis.health=cloudHealth',context);
- for(const platform of ['talabat','keeta']){
+ for(const platform of ['talabat']){
   const health=(hours:number)=>context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()});
-  assert.equal(health(3),'LIVE');assert.equal(health(4.99),'LIVE');assert.equal(health(5),'DELAYED');assert.equal(health(8),'DELAYED');assert.equal(health(8.01),'STALE');assert.equal(health(-1),'UNKNOWN');
+  assert.equal(health(6),'LIVE');assert.equal(health(6.99),'LIVE');assert.equal(health(7),'DELAYED');assert.equal(health(12),'DELAYED');assert.equal(health(12.01),'STALE');assert.equal(health(-1),'UNKNOWN');
   assert.equal(context.health({platform,state:'ERROR'}),'ERROR');assert.equal(context.health({platform,state:'EMPTY'}),'EMPTY');assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:'invalid'}),'UNKNOWN');
  }
- for(const platform of ['noon','deliveroo'])for(const [hours,expected] of [[3,'LIVE'],[24,'LIVE'],[25.99,'LIVE'],[26,'DELAYED'],[48,'DELAYED'],[48.01,'STALE']] as const)assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()}),expected);
+ for(const platform of ['keeta','noon','deliveroo'])for(const [hours,expected] of [[3,'LIVE'],[24,'LIVE'],[25.99,'LIVE'],[26,'DELAYED'],[48,'DELAYED'],[48.01,'STALE']] as const)assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()}),expected);
  assert.equal(context.health({platform:'careem',state:'SUCCESS',syncTimestamp:new Date(now-3*3600000).toISOString()}),'STALE');
 });

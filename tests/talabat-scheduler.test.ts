@@ -6,6 +6,11 @@ import {createCloudHandler} from '../src/cloud-api.ts';
 const start='2026-10-14T00:00:00.000Z',now=Date.parse('2026-10-14T05:45:00Z');
 const flags={TALABAT_EXTERNAL_SCHEDULER_ENABLED:'1',TALABAT_COLLECTOR_MODE:'github',REPORT_COLLECTOR_MODE:'github',TSTAR_COLLECTOR_MODE:'github',REPORT_DAILY_SCHEDULE_ENABLED:'1',TSTAR_DAILY_SCHEDULE_ENABLED:'1'};
 const sig=(slot:SchedulerSlot)=>slot.kind+';'+slot.at;
+test('ratings have exactly four six-hour UTC slots per day and no four-hour extras',()=>{
+ const slots=new Set<string>();
+ for(let minute=0;minute<1440;minute++)for(const slot of dueTalabatSlots(Date.parse(start)+minute*60000,start))if(slot.kind==='ratings')slots.add(slot.at);
+ assert.deepEqual([...slots],['00','06','12','18'].map(h=>`2026-10-14T${h}:17:00.000Z`));
+});
 function memory(){const rows=new Map<string,any>();const store:SchedulerStore={
  async claim(slot){if(rows.has(sig(slot)))return false;rows.set(sig(slot),{state:'DISPATCHING',runId:null});return true;},
  async state(slot){return rows.get(sig(slot));},async finish(slot,state,runId){rows.set(sig(slot),{state,runId});}
@@ -13,8 +18,8 @@ function memory(){const rows=new Map<string,any>();const store:SchedulerStore={
 function github(overrides:Partial<SchedulerGithub>={}){return {flags:async()=>flags,busy:async()=>false,dispatch:async()=>({state:'ACCEPTED' as const,runId:'123'}),...overrides};}
 
 test('UTC schedule, midnight, exact boundary and activation exclude previous slots',()=>{
- assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T04:16:59Z'),start),[]);
- assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T04:17:00Z'),start),[{kind:'ratings',at:'2026-10-14T04:17:00.000Z'}]);
+ assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T00:16:59Z'),start),[]);
+ assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T00:17:00Z'),start),[{kind:'ratings',at:'2026-10-14T00:17:00.000Z'}]);
  assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T00:17:00Z'),start),[{kind:'ratings',at:'2026-10-14T00:17:00.000Z'}]);
  assert.deepEqual(dueTalabatSlots(now,start).map(s=>s.kind),['performance','tstar']);
  assert.deepEqual(dueTalabatSlots(now,'2026-10-14T05:46:00.000Z'),[]);
@@ -24,7 +29,7 @@ test('UTC schedule, midnight, exact boundary and activation exclude previous slo
 test('one accepted dispatch per slot across repeated and simultaneous ticks, one new job per tick',async()=>{
  const db=memory();let dispatched=0;
  const remote=github({dispatch:async()=>{dispatched++;return {state:'ACCEPTED',runId:String(dispatched)};}});
- const at=Date.parse('2026-10-14T04:17:00Z');
+ const at=Date.parse('2026-10-14T00:17:00Z');
  await Promise.all([runTalabatScheduler(db.store,remote,at,start),runTalabatScheduler(db.store,remote,at,start)]);
  assert.equal(dispatched,1);await runTalabatScheduler(db.store,remote,at+60000,start);assert.equal(dispatched,1);
  const first=await runTalabatScheduler(db.store,remote,now,start);assert.equal((first as any).slot.kind,'performance');
@@ -44,7 +49,7 @@ test('disabled internal cutover or wrong runner fails before claim or dispatch; 
 
 test('unknown delivery and failed ledger completion never resend or hide need for review',async()=>{
  const db=memory();let calls=0;
- const remote=github({dispatch:async()=>{calls++;return {state:'UNKNOWN',runId:null};}}),at=Date.parse('2026-10-14T04:17:00Z');
+ const remote=github({dispatch:async()=>{calls++;return {state:'UNKNOWN',runId:null};}}),at=Date.parse('2026-10-14T00:17:00Z');
  assert.equal((await runTalabatScheduler(db.store,remote,at,start)).code,'REVIEW_REQUIRED');
  assert.equal((await runTalabatScheduler(db.store,remote,at+60000,start)).code,'REVIEW_REQUIRED');assert.equal(calls,1);
  const db2=memory();const store={...db2.store,finish:async()=>{throw Error('synthetic DB failure');}};
@@ -82,7 +87,7 @@ test('Postgres slot claim commits before external call and uses unique workflow/
  const queries:any[]=[];
  const db:any={query:async(query:any)=>{queries.push(query);return {rows:query.text.includes('INSERT INTO')?[{workflow:'ratings'}]:[]};}};
  const store=new PostgresSchedulerStore(()=>db);
- const slot:SchedulerSlot={kind:'ratings',at:'2026-10-14T04:17:00.000Z'};
+ const slot:SchedulerSlot={kind:'ratings',at:'2026-10-14T00:17:00.000Z'};
  assert.equal(await store.claim(slot),true);
  assert.match(queries[0].text,/PRIMARY KEY\(workflow,slot_at\)/);
  assert.match(queries[1].text,/ON CONFLICT\(workflow,slot_at\) DO NOTHING/);

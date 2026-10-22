@@ -20,11 +20,12 @@ export function evaluateWatchdog(observed:Observation[],previous:Saved|null,now:
     const stamp=row?.syncTimestamp,ms=stamp?Date.parse(stamp):NaN;
     const valid=row?.state==='SUCCESS'&&row.storeCount>0&&Number.isFinite(ms)&&ms<=now+60_000&&
       (!old?.lastSuccess||ms>=Date.parse(old.lastSuccess));
-    const health:Health=!valid?'UNKNOWN':now-ms>5*HOUR?'DELAYED':'OK';
+    const delayHours=platform==='keeta'?26:7;
+    const health:Health=!valid?'UNKNOWN':now-ms>delayHours*HOUR?'DELAYED':'OK';
     const lastSuccess=valid?stamp!:old?.lastSuccess??null;
     platforms[platform]={health,lastSuccess};
     const name=platform==='talabat'?'Talabat':'Keeta';
-    if(health==='DELAYED'&&old?.health!=='DELAYED')messages.push(`${name}: بیش از ۵ ساعت بدون sync موفق ریتینگ. آخرین sync: ${dubai(lastSuccess)}. این هشدار علت توقف را مشخص نمی‌کند.`);
+    if(health==='DELAYED'&&old?.health!=='DELAYED')messages.push(`${name}: بیش از ${delayHours} ساعت بدون sync موفق ریتینگ. آخرین sync: ${dubai(lastSuccess)}. این هشدار علت توقف را مشخص نمی‌کند.`);
     if(health==='UNKNOWN'&&old?.health!=='UNKNOWN')messages.push(`${name}: بررسی sync ناموفق است؛ تازگی داده قابل تأیید نیست. این پیام به معنی انقضای session نیست.`);
     if(health==='OK'&&old&&old.health!=='OK')messages.push(`${name}: بررسی رفع شد؛ sync موفق و تازه تأیید شد. آخرین sync: ${dubai(lastSuccess)}.`);
   }

@@ -16,5 +16,5 @@ test('daily Deliveroo rating freshness stays live through the next day and detec
  const now=Date.parse('2026-10-10T12:00:00Z');class Clock extends Date{static now(){return now;}}
  const context:any={Date:Clock,timestamp:Date.parse};vm.createContext(context);vm.runInContext(source.slice(start,end),context);
  for(const [hours,expected]of [[6,'LIVE'],[24,'LIVE'],[27,'DELAYED'],[49,'STALE']] as const){const r={platform:'deliveroo',state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()};assert.equal(context.cloudHealth(r),expected);}
- assert.equal(context.cloudHealth({platform:'talabat',state:'SUCCESS',syncTimestamp:new Date(now-6*3600000).toISOString()}),'DELAYED');
+ assert.equal(context.cloudHealth({platform:'talabat',state:'SUCCESS',syncTimestamp:new Date(now-8*3600000).toISOString()}),'DELAYED');
 });
