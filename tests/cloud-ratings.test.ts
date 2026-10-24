@@ -181,3 +181,13 @@ test('freshness accommodates daily Keeta and six-hour Talabat without hiding mis
  for(const platform of ['keeta','noon','deliveroo'])for(const [hours,expected] of [[3,'LIVE'],[24,'LIVE'],[25.99,'LIVE'],[26,'DELAYED'],[48,'DELAYED'],[48.01,'STALE']] as const)assert.equal(context.health({platform,state:'SUCCESS',syncTimestamp:new Date(now-hours*3600000).toISOString()}),expected);
  assert.equal(context.health({platform:'careem',state:'SUCCESS',syncTimestamp:new Date(now-3*3600000).toISOString()}),'STALE');
 });
+
+test('independent Keeta account sync times cannot suppress healthy Talabat data',async()=>{
+ const later={...keeta,storeIdentityKey:'KEETA;second-account',timestamp:'2026-09-17T13:00:00.000Z',syncTimestamp:'2026-09-17T13:00:00.000Z',carriedForward:false};
+ const rows=[keeta,later];const data={ok:true,selector:'all',storeCount:3,ratings:[talabat,...rows],platforms:[platform('talabat',[talabat]),platform('keeta',rows)]};
+ const result=await fetchLatestRatings(config,async()=>Response.json(data));assert.equal(result.storeCount,3);assert.equal(result.platforms[0].state,'SUCCESS');assert.equal(result.platforms[1].storeCount,2);assert.equal(result.platforms[1].ratings[1].syncTimestamp,later.syncTimestamp);
+ for(const invalid of [{...later,timestamp:'2026-09-17T14:00:00.000Z'},{...later,carriedForward:true},{...later,syncTimestamp:'2026-09-17T10:00:00.000Z'}]){
+  const broken=structuredClone(data);broken.ratings[2]=invalid;broken.platforms[1].ratings[1]=invalid;
+  await assert.rejects(fetchLatestRatings(config,async()=>Response.json(broken)),{status:502});
+ }
+});

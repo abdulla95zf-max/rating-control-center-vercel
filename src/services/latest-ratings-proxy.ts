@@ -57,9 +57,13 @@ function projectPlatform(value:any,token:string):CloudPlatformResult{
     ![null,'RATINGS_READ_FAILED'].includes(value.errorCode)||!Array.isArray(value.ratings)||value.ratings.length>10000)throw Error();
   const ratings:CloudRating[]=value.ratings.map((row:any)=>projectRating(row,token));
   if(ratings.some(row=>row.platform!==value.platform)||value.storeCount!==ratings.length)throw Error();
-  if(ratings.some(row=>row.syncTimestamp!==value.syncTimestamp))throw Error();
-  if(value.platform==='keeta'&&ratings.some(row=>Date.parse(row.timestamp)>Date.parse(row.syncTimestamp!)||
-    row.carriedForward!==(row.timestamp!==row.syncTimestamp)))throw Error();
+  if(value.platform==='talabat'&&ratings.some(row=>row.syncTimestamp!==value.syncTimestamp))throw Error();
+  // Keeta accounts collect independently. Each row keeps its own account's sync;
+  // the platform timestamp is the oldest account run, including empty runs.
+  if(value.platform==='keeta'&&ratings.length&&(value.syncTimestamp===null||ratings.some(row=>
+    Date.parse(row.syncTimestamp!)<Date.parse(value.syncTimestamp)||
+    Date.parse(row.timestamp)>Date.parse(row.syncTimestamp!)||
+    row.carriedForward!==(row.timestamp!==row.syncTimestamp))))throw Error();
   if(value.state==='SUCCESS'&&(!ratings.length||value.errorCode!==null||value.emptyReason!==null))throw Error();
   if(value.state==='EMPTY'&&(ratings.length||value.errorCode!==null||value.emptyReason===null))throw Error();
   if(value.state==='ERROR'&&(ratings.length||value.storeCount!==0||value.errorCode!=='RATINGS_READ_FAILED'||value.emptyReason!==null||value.syncTimestamp!==null))throw Error();
