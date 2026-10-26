@@ -8,10 +8,33 @@ const metric=(d:any,code:string)=>d.evidence.metrics.find((m:any)=>m.code===code
 test('possible service drivers respect the shared 15-minute preparation policy',()=>{
  const rows=history();const row={current:{sales:700,orders:70},previous:{sales:1000,orders:100},diagnostics:talabatDiagnostics(rows,period)};
  let html=context.BranchEvidenceView.drivers({valid:true,change:-300,row},'en');
- assert.doesNotMatch(html,/Service may be adding friction/);
- for(let i=7;i<14;i++)rows[i]!.metrics['Average preparation time (minutes)']='15.01';
+ assert.doesNotMatch(html,/Service deteriorated/);
+ for(let i=7;i<14;i++)rows[i]!.metrics['Average preparation time (minutes)']='16';
  row.diagnostics=talabatDiagnostics(rows,period);html=context.BranchEvidenceView.drivers({valid:true,change:-300,row},'en');
- assert.match(html,/Service may be adding friction/);
+ assert.match(html,/Service deteriorated/);
+});
+
+function driverEntry(current:any,previous:any,metrics:any[]=[]){return {valid:true,change:current.sales-previous.sales,row:{current,previous,period,diagnostics:{matched:true,period,operations:[],evidence:{version:1,kind:'period',period,comparable:true,metrics:metrics.map(([code,a,b,complete=true])=>({code,current:{observed:a,complete},previous:{observed:b,complete}}))}}}};}
+test('traffic and order contribution outrank a smaller basket effect; improved conversion and slow-but-improving preparation are counter-evidence',()=>{
+ const entry=driverEntry({sales:6300,orders:70},{sales:10000,orders:100},[['visitors',700,1000],['orderingCustomers',77,100],['prep',16,18]]);
+ const html=context.BranchEvidenceView.drivers(entry,'en');
+ assert.ok(html.indexOf('Fewer visits')<html.indexOf('Smaller baskets'));assert.match(html,/did not deteriorate/);assert.doesNotMatch(html,/Service deteriorated|smaller share/);
+ const model=context.BranchStoryCore.analyze({...entry.row,eligible:true,diagnostics:{...entry.row.diagnostics,operations:[{code:'prep',current:16,previous:18}],funnel:{stages:[]}}},'keeta');
+ assert.ok(model.issues.some((i:any)=>i.code==='PREP_HIGH'));assert.equal(model.hypothesis,null);
+});
+test('basket-led change ranks basket first and a worsening service signal requires complete comparable periods',()=>{
+ const entry=driverEntry({sales:5000,orders:95},{sales:10000,orders:100},[['menuViews',700,1000],['prep',20,16]]);
+ const html=context.BranchEvidenceView.drivers(entry,'en');assert.ok(html.indexOf('Smaller baskets')<html.indexOf('Fewer visits'));assert.match(html,/Service deteriorated/);
+ entry.row.diagnostics.evidence.metrics.at(-1)!.current.complete=false;
+ assert.doesNotMatch(context.BranchEvidenceView.drivers(entry,'en'),/Service deteriorated/);
+});
+test('low sample suppresses funnel and service hypotheses while keeping arithmetic and an explicit limitation',()=>{
+ const entry=driverEntry({sales:700,orders:7},{sales:1000,orders:10},[['menuViews',70,100],['prep',20,16]]);
+ const html=context.BranchEvidenceView.drivers(entry,'en');assert.match(html,/Fewer than 20 orders/);assert.doesNotMatch(html,/Fewer visits|Service deteriorated/);
+});
+test('a sales increase driven by more orders ranks order contribution above the smaller basket contribution',()=>{
+ const entry=driverEntry({sales:13200,orders:120},{sales:10000,orders:100},[['visitors',1200,1000],['orderingCustomers',120,100]]);
+ const html=context.BranchEvidenceView.drivers(entry,'en');assert.ok(html.indexOf('More visits')<html.indexOf('Larger baskets'));assert.doesNotMatch(html,/Service deteriorated/);
 });
 test('Lens and Growth use the same symmetric order and basket attribution',()=>{
  const row=growthRow('branch','Test',period,{sales:7200,orders:80},{sales:10000,orders:100});

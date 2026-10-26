@@ -21,8 +21,8 @@
   const ordersDown=known(row.current?.orders)&&known(row.previous?.orders)&&Math.min(row.current.orders,row.previous.orders)>=20&&row.current.orders<row.previous.orders;
   let hypothesis=null;
   if(ordersDown&&known(views?.current)&&known(views?.previous)&&views.previous>=20&&views.current<views.previous)hypothesis={code:'VISITS_DOWN',basis:'OBSERVED',evidence:[views.current,views.previous,row.current.orders,row.previous.orders]};
-  else if(ordersDown&&(prepWorse||prepHigh))hypothesis={code:'DELAY_POSSIBLE',basis:'HYPOTHESIS',evidence:[prep.current,prep.previous,row.current.orders,row.previous.orders]};
-  else if(ordersDown&&known(offline?.current)&&offline.current>2)hypothesis={code:'AVAILABILITY_POSSIBLE',basis:'HYPOTHESIS',evidence:[offline.current,row.current.orders,row.previous.orders]};
+  else if(ordersDown&&prepWorse)hypothesis={code:'DELAY_POSSIBLE',basis:'HYPOTHESIS',evidence:[prep.current,prep.previous,row.current.orders,row.previous.orders]};
+  else if(ordersDown&&known(offline?.current)&&known(offline?.previous)&&offline.current>2&&offline.current>offline.previous)hypothesis={code:'AVAILABILITY_POSSIBLE',basis:'HYPOTHESIS',evidence:[offline.current,row.current.orders,row.previous.orders]};
   return {available:true,issues,hypothesis,stages,kind:d.funnel?.kind,metrics,ratio};
  }
  globalThis.BranchStoryCore={analyze};
