@@ -5,6 +5,14 @@ const period={from:'2026-10-14',to:'2026-10-20',previousFrom:'2026-10-07',previo
 function history(){return Array.from({length:14},(_,i)=>({report_date:new Date(Date.parse('2026-10-07T00:00:00Z')+i*86400000).toISOString().slice(0,10),present:true,orders:'10',metrics:{'Successful Orders':'10','Impressions':'1000','Viewed your menu':'100','Added items to cart':'40','Placed an order':'10','Average preparation time (minutes)':'15','Total AWT Duration (Minutes)':'20','Scheduled Open Time (Minutes)':'600','Unavailable time duration (Minutes)':'12','Cancelled Orders':'1','Total customer complaints received':'0','Orders from new customers':'3','Orders from returning customers':'7','Pro Revenue':'80','Revenue loss from rejections':'10'}}));}
 const context:any=vm.createContext({Intl});for(const name of ['branch-story','branch-evidence-view','branch-brief-view'])vm.runInContext(fs.readFileSync('public/'+name+'.js','utf8'),context);
 const metric=(d:any,code:string)=>d.evidence.metrics.find((m:any)=>m.code===code);
+test('possible service drivers respect the shared 15-minute preparation policy',()=>{
+ const rows=history();const row={current:{sales:700,orders:70},previous:{sales:1000,orders:100},diagnostics:talabatDiagnostics(rows,period)};
+ let html=context.BranchEvidenceView.drivers({valid:true,change:-300,row},'en');
+ assert.doesNotMatch(html,/Service may be adding friction/);
+ for(let i=7;i<14;i++)rows[i]!.metrics['Average preparation time (minutes)']='15.01';
+ row.diagnostics=talabatDiagnostics(rows,period);html=context.BranchEvidenceView.drivers({valid:true,change:-300,row},'en');
+ assert.match(html,/Service may be adding friction/);
+});
 test('Lens and Growth use the same symmetric order and basket attribution',()=>{
  const row=growthRow('branch','Test',period,{sales:7200,orders:80},{sales:10000,orders:100});
  assert.equal(row.orderEffect,-1900);assert.equal(row.basketEffect,-900);assert.equal(row.orderEffect!+row.basketEffect!,row.delta);

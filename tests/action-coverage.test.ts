@@ -16,6 +16,23 @@ test('Overview preparation threshold is strictly above 15 minutes',()=>{
  const r=evaluate(setup(),report(),points().map(p=>({...p,prep:15.01})));
  assert.match(r.actions[0].issues[0],/Prep time.*15.01/);
 });
+test('the visible next action follows the highest-priority issue, not insertion order',()=>{
+ const context=setup();context.formatNumber=String;context.formatRating=String;
+ context.groups=[{key:'branch',displayName:'Test branch',rows:[{platform:'noon',rating:4,reviewCount:1,oneStarCount:0}]}];
+ context.report=report();context.history={points:points().map(p=>({...p,prep:20}))};
+ const item=JSON.parse(vm.runInContext('JSON.stringify(buildActionCenter(groups,report,history)[0])',context));
+ assert.match(item.primaryIssue,/Prep time/);assert.match(item.nextAction,/peak-hour kitchen/);
+ assert.equal(item.signals.length,2);assert.match(item.signals[1].issue,/Noon rating/);
+});
+test('action cards expose one matched next check and keep supporting evidence collapsed',()=>{
+ const context=setup();context.escapeHtml=(v:unknown)=>String(v??'').replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]!));
+ context.state={actionBrand:'',actionTab:'actions',actionExpanded:false};context.currentActions=[];context.currentDataChecks=[];
+ context.report=report();context.history={points:points().map(p=>({...p,prep:20}))};
+ const html=vm.runInContext('renderActionCenter([],report,history)',context);
+ assert.match(html,/Action priorities/);assert.match(html,/Next check/);assert.match(html,/peak-hour kitchen/);
+ assert.match(html,/Why this priority/);assert.doesNotMatch(html,/<details[^>]*\bopen\b/);
+ assert.match(html,/operational KPIs: Talabat/);assert.match(html,/not an estimate of revenue at risk/);
+});
 function evaluate(context:vm.Context,p:any,h:any){context.report=p;context.history={points:h};return JSON.parse(vm.runInContext('JSON.stringify({actions:buildActionCenter([],report,history),checks:buildDataChecks(report,history)})',context));}
 
 test('missing order counts do not become a zero-sales action; unknown coverage is visible',()=>{

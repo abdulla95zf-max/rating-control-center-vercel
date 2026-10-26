@@ -125,7 +125,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
   await vm.runInContext('Promise.all([overviewReports.read(overviewPerformancePath,()=>api(overviewPerformancePath)),overviewReports.read(overviewHistoryPath,()=>api(overviewHistoryPath))])',context);
   vm.runInContext('paintCloudRatings(state.cloudResponse)',context);
-  for(const text of ['Recent Changes','Rating drops','New one-star','Improved','4.6 → 4.4','id="recentBrand"','id="recentPlatform"','Operational Center','Actions','Complaints · 7d 1.20','Recommended:','Latest daily report 2026-09-20','id="actionBrand"'])assert.ok(main.innerHTML.includes(text),text);
+  for(const text of ['Recent Changes','Rating drops','New one-star','Improved','4.6 → 4.4','id="recentBrand"','id="recentPlatform"','Action priorities','Actions','Complaints · 7d 1.20','Next check','Why this priority','Latest daily report 2026-09-20','id="actionBrand"'])assert.ok(main.innerHTML.includes(text),text);
   assert.equal(vm.runInContext(`buildRecentChanges([{key:'x',displayName:'Brand — Branch',brand:'Brand',rows:[{platform:'talabat',timestamp:'2026-09-20T12:00:00.000Z',rating:4,previousRating:4.2,previousTimestamp:'2026-09-20T08:00:00.000Z',reviewCount:12,previousReviewCount:10,oneStarCount:3,previousOneStarCount:1}]}]).map(item=>item.type).sort().join(',')`,context),'drops,oneStar');
   assert.equal(vm.runInContext(`buildRecentChanges([{key:'x',displayName:'Brand — Branch',brand:'Brand',rows:[{platform:'talabat',timestamp:'2026-09-20T12:00:00.000Z',rating:2.9,previousRating:2.7,previousTimestamp:'2026-09-20T08:00:00.000Z',reviewCount:12,previousReviewCount:10,oneStarCount:3,previousOneStarCount:3}]}])[0].label`,context),'Improved · still critical');
   assert.equal(vm.runInContext(`buildRecentChanges([{key:'x',displayName:'Brand — Branch',brand:'Brand',rows:[{platform:'talabat',timestamp:'2026-09-20T12:00:00.000Z',rating:4.1,previousRating:4,previousTimestamp:'2026-09-20T08:00:00.000Z',reviewCount:12,previousReviewCount:10,oneStarCount:3,previousOneStarCount:3}]}])[0].label`,context),'Recovered above 4.1');
@@ -145,7 +145,8 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.ok(vm.runInContext(`buildActionCenter([],{rows:[{storeId:'2',storeName:'Kabab Fareej, Test',present:true,values:{'Successful Orders':'10','Customer Complaint rate':'3'}}]},{points:Array.from({length:30},(_,i)=>({reportDate:'2026-'+String(9-Math.floor(i/28)).padStart(2,'0')+'-'+String(28-i%28).padStart(2,'0'),storeId:'2',orders:10,complaints:3,cancellation:0,offline:0,prep:12}))})[0].issues[0]`,context).includes('available 28d 3.00'));
   for(const text of ['Kabab Fareej — Al Warqa','/platforms/talabat-icon.png','/platforms/keeta-icon.png','All brands','inline-status-healthy'])assert.ok(main.innerHTML.includes(text),text);
   for(const hidden of ['TB_AE;fareej','KEETA;fareej','Review count','One-star count'])assert.ok(!main.innerHTML.includes(hidden),hidden);
-  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,3);
+  // Three visible mentions and the branch-specific evidence button's accessible label.
+  assert.equal((main.innerHTML.match(/Kabab Fareej — Al Warqa/g)||[]).length,4);
   await vm.runInContext('openCloudStore(groupCloudRows(state.cloudResponse.ratings)[0])',context);
   for(const text of ['Latest ratings by platform','Reviews','One-star','Cloud History is not available'])assert.ok(detail.innerHTML.includes(text),text);
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
