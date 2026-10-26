@@ -10,7 +10,7 @@
   const issues=[],add=(code,metric)=>issues.push({code,metric});
   const prep=get('prep'),wait=get('wait'),offline=get('offline'),cancelled=get('cancelled'),complaints=get('complaints'),missing=get('missing');
   const prepWorse=known(prep?.current)&&known(prep?.previous)&&prep.current>prep.previous+.5;
-  const prepHigh=known(prep?.current)&&prep.current>14;
+  const prepHigh=known(prep?.current)&&prep.current>(globalThis.AnalysisPolicy?.preparationMinutes??15);
   if(prepHigh)add('PREP_HIGH',prep);else if(prepWorse)add('PREP_WORSE',prep);
   if(known(wait?.current)&&known(wait?.previous)&&wait.current>wait.previous+.5)add('WAIT_WORSE',wait);
   if(known(offline?.current)&&offline.current>2)add('OFFLINE',offline);

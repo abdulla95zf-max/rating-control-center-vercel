@@ -11,6 +11,11 @@ function setup(){
 }
 const report=(values:Record<string,string|null>={'Successful Orders':'10'})=>({reportDate:'2026-10-15',rows:[{storeId:'1',storeName:'Test branch',present:true,values}]});
 const points=()=>Array.from({length:7},(_,i)=>({storeId:'1',reportDate:new Date(Date.UTC(2026,9,15-i)).toISOString().slice(0,10),orders:10 as number|null,complaints:0 as number|null,cancellation:0,offline:0,prep:12 as number|null}));
+test('Overview preparation threshold is strictly above 15 minutes',()=>{
+ assert.equal(evaluate(setup(),report(),points().map(p=>({...p,prep:15}))).actions.length,0);
+ const r=evaluate(setup(),report(),points().map(p=>({...p,prep:15.01})));
+ assert.match(r.actions[0].issues[0],/Prep time.*15.01/);
+});
 function evaluate(context:vm.Context,p:any,h:any){context.report=p;context.history={points:h};return JSON.parse(vm.runInContext('JSON.stringify({actions:buildActionCenter([],report,history),checks:buildDataChecks(report,history)})',context));}
 
 test('missing order counts do not become a zero-sales action; unknown coverage is visible',()=>{

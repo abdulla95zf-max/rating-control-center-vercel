@@ -1,9 +1,16 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';
 import {talabatDiagnostics,keetaDiagnostics,noonDiagnostics} from '../src/services/branch-diagnostics.ts';
+import {growthRow} from '../src/services/growth.ts';
 const period={from:'2026-10-14',to:'2026-10-20',previousFrom:'2026-10-07',previousTo:'2026-10-13'};
 function history(){return Array.from({length:14},(_,i)=>({report_date:new Date(Date.parse('2026-10-07T00:00:00Z')+i*86400000).toISOString().slice(0,10),present:true,orders:'10',metrics:{'Successful Orders':'10','Impressions':'1000','Viewed your menu':'100','Added items to cart':'40','Placed an order':'10','Average preparation time (minutes)':'15','Total AWT Duration (Minutes)':'20','Scheduled Open Time (Minutes)':'600','Unavailable time duration (Minutes)':'12','Cancelled Orders':'1','Total customer complaints received':'0','Orders from new customers':'3','Orders from returning customers':'7','Pro Revenue':'80','Revenue loss from rejections':'10'}}));}
 const context:any=vm.createContext({Intl});for(const name of ['branch-story','branch-evidence-view','branch-brief-view'])vm.runInContext(fs.readFileSync('public/'+name+'.js','utf8'),context);
 const metric=(d:any,code:string)=>d.evidence.metrics.find((m:any)=>m.code===code);
+test('Lens and Growth use the same symmetric order and basket attribution',()=>{
+ const row=growthRow('branch','Test',period,{sales:7200,orders:80},{sales:10000,orders:100});
+ assert.equal(row.orderEffect,-1900);assert.equal(row.basketEffect,-900);assert.equal(row.orderEffect!+row.basketEffect!,row.delta);
+ const html=context.BranchEvidenceView.drivers({valid:true,change:row.delta,platform:'talabat',row:{...row,diagnostics:talabatDiagnostics(history(),period)}},'en');
+ assert.match(html,/shared Growth method/);assert.match(html,/>1,900<\/bdi>/);assert.match(html,/>900<\/bdi>/);assert.doesNotMatch(html,/previous average basket|current order count/);
+});
 
 test('Lens selects at most three relevant drivers and keeps full data collapsed',()=>{
  const rows=history();for(let i=7;i<14;i++)rows[i]!.metrics['Viewed your menu']='70';

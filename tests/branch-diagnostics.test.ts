@@ -53,12 +53,12 @@ test('low latest rating appears as a dated independent issue on its platform eve
  assert.match(html,/امتیاز مشتریان در وضعیت بحرانی/);assert.match(html,/3.8/);assert.match(html,/18 Oct 2026, 12:34/);assert.match(html,/مستقل از بازهٔ فروش/);assert.doesNotMatch(html,/4.2|other date|NaN|Infinity/);
 });
 
-test('preparation above 14 minutes is a top-level issue on every platform even when improving',()=>{
+test('preparation above 15 minutes is a top-level issue on every platform even when improving',()=>{
  for(const platform of ['talabat','keeta','noon']){
   const diag=d();diag.operations=[{code:'prep',unit:'minutes',current:19.43,previous:19.94}];
   const model=analyze(row(diag,120),platform);assert.equal(model.issues[0].code,'PREP_HIGH');assert.equal(model.hypothesis,null);
-  diag.operations[0].current=14;assert.equal(analyze(row(diag),platform).issues.length,0);
-  diag.operations[0].current=14.01;assert.equal(analyze(row(diag),platform).issues[0].code,'PREP_HIGH');
+  diag.operations[0].current=15;assert.equal(analyze(row(diag),platform).issues.length,0);
+  diag.operations[0].current=15.01;assert.equal(analyze(row(diag),platform).issues[0].code,'PREP_HIGH');
   diag.operations[0].current=null as any;assert.equal(analyze(row(diag),platform).issues.length,0);
  }
 });
