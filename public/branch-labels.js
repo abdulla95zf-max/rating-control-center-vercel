@@ -8,6 +8,8 @@
    if(key==='ajman al hamidiya')return 'Ajman';
    if(['qusais kitchen','al qusais industrial area 1'].includes(key))return 'Al Qusais Industrial Area 1';
   }
+  // This Taazaa Mumbai branch moved from Qusais to Nahda; its source name remains historical.
+  if(/^Taazaa\s+Mumbai$/i.test(String(brandName).trim())&&key==='al qusais industrial area 1')return 'Al Nahda';
   if(/^(?:aweer )?ras al khor industrial area ?3$/.test(key)||key==='aweer')return 'Aweer';
   if(['al noof','hay hoshi','al bdai a suburb','hoshi'].includes(key))return 'Hoshi';
   if(['al dhait south','al dhait rak al dhait south','rak'].includes(key))return 'RAK';
