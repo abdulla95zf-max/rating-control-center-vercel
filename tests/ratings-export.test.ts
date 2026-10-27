@@ -5,6 +5,20 @@ import vm from 'node:vm';
 import {branchIdentity,allowedStore} from '../src/services/branch-identity.ts';
 const context=vm.createContext({TextEncoder,Uint8Array,DataView,Date,Number});vm.runInContext(fs.readFileSync('public/ratings-export.js','utf8'),context);const api=context.RatingExports;
 const groups=[{displayName:'Morwarid — Al Barsha',rows:[{platform:'talabat',rating:3.4,status:'CRITICAL',timestamp:'2026-10-06T06:00:00Z'},{platform:'keeta',rating:null,status:'UNKNOWN',timestamp:'2026-10-06T05:00:00Z'}]},{displayName:'Kabab Fareej — RAK',rows:[{platform:'talabat',rating:4.5,status:'HEALTHY',timestamp:'2026-10-06T06:00:00Z'},{platform:'keeta',rating:4.2,status:'WARNING',timestamp:'2026-10-06T05:00:00Z'}]}];
+test('Shawarma aliases join authorized platform ratings in exports without changing access keys or dropping same-platform stores',()=>{
+ const source=fs.readFileSync('public/app.js','utf8'),c=vm.createContext({});
+ vm.runInContext(fs.readFileSync('public/branch-labels.js','utf8'),c);
+ vm.runInContext(source.slice(source.indexOf('const brandRules'),source.indexOf('const severity'))+';globalThis.identify=storeIdentity;globalThis.group=groupCloudRows',c);
+ const rows=[{platform:'talabat',storeName:'FRB Shawarma — Ajman, Al Hamidiya',rating:3.7},{platform:'keeta',storeName:'FRB Shawarma — Ajman',rating:4.1},{platform:'talabat',storeName:'FRB Shawarma — Al Qusais Industrial Area 1',rating:4.2},{platform:'keeta',storeName:'FRB Shawarma — Qusais Kitchen',rating:4.2}];
+ const merged=c.group(rows),report=api.fromGroups(merged);
+ assert.equal(report.rows.length,2);assert.deepEqual(Array.from(report.rows[0].values),[3.7,4.1]);assert.deepEqual(Array.from(report.rows[1].values),[4.2,4.2]);
+ assert.equal(report.rows[0].branch,'FRB Shawarma — Ajman');assert.equal(report.rows[1].branch,'FRB Shawarma — Al Qusais Industrial Area 1');
+ for(const row of rows)assert.equal(c.identify(row).key,branchIdentity(row.storeName).key);
+ assert.equal(c.identify({storeName:'Kabab Fareej — Qusais Kitchen'}).branch,'Qusais Kitchen');
+ assert.equal(c.BranchLabels.full('FRB Shawarma — Ajman, Al Hamidiya'),'FRB Shawarma — Ajman');
+ const duplicate=c.group([...rows,{...rows[0],storeIdentityKey:'second-talabat-store',rating:3.9}]);assert.equal(duplicate.length,3);assert.equal(duplicate.reduce((n:number,g:any)=>n+g.rows.length,0),5);
+ const missing=api.fromGroups(c.group([{...rows[0],rating:3.7},{...rows[1],rating:null}]));assert.equal(missing.rows.length,1);assert.deepEqual(Array.from(missing.rows[0].values),[3.7,null]);
+});
 function entries(data:Uint8Array){const result=new Map<string,string>();const view=new DataView(data.buffer,data.byteOffset,data.byteLength);let offset=0;while(view.getUint32(offset,true)===0x04034b50){const length=view.getUint32(offset+18,true),nameLength=view.getUint16(offset+26,true),extra=view.getUint16(offset+28,true);const name=new TextDecoder().decode(data.slice(offset+30,offset+30+nameLength)),start=offset+30+nameLength+extra;result.set(name,new TextDecoder().decode(data.slice(start,start+length)));offset=start+length;}return result;}
 test('selected platform export preserves visible row order, filters and missing ratings',()=>{const r=api.fromGroups([...groups].reverse(),{platform:'keeta',brand:'Morwarid',status:'WARNING',search:'RAK',generatedAt:'2026-10-06T06:00:00Z'});assert.equal(r.rows[0].branch,groups[1]!.displayName);assert.equal(r.rows[0].values[0],4.2);assert.equal(r.rows[1].values[0],null);assert.equal(r.columns.length,2);assert.ok(r.filters.includes('Morwarid'));assert.equal(r.observedAt,'2026-10-06T05:00:00.000Z');});
 test('portfolio export retains separate actual platform ratings instead of a fabricated overall value',()=>{const r=api.fromGroups(groups);assert.deepEqual(Array.from(r.columns,(c:any)=>c.label),['Brand / branch','Talabat','Keeta']);assert.equal(r.rows[0].values[0],3.4);assert.equal(r.rows[0].values[1],null);});

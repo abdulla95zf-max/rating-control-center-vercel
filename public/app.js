@@ -100,7 +100,7 @@ function storeIdentity(row) {
   branch = cleanWords(branch.replace(/^\s*Al\s*,/i, '').replace(/^\s*[-–—,]+/, '')) || 'Unknown branch';
   const alias = branchAliases.get(keyWords(branch));
   branch = alias || branch.replace(/\bAl Dhait south\b/i, 'Al Dhait South');
-  const canonicalBranch=branch;branch=BranchLabels.branch(branch);
+  const canonicalBranch=branch;branch=BranchLabels.branch(branch,brand);
   return { brand, branch, key: `${keyWords(brand === 'Morwarid' ? 'Marwareed' : brand)}|${keyWords(canonicalBranch)}`, displayName: `${brand} — ${branch}` };
 }
 function displayStoreName(row){const identity=storeIdentity(row);return identity.brand==='Other'?identity.branch:identity.displayName;}
