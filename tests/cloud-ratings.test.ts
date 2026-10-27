@@ -120,7 +120,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"Taazaa Mumbai, Al Dhait South"}))',context)),
     {brand:'Taazaa Mumbai',branch:'RAK',key:'taazaa mumbai|al dhait south',displayName:'Taazaa Mumbai — RAK'});
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Noof"}).branch',context),'Hoshi');
-  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Qusais Industrial Area 1');
+  assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Al Qusais Industrial Area 1"}).branch',context),'Al Nahda');
   assert.equal(vm.runInContext('storeIdentity({storeName:"Taazaa Mumbai, Barsha, Al Barsha 2"}).branch',context),'Al Barsha 2');
   await vm.runInContext('state.tab="overview";renderCloudRatings()',context);
   await vm.runInContext('Promise.all([overviewReports.read(overviewPerformancePath,()=>api(overviewPerformancePath)),overviewReports.read(overviewHistoryPath,()=>api(overviewHistoryPath))])',context);
