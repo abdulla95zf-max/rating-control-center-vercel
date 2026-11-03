@@ -23,4 +23,8 @@ No source-portal reconciliation or alternate-user security audit was performed f
 
 ## Maintenance
 
+### Approved dark palette follow-up
+
+User selected sample 1 from the second palette study: charcoal surfaces (`#171a1b`, `#212526`), forest identity and matte champagne (`#c6b17b`). The accent appears in the attention-card surface, Explore Growth link, active action tabs, decorative orbit and sidebar details. These overrides apply only in dark screen mode; light mode, semantic status colors and chart fills remain unchanged. Palette-study images under `outputs/` use synthetic data and are not production evidence.
+
 Keep additions in the shared finish focused on presentation. Extend existing components; do not add new data readers or animations that delay results. Retain scoped logical borders for RTL. Load the stylesheet last in the three HTML entry points. Revert by removing those links and the stylesheet; no data migration is involved.

@@ -6,9 +6,9 @@
     --atelier-rule:#a28c59; --atelier-shadow:0 8px 28px #24372a06;
   }
   :root[data-theme=dark] {
-    --bg:#101916; --panel:#18231e; --panel-2:#202e26; --line:#39493e;
-    --text:#eef2e9; --muted:#b5c3b7; --accent:#a1ecc4; --frb-soft:#253d30;
-    --atelier-rule:#b9a573; --atelier-shadow:0 8px 28px #00000012;
+    --bg:#171a1b; --panel:#212526; --panel-2:#292e2f; --line:#41494a;
+    --text:#f1f1e9; --muted:#bdc6c1; --accent:#a1ecc4; --frb-soft:#303a32;
+    --atelier-rule:#c6b17b; --atelier-shadow:0 8px 28px #00000012;
   }
   body.frb-design,body.users-page {
     font-family:'Segoe UI Variable','Segoe UI',Tahoma,system-ui,sans-serif;
@@ -145,6 +145,37 @@
   .users-page :is(.user-editor-sheet,.detail-sheet) {background:var(--panel);color:var(--text)}
   :is(.detail-sheet,.user-editor-sheet,.bl-branch-options) {overscroll-behavior:contain}
   .auth-card {border:1px solid var(--line);border-top:3px solid var(--atelier-rule);border-radius:14px;background:var(--panel);box-shadow:0 24px 70px #142b2014}
+  /* Approved dark palette: neutral surfaces, forest identity, champagne accents.
+     Status colors and quantitative chart fills retain their existing meanings. */
+  html[data-theme=dark] .frb-sidebar {background:#12271f}
+  html[data-theme=dark] .frb-portfolio-hero {background:#193d30;border-color:#3b5547}
+  html[data-theme=dark] .frb-attention-card {
+    background:color-mix(in srgb,var(--atelier-rule) 17%,var(--panel));
+    border-inline-color:color-mix(in srgb,var(--atelier-rule) 32%,var(--line));
+    border-bottom-color:color-mix(in srgb,var(--atelier-rule) 32%,var(--line));
+  }
+  html[data-theme=dark] .frb-attention-actions a {
+    background:var(--atelier-rule);color:var(--bg);font-weight:650;border:1px solid var(--atelier-rule);
+  }
+  html[data-theme=dark] .frb-attention-actions a:hover {background:color-mix(in srgb,var(--atelier-rule) 85%,white)}
+  html[data-theme=dark] .frb-attention-card .frb-attention-counts {
+    border-top:1px solid color-mix(in srgb,var(--atelier-rule) 31%,transparent);padding-top:16px;
+  }
+  html[data-theme=dark] .frb-orbit {background:var(--atelier-rule);color:var(--bg);border-color:var(--atelier-rule)}
+  html[data-theme=dark] body.frb-design #mainContent .action-tabs button.active {
+    background:color-mix(in srgb,var(--atelier-rule) 22%,var(--panel));
+    border-color:var(--atelier-rule);color:var(--atelier-rule);box-shadow:inset 0 -2px var(--atelier-rule);
+  }
+  html[data-theme=dark] :is(.frb-breadcrumb strong,.frb-attention-card .frb-eyebrow,.frb-portfolio-hero .frb-eyebrow,.frb-sidebar-note>span) {color:var(--atelier-rule)}
+  html[data-theme=dark] .frb-sidebar-note>span {
+    display:grid;place-items:center;width:40px;height:40px;border-radius:9px;
+    background:color-mix(in srgb,var(--atelier-rule) 13%,transparent);
+    border:1px solid color-mix(in srgb,var(--atelier-rule) 31%,transparent);
+  }
+  html[data-theme=dark] .frb-sidebar-note {border-top-color:color-mix(in srgb,var(--atelier-rule) 38%,transparent)}
+  html[data-theme=dark] .frb-sidebar-note strong {color:#edf2e9}
+  html[data-theme=dark] .frb-design #platformTabs .tab.active {box-shadow:inset 3px 0 var(--atelier-rule)}
+  html[data-theme=dark] .frb-design .frb-directory-title {border-inline-start:2px solid var(--atelier-rule);padding-inline-start:12px}
   @media(min-width:1101px) {.bl2-body>.bl2-issues {border-inline-start:1px solid var(--line)}}
   @media(max-width:1100px) {
     .bl2-body>.bl2-issues {border-inline-start:0;border-top:1px solid var(--line);margin:18px 12px 0;padding-top:20px}
