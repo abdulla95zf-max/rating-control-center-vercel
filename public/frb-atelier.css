@@ -145,6 +145,8 @@
   .users-page :is(.user-editor-sheet,.detail-sheet) {background:var(--panel);color:var(--text)}
   :is(.detail-sheet,.user-editor-sheet,.bl-branch-options) {overscroll-behavior:contain}
   .auth-card {border:1px solid var(--line);border-top:3px solid var(--atelier-rule);border-radius:14px;background:var(--panel);box-shadow:0 24px 70px #142b2014}
+  .perf-day-coverage {display:block;font-size:11px;line-height:1.6;color:var(--muted);margin-top:4px}
+  .tier-badge.tier-unknown {background:var(--panel-2);color:var(--muted);border:1px solid var(--line)}
   /* Approved dark palette: neutral surfaces, forest identity, champagne accents.
      Status colors and quantitative chart fills retain their existing meanings. */
   html[data-theme=dark] .frb-sidebar {background:#12271f}

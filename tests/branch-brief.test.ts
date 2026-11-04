@@ -50,14 +50,26 @@ test('brand cards honor the requested priority and branch choices stay within th
 
 test('failed sales sources cannot erase authorized rating-directory brands or silently remove a platform',()=>{
  const data={platforms:[{platform:'talabat',state:'ERROR',errorCode:'HISTORY_READ_TIMEOUT',rows:[]},{platform:'keeta',state:'SUCCESS',rows:[row()]}]};
- const ratings={ratings:[{storeName:'Kabab Fareej — Ajman'},{storeName:'FRB Shawarma — Barsha'}]};
+ const ratings={ratings:[{platform:'talabat',storeName:'Kabab Fareej — Ajman'},{platform:'keeta',storeName:'FRB Shawarma — Barsha'}]};
  const groups=core.catalog(data,ratings);
  assert.equal(groups.length,2);
  const fareej=groups.find((g:any)=>g.brand==='Kabab Fareej');
- assert.deepEqual(Array.from(fareej.entries,(e:any)=>e.platform).sort(),['keeta','noon','talabat']);
+ assert.deepEqual(Array.from(fareej.entries,(e:any)=>e.platform).sort(),['keeta','talabat']);
  const missing=fareej.entries.find((e:any)=>e.platform==='talabat');
  assert.equal(missing.row.reason,'HISTORY_READ_TIMEOUT');assert.equal(core.assess(missing,fareej.entries).valid,false);assert.equal(missing.row.current.sales,null);assert.equal(missing.row.identity,undefined);
- const shawarma=groups.find((g:any)=>g.brand==='FRB Shawarma');assert.equal(shawarma.entries.length,3);assert.ok(shawarma.entries.every((e:any)=>!core.assess(e,shawarma.entries).valid));
+ const shawarma=groups.find((g:any)=>g.brand==='FRB Shawarma');assert.equal(shawarma.entries.length,1);assert.ok(shawarma.entries.every((e:any)=>!core.assess(e,shawarma.entries).valid));
  assert.equal(core.catalog(data,{ratings:[]}).length,1);
+});
+
+test('Lens keeps failed registered sources but does not manufacture unconnected platform slots',()=>{
+ context.storeIdentity=(r:any)=>{const [brand,branch]=r.storeName.split(' — ');return {brand,branch};};
+ const data:any={platforms:[{platform:'talabat',state:'SUCCESS',rows:[row('Kabab Al Sham','Al Twar')]},{platform:'keeta',state:'ERROR',errorCode:'SOURCE_READ_FAILED',rows:[]}],platformCoverage:{state:'KNOWN',sources:[{platform:'keeta',storeName:'Kabab Al Sham — Al Twar'}]}};
+ const groups=core.catalog(data,{ratings:[]}),group=groups[0];
+ assert.deepEqual(Array.from(group.entries,(e:any)=>e.platform),['talabat','keeta']);
+ assert.equal(group.entries[1].row.reason,'SOURCE_READ_FAILED');assert.equal(group.coverageKnown,true);
+ data.platformCoverage={state:'UNKNOWN',sources:[]};
+ const unknown=core.catalog(data,{ratings:[]})[0];assert.equal(unknown.coverageKnown,false);assert.equal(unknown.entries.length,1);
+ data.platformCoverage={state:'KNOWN',sources:[{platform:'talabat',identity:'TB_AE;123',branchId:'registered',canonicalKey:'old|label',brand:'Old label',branch:'Old',storeName:'Unrecognized historical label'}]};
+ const renamed=core.catalog(data,{ratings:[]});assert.equal(renamed.length,1);assert.equal(renamed[0].brand,'Kabab Al Sham');assert.equal(renamed[0].coverageKnown,true);
 });
 

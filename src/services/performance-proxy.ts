@@ -23,15 +23,29 @@ export function projectPerformance(data:any,token:string){
  const rows=data.rows.map((r:any)=>{
   if(!text(r.storeId,80)||!/^\d+$/.test(r.storeId)||ids.has(r.storeId)||typeof r.present!=='boolean'||(r.storeName!==null&&!text(r.storeName,512))||!r.values||typeof r.values!=='object'||Array.isArray(r.values))throw Error();ids.add(r.storeId);
   const values:Record<string,string|null>={};for(const h of PERFORMANCE_HEADERS){const v=r.values[h];if(v!==null&&!text(v,2048))throw Error();if(!r.present&&v!==null)throw Error();values[h]=v;}
-  return {storeId:r.storeId as string,storeName:r.storeName as string|null,present:r.present as boolean,values};
+  let coverage:{expectedDays:number;presentDays:number;metricDays:Record<string,number>}|undefined;
+  if(r.coverage!==undefined){
+   const c=r.coverage,days=(v:unknown)=>Number.isInteger(v)&&Number(v)>=0&&Number(v)<=31;
+   if(!data.period||!c||!days(c.expectedDays)||c.expectedDays<1||!days(c.presentDays)||c.presentDays>c.expectedDays||c.presentDays>data.dayCount||r.present!==(c.presentDays>0)||!c.metricDays||typeof c.metricDays!=='object'||Array.isArray(c.metricDays))throw Error();
+   const metricDays:Record<string,number>={};
+   for(const [key,value]of Object.entries(c.metricDays)){if(!PERFORMANCE_HEADERS.includes(key)||!days(value)||Number(value)>c.presentDays)throw Error();metricDays[key]=Number(value);}
+   coverage={expectedDays:c.expectedDays,presentDays:c.presentDays,metricDays};
+  }
+  return {storeId:r.storeId as string,storeName:r.storeName as string|null,present:r.present as boolean,values,...(coverage?{coverage}:{})};
  });
  if(rows.filter((r:{present:boolean})=>r.present).length!==data.observedCount)throw Error();
  if(data.state==='SUCCESS'&&(!rows.length||!validReportDate(data.reportDate)||!iso(data.requestedAt)||!iso(data.receivedAt)))throw Error();
  if(data.state==='EMPTY'&&(rows.length||data.requestedAt!==null||data.receivedAt!==null))throw Error();
- if(data.period!==undefined&&(!['7d','month'].includes(data.period)||!validReportDate(data.periodFrom)||!validReportDate(data.periodTo)||!Number.isInteger(data.dayCount)||data.dayCount<1||data.dayCount>31))throw Error();
+ if(data.period!==undefined&&(!['7d','month'].includes(data.period)||!Number.isInteger(data.dayCount)||data.dayCount<0||data.dayCount>31||
+  (data.state==='SUCCESS'?(!validReportDate(data.periodFrom)||!validReportDate(data.periodTo)||data.dayCount<1||data.periodFrom>data.periodTo):data.periodFrom!==null||data.periodTo!==null||data.dayCount!==0)))throw Error();
+ let aggregation:Record<string,string>|undefined;
+ if(data.aggregation!==undefined){
+  if(!data.period||!data.aggregation||typeof data.aggregation!=='object'||Array.isArray(data.aggregation))throw Error();aggregation={};
+  for(const [key,value]of Object.entries(data.aggregation)){if(!PERFORMANCE_HEADERS.includes(key)||!['SUM','DAILY_MEAN','ORDER_WEIGHTED'].includes(String(value)))throw Error();aggregation[key]=String(value);}
+ }
  return {ok:true,platform:'talabat',state:data.state as 'SUCCESS'|'EMPTY',reportDate:data.reportDate as string|null,expectedDate:data.expectedDate as string,availableDates:[...data.availableDates] as string[],
   requestedAt:data.requestedAt as string|null,receivedAt:data.receivedAt as string|null,scopeCount:rows.length,observedCount:data.observedCount as number,headers:[...PERFORMANCE_HEADERS],rows,
-  ...(data.period?{period:data.period as '7d'|'month',periodFrom:data.periodFrom as string,periodTo:data.periodTo as string,dayCount:data.dayCount as number}:{})};
+  ...(data.period?{period:data.period as '7d'|'month',periodFrom:data.periodFrom as string|null,periodTo:data.periodTo as string|null,dayCount:data.dayCount as number,...(aggregation?{aggregation}:{})}:{})};
 }
 async function loadPerformance(config:Pick<AppConfig,'ratingsApiUrl'|'ratingsApiToken'>,date?:string,fetcher:typeof fetch=fetch,period?:'7d'|'month'){
  const token=config.ratingsApiToken;let url:URL;

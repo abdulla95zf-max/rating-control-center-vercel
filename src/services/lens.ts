@@ -3,6 +3,21 @@ import type {AuthUser} from '../auth.ts';
 import {fetchGrowth} from './growth.ts';
 import {readDeliverooOperations,scopeDeliverooOperations} from './deliveroo-operations.ts';
 import {periodEvidence} from './branch-evidence.ts';
+import {authDatabase,canAccess} from '../auth.ts';
+export async function lensCoverage(user:AuthUser,db:Pick<ReturnType<typeof authDatabase>,'query'>){
+ const allowed=['talabat','keeta','noon'].filter(p=>hasFeature(user,p+'.performance'));
+ if(!allowed.length)return {state:'KNOWN',sources:[]};
+ const result=await db.query(`SELECT b.id,b.canonical_key,b.brand,b.branch_name,b.display_name,s.source_type,s.source_id
+  FROM dashboard_branch_sources s JOIN dashboard_branches b ON b.id=s.branch_id
+  WHERE b.active=true AND s.source_type=ANY($1::text[]) ORDER BY b.id,s.source_type LIMIT 2001`,[allowed.flatMap(p=>['rating:'+p,'performance:'+p])]);
+ if(result.rows.length>2000)throw Error('LENS_COVERAGE_TOO_LARGE');
+ const sources=result.rows.filter(r=>canAccess(user,r.brand,r.id)||canAccess(user,r.brand,r.canonical_key)).map(r=>{
+  const platform=r.source_type.split(':')[1];
+  const identity=r.source_type.startsWith('rating:')?r.source_id:(platform==='talabat'?'TB_AE;':platform.toUpperCase()+';')+r.source_id;
+  return {platform,identity,branchId:r.id,canonicalKey:r.canonical_key,brand:r.brand,branch:r.branch_name,storeName:r.display_name};
+ });
+ return {state:'KNOWN',sources};
+}
 const day=(date:string,offset:number)=>new Date(Date.parse(date+'T00:00:00Z')+offset*86400000).toISOString().slice(0,10);
 export function deliverooLens(data:any){
  if(data.state!=='SUCCESS'||!data.snapshot)return {platform:'deliveroo',state:data.state,rows:[],period:null,observedAt:null,errorCode:data.errorCode||null};
@@ -17,7 +32,8 @@ export function deliverooLens(data:any){
  return {platform:'deliveroo',state:'SUCCESS',rows,period,observedAt:s.observedAt,errorCode:null};
 }
 export async function fetchLens(user:AuthUser,env:NodeJS.ProcessEnv,fetcher:typeof fetch=fetch,deps:any={}){
- const growth=(deps.growth||fetchGrowth)(user,env,fetcher);
+ const coverage=async()=>{try{return deps.coverage?await deps.coverage(user):env.DATABASE_URL?await lensCoverage(user,authDatabase()):{state:'UNKNOWN',sources:[]};}catch{return {state:'UNKNOWN',sources:[]};}};
+ const growth=Promise.all([(deps.growth||fetchGrowth)(user,env,fetcher),coverage()]).then(([data,platformCoverage])=>({...data,platformCoverage}));
  if(env.DELIVEROO_RATINGS_ENABLED!=='true'||!hasFeature(user,'deliveroo.operations'))return growth;
  const operations=async()=>{try{return deliverooLens(await (deps.scope||scopeDeliverooOperations)(await (deps.operations||readDeliverooOperations)(7),user));}catch{return {platform:'deliveroo',state:'ERROR',rows:[],period:null,observedAt:null,errorCode:'OPERATIONS_READ_FAILED'};}};
  const [data,service]=await Promise.all([growth,operations()]);return {...data,platforms:[...data.platforms,service]};

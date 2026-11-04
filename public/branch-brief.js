@@ -5,6 +5,13 @@
  const aliases=[['کباب الفریج','kabab fareej'],['کباب فریج','kabab fareej'],['اف ار بی شاورما','frb shawarma'],['اف آر بی شاورما','frb shawarma'],['اف ار بی کباب','frb kabab'],['اف آر بی کباب','frb kabab'],['تازه بمبی','taazaa mumbai'],['تازه بمبئی','taazaa mumbai'],['کباب شام','kabab al sham'],['لیخ','leekh'],['مروارید','morwarid'],['تنورنا','tanoorna ghyr'],['عجمان','ajman'],['هوشی','hoshi'],['برشا','barsha'],['القصیص','al qusais'],['قصیص','al qusais'],['ابوظبی','abudhabi'],['فجیره','fujairah'],['الورقا','al warqa'],['الورقاء','al warqa'],['الوصل','al wasl'],['الجیمی','al jimi'],['مردف','mirdif'],['راس الخیمه','rak'],['رأس الخیمه','rak'],['المطینه','muteena'],['الطوار','al twar']];
  function queryText(value){let text=' '+normalize(value)+' ';for(const [from,to]of aliases)text=text.split(' '+normalize(from)+' ').join(' '+to+' ');return normalize(text);}
  const identity=(brand,branch)=>normalize(brand)+'|'+normalize(branch);
+ function coverageLabel(row,groups,ratings){
+  const linked=[...groups.values()].find(g=>g.entries.some(e=>e.platform===row.platform&&e.row.identity===row.identity));
+  if(linked)return linked;
+  const rating=ratings?.ratings?.find(r=>r.platform===row.platform&&r.storeIdentityKey===row.identity);
+  if(rating&&typeof storeIdentity==='function')return storeIdentity(rating);
+  return typeof storeIdentity==='function'?storeIdentity({storeName:row.storeName||row.brand+' — '+row.branch}):{brand:row.brand,branch:row.branch};
+ }
  function catalog(data,ratings){
   const groups=new Map();
   for(const p of data?.platforms||[])for(const r of p.rows||[]){
@@ -14,9 +21,19 @@
    groups.get(id).entries.push({platform:p.platform,state:p.state,observedAt:p.observedAt,row:{...r,brand,branch,displayName:brand+' — '+branch}});
   }
   // Ratings and Growth are independently scoped by the server. A failed sales read must not erase the branch directory.
-  if(ratings){
-   for(const row of ratings.ratings||[]){const label=typeof storeIdentity==='function'?storeIdentity(row):{brand:row.brand,branch:row.branch};if(!label.brand||!label.branch||label.brand==='Other')continue;const id=identity(label.brand,label.branch);if(!groups.has(id))groups.set(id,{id,brand:label.brand,branch:label.branch,name:label.brand+' — '+label.branch,entries:[]});}
-   for(const group of groups.values())for(const platform of ['talabat','keeta','noon'].filter(p=>!globalThis.dashboardAuth?.user||dashboardAuth.can(p+'.performance')))if(!group.entries.some(e=>e.platform===platform)){const source=data?.platforms?.find(p=>p.platform===platform);group.entries.push({platform,state:source?.state||'EMPTY',observedAt:source?.observedAt||null,row:{name:group.name,brand:group.brand,branch:group.branch,displayName:group.name,eligible:false,reason:source?.state==='ERROR'?(source.errorCode||'SOURCE_READ_FAILED'):'BRANCH_COMPARISON_UNAVAILABLE',current:{sales:null,orders:null},previous:{sales:null,orders:null},period:source?.period||null}});}
+  if(ratings||data?.platformCoverage){
+   for(const row of ratings?.ratings||[]){const label=typeof storeIdentity==='function'?storeIdentity(row):{brand:row.brand,branch:row.branch};if(!label.brand||!label.branch||label.brand==='Other')continue;const id=identity(label.brand,label.branch);if(!groups.has(id))groups.set(id,{id,brand:label.brand,branch:label.branch,name:label.brand+' — '+label.branch,entries:[]});}
+   for(const row of data?.platformCoverage?.sources||[]){const label=coverageLabel(row,groups,ratings);if(!label.brand||!label.branch||label.brand==='Other')continue;const id=identity(label.brand,label.branch);if(!groups.has(id))groups.set(id,{id,brand:label.brand,branch:label.branch,name:label.brand+' — '+label.branch,entries:[]});}
+   for(const group of groups.values()){
+    const expected=new Set(group.entries.map(e=>e.platform));
+    for(const row of ratings?.ratings||[]){const label=typeof storeIdentity==='function'?storeIdentity(row):{brand:row.brand,branch:row.branch};if(identity(label.brand,label.branch)===group.id&&row.platform)expected.add(row.platform);}
+    for(const row of data?.platformCoverage?.sources||[]){const label=coverageLabel(row,groups,ratings);if(identity(label.brand,label.branch)===group.id)expected.add(row.platform);}
+    group.coverageKnown=data?.platformCoverage?.state==='KNOWN';
+    for(const platform of ['talabat','keeta','noon'].filter(p=>expected.has(p)&&data?.platforms?.find(x=>x.platform===p)?.state!=='DISABLED'&&(!globalThis.dashboardAuth?.user||dashboardAuth.can(p+'.performance'))))if(!group.entries.some(e=>e.platform===platform)){
+     const source=data?.platforms?.find(p=>p.platform===platform);
+     group.entries.push({platform,state:source?.state||'EMPTY',observedAt:source?.observedAt||null,row:{name:group.name,brand:group.brand,branch:group.branch,displayName:group.name,eligible:false,reason:source?.state==='ERROR'?(source.errorCode||'SOURCE_READ_FAILED'):'BRANCH_COMPARISON_UNAVAILABLE',current:{sales:null,orders:null},previous:{sales:null,orders:null},period:source?.period||null}});
+    }
+   }
   }
   return [...groups.values()].sort((a,b)=>a.name.localeCompare(b.name));
  }

@@ -47,6 +47,31 @@ test('period and tStar requests reuse the existing protected Performance route',
  let requested='';const result=await fetchTstar(config,async url=>{requested=String(url);return Response.json(tstar);});assert.equal(requested,'https://example.vercel.app/api/performance/latest?dataset=tstar');assert.equal(result.rows[0]?.metrics.failRate,4);
 });
 
+test('missing tStar tier is unavailable, never an eligibility decision',()=>{
+ const context=vm.createContext({Intl});vm.runInContext(readFileSync('public/performance.js','utf8'),context);
+ assert.equal(vm.runInContext('performanceTierMeta(null)[0]',context),'Unavailable');
+ assert.equal(vm.runInContext("performanceTierMeta('NEW_VENDOR_CODE')[0]",context),'Unknown tier');
+ assert.equal(vm.runInContext("performanceTierMeta('INELIGIBLE__LOW_ORDERS')[0]",context),'Not eligible');
+});
+
+test('period proxy retains validated branch-day coverage and aggregation; legacy coverage stays unknown',()=>{
+ const f:any={...fixture(),period:'7d',periodFrom:'2026-09-14',periodTo:'2026-09-20',dayCount:6,aggregation:{'Gross Sales':'SUM','Average preparation time (minutes)':'ORDER_WEIGHTED'}};
+ f.rows[0].coverage={expectedDays:7,presentDays:6,metricDays:{'Gross Sales':5}};
+ const p=projectPerformance(f,token);assert.equal(p.rows[0]!.coverage?.presentDays,6);assert.equal(p.aggregation?.['Gross Sales'],'SUM');assert.equal(p.rows[1]!.coverage,undefined);
+ for(const mutate of [(v:any)=>v.rows[0].coverage.presentDays=8,(v:any)=>v.rows[0].coverage.metricDays['Gross Sales']=7,(v:any)=>v.aggregation['Gross Sales']='UNSAFE']){const bad=structuredClone(f);mutate(bad);assert.throws(()=>projectPerformance(bad,token));}
+ assert.equal(projectPerformance(fixture(),token).rows[0]!.coverage,undefined);
+});
+
+test('weekly partial sums stay visible but incomplete or unknown branch-days cannot enter comparison rankings',()=>{
+ const context=vm.createContext({Intl,escapeHtml:String});vm.runInContext(readFileSync('public/performance.js','utf8'),context);
+ const run=(s:string)=>vm.runInContext(s,context);run("performanceState.period='weekly'");
+ context.rows=[{present:true,values:{sales:'100'},coverage:{expectedDays:7,presentDays:7,metricDays:{sales:7}}},{present:true,values:{sales:'900'},coverage:{expectedDays:7,presentDays:6,metricDays:{sales:6}}},{present:true,values:{sales:'50'}}];
+ assert.equal(run("performanceTotal(rows,'sales').value"),1050);
+ assert.equal(run("performanceMetricComplete(rows[0],'sales')"),true);assert.equal(run("performanceMetricComplete(rows[1],'sales')"),false);assert.equal(run("performanceMetricComplete(rows[2],'sales')"),false);
+ assert.match(run('performanceRowCoverage(rows[1])'),/6\/7.*partial/);assert.match(run('performanceRowCoverage(rows[2])'),/unavailable/);
+ run("performanceState.period='daily'");assert.equal(run("performanceMetricComplete(rows[2],'sales')"),true);
+});
+
 test('T-Star exposes an inherited branch filter and can restore all branches or change brand',()=>{
  const nodes=new Map<string,any>(),main={innerHTML:'',querySelectorAll:()=>[]};
  const context=vm.createContext({Intl,console,main,state:{cloudResponse:{ratings:[]}},escapeHtml:String,

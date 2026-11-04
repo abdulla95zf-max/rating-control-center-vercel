@@ -3,6 +3,20 @@
 The Performance tab reads stored Talabat CSV revisions via a server-to-server proxy.
 It does not run a collector or open a portal browser. No OpenAI dependency is added.
 
+## Coverage and aggregation correction — 2026-11-04
+
+The 7-day API now selects seven consecutive calendar dates ending at the latest saved day on/before yesterday, never seven nonconsecutive available days. `dayCount` is the count of saved report dates, not proof of complete branch coverage. Each period row additionally supplies `coverage.expectedDays`, `presentDays`, and `metricDays` for aggregated metrics. Latest resolved fields stay within each existing exact source/day/revision boundary. No stored revisions or collector schedules change.
+
+Preparation uses successful-order weighting, the established Branch Lens convention. A positive-order day missing preparation, or a day missing/invalid orders, makes the preparation result unavailable; zero-order days contribute no weight. Zero total orders gives unknown preparation, not zero minutes. This is the same calculation convention as Lens, not a claim to reproduce an undocumented vendor denominator. Percentage columns retain explicitly labeled means of available daily reported rates; valid period denominators have not been established for all those vendor fields. `aggregation` describes `SUM`, `ORDER_WEIGHTED` or `DAILY_MEAN` by metric.
+
+Partial sums remain visible. KPI totals disclose complete branch periods, and each branch/metric exposes its day count. Weekly comparison charts exclude incomplete or unknown metric coverage; numeric table sorting puts such rows after comparable rows while retaining their details. Older backend payloads without the optional metadata remain accepted and explicitly display unknown coverage. Daily report behavior remains unchanged.
+
+tStar null tiers display **Unavailable**, unfamiliar codes **Unknown tier**, and only explicit `INELIGIBLE__LOW_ORDERS` displays **Not eligible**. Missing current-tier data and source period are disclosed separately; no source missingness is converted into an eligibility decision.
+
+Deployment order: publish the backward-compatible Talabat API first, then dashboard. No migration, new secret or collection run is needed. The dashboard proxy validates and projects the optional metadata before applying the existing active-branch/user scope.
+
+Validation for this correction: dashboard build and 285 tests pass; Talabat build and 691 tests pass. Isolated SQL regression covers unequal order weights, missing positive-order preparation, zero-order undefined averages, partial branches and an internal calendar gap. Browser checks with explicitly synthetic data cover 1440px/390px, both themes, filters, monthly missingness, two-platform Lens coverage, language switching, keyboard focus and error/retry. Independent standards/spec review completed; the source-membership identity finding was corrected and rechecked. No collector was run by validation.
+
 ## Deployment
 
 1. Deploy the backend patch into C:\talabat-rating-monitor-vercel-poc first.
