@@ -333,6 +333,16 @@ let cloudViewEpoch=0;
 const ratingsReportPath='/api/dashboard/ratings/latest';
 const overviewPerformancePath='/api/dashboard/performance/latest';
 const overviewHistoryPath='/api/dashboard/performance/action-history?days=30';
+function renderOverviewTrust(){
+ const host=document.getElementById('dataTrustOverview');if(!host||!globalThis.DataTrust||!state.cloudResponse)return;
+ const selected=['talabat','keeta','noon','deliveroo'].includes(state.tab)?state.tab:null;
+ const ratings=DataTrust.ratingRows(state.cloudResponse,cloudHealth).filter(r=>!selected||r.platform===selected);
+ const growthAllowed=!selected&&(!globalThis.dashboardAuth?.user||dashboardAuth.can('growth'));
+ const comparisons=growthAllowed&&typeof growthState!=='undefined'?DataTrust.comparisonRows(growthState.cache):[];
+ const focusId=host.contains(document.activeElement)?document.activeElement.id:null;
+ host.innerHTML=DataTrust.render([...ratings,...comparisons],{key:'overview',scope:'Authorized source scope · branch-table filters do not change these counts',unavailable:growthAllowed&&growthState.lastReadFailed===true});
+ if(focusId)document.getElementById(focusId)?.focus({preventScroll:true});
+}
 function ratingsRefreshLabel(){
  const entry=ratingsReports.peek(ratingsReportPath),label=refreshState.querySelector('span:last-child');
  const checked=entry.checkedAt?new Date(entry.checkedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):null;
@@ -421,6 +431,7 @@ function paintCloudRatings(response) {
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Latest saved ratings · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${selectedPlatform?`<div class="ratings-freshness">${statusHtml(overallHealth)}<span>Last sync <strong>${escapeHtml(formatTime(active[0]?.syncTimestamp))}</strong></span></div>`:''}</div>
     ${!selectedPlatform&&globalThis.FRBDesign?FRBDesign.overview({counts,total:viewGroups.length,platforms:platformResults}):''}
     ${selectedPlatform?noonSessionWarning(active[0]):cloudPlatformCards(platformResults)}
+    <div id="dataTrustOverview"></div>
     ${selectedPlatform||!globalThis.FRBDesign?`<section class="kpi-grid rating-status-grid">${Object.entries(counts).map(([status,count]) => `<article class="kpi-card tone-${status.toLowerCase()}"><span class="kpi-label">${escapeHtml(status)}</span><strong class="kpi-value">${formatNumber(count)}</strong></article>`).join('')}</section>`:''}
     ${selectedPlatform?'':`<div class="overview-panels">${actionCenter}${recentChanges}</div>${typeof renderGrowthOverview==='function'?'<section class="gr-overview" id="growthOverview"><h3>Sales decline priorities</h3><p>Reading saved comparisons…</p></section>':''}`}
     <h3 class="frb-directory-title" id="frbBranchDirectory" tabindex="-1">Branches & ratings</h3><div class="toolbar"><input class="input" id="storeSearch" type="search" aria-label="Search brand or branch" value="${escapeHtml(state.search)}" placeholder="Search brand or branch" autocomplete="off">
@@ -432,6 +443,7 @@ function paintCloudRatings(response) {
   attachTalabatControls();
   const exploreGrowth=document.getElementById('frbExploreGrowth');if(exploreGrowth)exploreGrowth.onclick=event=>{event.preventDefault();grNavigate(growthState.platform);};
   if(!selectedPlatform&&typeof renderGrowthOverview==='function')renderGrowthOverview();
+  renderOverviewTrust();
   attachRatingExports(exportGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);
@@ -708,7 +720,7 @@ document.addEventListener('rcc-auth-reset',()=>{
  if(typeof keetaPerformanceState!=='undefined'){if(keetaPerformanceState.poll)globalThis.clearTimeout?.(keetaPerformanceState.poll);keetaPerformanceState.poll=null;keetaPerformanceState.generation=(keetaPerformanceState.generation??0)+1;keetaPerformanceState.cache=null;keetaPerformanceState.checkedAt=0;keetaPerformanceState.loading=false;keetaPerformanceState.message='';}
  if(typeof deliverooOperationsState!=='undefined'){++deliverooOperationsState.request;deliverooOperationsState.cache=null;}
  if(typeof noonPerformanceState!=='undefined'){++noonPerformanceState.request;noonPerformanceState.cache=null;noonPerformanceState.checkedAt=0;if(noonPerformanceState.poll)window.clearInterval(noonPerformanceState.poll);noonPerformanceState.poll=null;}
- if(typeof growthState!=='undefined'){++growthState.generation;++growthState.authGeneration;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;}
+ if(typeof growthState!=='undefined'){++growthState.generation;++growthState.authGeneration;growthState.cache=null;growthState.pending=null;growthState.checkedAt=0;growthState.lastReadFailed=false;}
  selectedStore=null;++detailRequest;detailPanel.classList.remove('open');detailPanel.setAttribute('aria-hidden','true');detailContent.innerHTML='';
  main.innerHTML='<section class="loading-card">Loading authorized saved reports…</section>';
 });

@@ -10,6 +10,8 @@
   }
   // This Taazaa Mumbai branch moved from Qusais to Nahda; its source name remains historical.
   if(/^Taazaa\s+Mumbai$/i.test(String(brandName).trim())&&key==='al qusais industrial area 1')return 'Al Nahda';
+  // User confirmed these two source labels identify the same FRB Kabab branch.
+  if(/^FRB\s+Kabab$/i.test(String(brandName).trim())&&key==='al warqa 3')return 'Al Warqa';
   if(/^(?:aweer )?ras al khor industrial area ?3$/.test(key)||key==='aweer')return 'Aweer';
   if(['al noof','hay hoshi','al bdai a suburb','hoshi'].includes(key))return 'Hoshi';
   if(['al dhait south','al dhait rak al dhait south','rak'].includes(key))return 'RAK';
