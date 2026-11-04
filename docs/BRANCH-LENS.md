@@ -1,5 +1,7 @@
 # Branch Lens
 
+The optional four-week perspective and platform-specific financial review priorities are documented in [LENS-WEEKLY-TRENDS.md](LENS-WEEKLY-TRENDS.md). They use saved, scoped evidence and do not dispatch collectors.
+
 Read-only branch briefing at `/#brief`. Uses the existing authenticated Growth endpoint and shared ratings reader; no AI service, new route, database change, collector dispatch, credentials or additional paid dependency.
 
 Brand logo cards replace text lookup. Cards follow the approved brand priority, and expanding a brand reveals only its branches from the current authorized saved-comparison catalog. Selecting an exact branch opens its report immediately. Escape and the close control collapse the branch list; the report remains labeled with its selected brand and branch while another brand is being browsed. Every server-filtered source ID is retained. Canonical display aliases group cross-platform results, while multiple rows for the same platform make that platform ambiguous and suppress its conclusion.

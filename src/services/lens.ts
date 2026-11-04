@@ -1,3 +1,4 @@
+import {attachSnapshotTrends} from './lens-trends.ts';
 import {hasFeature} from '../feature-access.ts';
 import type {AuthUser} from '../auth.ts';
 import {fetchGrowth} from './growth.ts';
@@ -33,7 +34,7 @@ export function deliverooLens(data:any){
 }
 export async function fetchLens(user:AuthUser,env:NodeJS.ProcessEnv,fetcher:typeof fetch=fetch,deps:any={}){
  const coverage=async()=>{try{return deps.coverage?await deps.coverage(user):env.DATABASE_URL?await lensCoverage(user,authDatabase()):{state:'UNKNOWN',sources:[]};}catch{return {state:'UNKNOWN',sources:[]};}};
- const growth=Promise.all([(deps.growth||fetchGrowth)(user,env,fetcher),coverage()]).then(([data,platformCoverage])=>({...data,platformCoverage}));
+ const growth=Promise.all([(deps.growth?deps.growth(user,env,fetcher):fetchGrowth(user,env,fetcher,{lensHistory:true}).then(data=>env.DATABASE_URL?attachSnapshotTrends(data,authDatabase()):data)),coverage()]).then(([data,platformCoverage])=>({...data,platformCoverage}));
  if(env.DELIVEROO_RATINGS_ENABLED!=='true'||!hasFeature(user,'deliveroo.operations'))return growth;
  const operations=async()=>{try{return deliverooLens(await (deps.scope||scopeDeliverooOperations)(await (deps.operations||readDeliverooOperations)(7),user));}catch{return {platform:'deliveroo',state:'ERROR',rows:[],period:null,observedAt:null,errorCode:'OPERATIONS_READ_FAILED'};}};
  const [data,service]=await Promise.all([growth,operations()]);return {...data,platforms:[...data.platforms,service]};
