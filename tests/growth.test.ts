@@ -4,6 +4,13 @@ import {createCloudHandler} from '../src/cloud-api.ts';
 import {scopeKeetaSnapshot} from '../src/services/keeta-snapshot-scope.ts';
 const now=new Date('2026-10-07T09:00:00Z'),p={from:'2026-09-30',to:'2026-10-06',previousFrom:'2026-09-23',previousTo:'2026-09-29'};
 const rows=()=>Array.from({length:14},(_,i)=>({source_key:'source',report_date:new Date(Date.parse('2026-09-23')+i*86400000).toISOString().slice(0,10),store_id:'1',present:true,orders:i<7?'20':'10',sales:i<7?'1200':'500'}));
+test('Overview sales cards explain source failures independently of live ratings',()=>{
+ const context=vm.createContext({Intl,storeIdentity:()=>({}),escapeHtml:(v:any)=>String(v)});vm.runInContext(fs.readFileSync('public/growth.js','utf8'),context);
+ const html=vm.runInContext("grPriorityCard({platform:'talabat',state:'ERROR',errorCode:'HISTORY_READ_TIMEOUT',rows:[]})",context);
+ assert.match(html,/history took too long/);assert.match(html,/independent of live ratings/);assert.match(html,/Open Growth to inspect or retry/);assert.doesNotMatch(html,/gr-negative/);
+ const incomplete=vm.runInContext("grPriorityCard({platform:'talabat',state:'SUCCESS',rows:[{eligible:false,reason:'CURRENT_DAYS_MISSING',name:'Kabab Fareej — Ajman'}]})",context);
+ assert.match(incomplete,/Current week has missing days/);assert.doesNotMatch(incomplete,/No comparable declines/);
+});
 const talabat=()=>({state:'SUCCESS',reportDate:p.to,receivedAt:now.toISOString(),rows:[{storeId:'1',storeName:'Kabab Fareej — Barsha',present:true,values:{'Successful Orders':'10','Gross Sales':'500'}}]});
 
 test('Talabat caches transferable rows without copying driver parser functions',async()=>{

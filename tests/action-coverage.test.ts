@@ -31,6 +31,7 @@ test('action cards expose one matched next check and keep supporting evidence co
  const html=vm.runInContext('renderActionCenter([],report,history)',context);
  assert.match(html,/Action priorities/);assert.match(html,/Next check/);assert.match(html,/peak-hour kitchen/);
  assert.match(html,/Why this priority/);assert.doesNotMatch(html,/<details[^>]*\bopen\b/);
+ assert.match(html,/<details class="action-evidence"><summary>[^<]*<\/summary><div class="decision-next">/);
  assert.match(html,/operational KPIs: Talabat/);assert.match(html,/not an estimate of revenue at risk/);
 });
 function evaluate(context:vm.Context,p:any,h:any){context.report=p;context.history={points:h};return JSON.parse(vm.runInContext('JSON.stringify({actions:buildActionCenter([],report,history),checks:buildDataChecks(report,history)})',context));}

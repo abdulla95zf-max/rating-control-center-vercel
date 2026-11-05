@@ -23,6 +23,8 @@ No source-portal reconciliation or alternate-user security audit was performed f
 
 ## Maintenance
 
+2026-11-05: Overview operational priority rows now keep the full next-check text inside the existing native evidence disclosure. The evidence button occupies the trailing column rather than a separate row. No signal, recommendation, metric or navigation is removed. Synthetic desktop measurement: 279px to104px for the same row;390px rows119px. Light/dark, keyboard expansion, evidence drawer and overflow checks passed; all300 tests passed. Empty sales-priority cards now surface the existing sanitized source error or missing-period reason and distinguish sales comparisons from live ratings; this wording is not a source-read repair.
+
 ### Approved dark palette follow-up
 
 User selected sample 1 from the second palette study: charcoal surfaces (`#171a1b`, `#212526`), forest identity and matte champagne (`#c6b17b`). The accent appears in the attention-card surface, Explore Growth link, active action tabs, decorative orbit and sidebar details. These overrides apply only in dark screen mode; light mode, semantic status colors and chart fills remain unchanged. Palette-study images under `outputs/` use synthetic data and are not production evidence.
