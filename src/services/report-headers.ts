@@ -6,4 +6,5 @@ aliases.set('returning customer orders','Orders from returning customers');
 export function canonicalReportHeader(header:string):string{return aliases.get(identity(header))??header;}
 export function canonicalReportHeaders(headers:string[]):string[]{return headers.map(canonicalReportHeader);}
 /** SQL mapping runs before newest-non-null selection, preserving raw revisions. */
-export const canonicalHeaderSql='CASE '+[...aliases].map(([source,target])=>"WHEN lower(regexp_replace(btrim(e.key), '[[:space:]]+', ' ', 'g'))='"+source.replace("'","''")+"' THEN '"+target.replace("'","''")+"'").join(' ')+' ELSE e.key END';
+// Normalize once per field; a searched CASE repeated this work for every alias.
+export const canonicalHeaderSql="CASE lower(regexp_replace(btrim(e.key), '[[:space:]]+', ' ', 'g')) "+[...aliases].map(([source,target])=>"WHEN '"+source.replace("'","''")+"' THEN '"+target.replace("'","''")+"'").join(' ')+' ELSE e.key END';
