@@ -125,11 +125,16 @@ const groupRating = group => { const values=group.rows.map(row=>row.rating).filt
 let apiAuthGeneration=0;
 async function api(path) {
   const authGeneration=apiAuthGeneration;
-  const response = await fetch(path, { headers: { accept: 'application/json' }, cache: 'no-store' });
-  const body = await response.json();
+  let response;
+  try{response=await fetch(path,{headers:{accept:'application/json'},cache:'no-store',signal:globalThis.AbortSignal?.timeout?.(30000)});}catch{
+    if(authGeneration!==apiAuthGeneration)throw new Error('AUTH_STATE_CHANGED');
+    throw new Error(globalThis.UIFeedback?.network()||'The connection was interrupted. Check your network and retry.');
+  }
+  let body;try{body=globalThis.UIFeedback?await UIFeedback.read(response):await response.json();}catch(error){if(authGeneration!==apiAuthGeneration)throw new Error('AUTH_STATE_CHANGED');throw new Error(globalThis.UIFeedback?.network()||'The connection was interrupted. Refresh and retry.');}
   if (authGeneration!==apiAuthGeneration) throw new Error('AUTH_STATE_CHANGED');
   if (response.status === 401) globalThis.dashboardAuth?.expired();
-  if (!response.ok) throw new Error(body.error || `Request failed: ${response.status}`);
+  if(!response.ok)throw new Error(globalThis.UIFeedback?.http(response.status,body)||'Saved information could not be read. Please try again.');
+  if(!body||typeof body!=='object')throw new Error('The service returned an unexpected response. Refresh the page and try again.');
   return body;
 }
 

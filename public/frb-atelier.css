@@ -207,3 +207,32 @@
     }
   }
 }
+/* Readability and small-viewport forms; preserves compact evidence rows and print layouts. */
+@media screen {
+  html[data-theme] .frb-design .decision-row .decision-problem{font-size:13px}
+  html[data-theme] .frb-design :is(.overview-table,.compact-table,.perf-table,.gr-table,.do-branch-table){font-size:13px}
+  .frb-design :is(.decision-problem,.decision-next p,.dt-detail,.bl2-source,.bl2-funnel-sentence,.bl2-reading p){font-size:13px;line-height:1.65}
+  .frb-design :is(.action-evidence summary,.platform-health-card p,.gr-note,.bl-boundary,.dt-panel small){font-size:12px}
+  .frb-design .decision-position .action-priority{font-size:11px;padding:3px 5px}
+  .users-page :is(.user-summary>span,.user-summary small,.user-summary b,.user-summary i,.user-editor-form small,.access-tools span){font-size:12px;line-height:1.5}
+  .users-page .user-editor-form label,.auth-card label{font-size:13px}
+  .user-editor-form :is(input,select,textarea),.auth-card input{scroll-margin-block:24px}
+  .auth-gate{overflow-y:auto;align-items:safe center;max-height:100dvh}
+  .user-editor-sheet,.detail-sheet{max-height:100dvh;scroll-padding-block:24px}
+  .users-page :is(.user-summary,.form-grid>*),.account-menu{min-width:0}
+  .users-page :is(.user-summary,.form-error){overflow-wrap:anywhere}
+  .users-page :is(.role-picker,.scope-list) input:focus-visible+span{outline:3px solid var(--healthy);outline-offset:2px}
+  :is(.frb-design,.users-page) [aria-busy=true]{cursor:wait}
+  @media(max-width:700px){
+    :is(.frb-design,.users-page) :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px!important}
+    .user-editor-sheet{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+    .auth-card{padding:22px;max-width:100%;box-sizing:border-box}
+    .users-page .topbar{height:auto;min-height:64px;flex-wrap:wrap}
+    .user-actions{flex-wrap:wrap}
+    .users-page :is(.role-picker,.scope-list){min-width:0}
+  }
+  @media(pointer:coarse){
+    :is(.frb-design,.users-page) :is(.tab,.filter-chip,.action-evidence summary,.account-button,.user-actions button,.primary-button,.secondary-button,.danger-button,.theme-toggle,[data-toggle-password]){min-height:44px}
+    html[data-theme] body.users-page.frb-management :is(.user-actions button,.primary-button,.secondary-button,.danger-button,.account-button,.theme-toggle){min-height:44px}
+  }
+}

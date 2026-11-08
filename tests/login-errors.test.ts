@@ -6,7 +6,8 @@ import vm from 'node:vm';
 function page(status:number,body:unknown){
  const handlers=new Map<string,Function>(),nodes=new Map<string,any>();
  const node=(id:string)=>{if(!nodes.has(id))nodes.set(id,{hidden:false,textContent:'',focus(){},reset(){},addEventListener(event:string,handler:Function){handlers.set(id+':'+event,handler);},querySelector(){return {disabled:false};}});return nodes.get(id);};
- const context:any=vm.createContext({document:{getElementById:node,querySelector:()=>node('toggle'),dispatchEvent(){},body:{classList:{add(){},remove(){}}}},Event:class{},FormData:class{*[Symbol.iterator](){yield ['username','fixture'];yield ['password','fixture'];}},fetch:async()=>({ok:status===200,status,json:async()=>{if(body===null)throw Error('HTML response');return body;}})});
+ const context:any=vm.createContext({document:{getElementById:node,querySelector:()=>node('toggle'),dispatchEvent(){},body:{classList:{add(){},remove(){}}}},Event:class{},FormData:class{*[Symbol.iterator](){yield ['username','fixture'];yield ['password','fixture'];}},fetch:async()=>({ok:status===200,status,json:async()=>{if(body===null)throw SyntaxError('HTML response');return body;}})});
+ vm.runInContext(fs.readFileSync('public/ui-feedback.js','utf8'),context);
  vm.runInContext(fs.readFileSync('public/auth.js','utf8'),context);
  return {async submit(){await handlers.get('loginForm:submit')!({preventDefault(){}});return node('loginError').textContent;}};
 }
@@ -21,4 +22,5 @@ test('login distinguishes rejected credentials, throttling and service failures 
  assert.match(await page(429,{error:{code:'RATE_LIMITED'}}).submit(),/wait a few minutes/);
  assert.match(await page(503,{error:'private database diagnostic'}).submit(),/temporarily unavailable/);
  assert.match(await page(200,null).submit(),/unexpected response/);
+ assert.doesNotMatch(await page(400,{error:'private database diagnostic'}).submit(),/private/);
 });
