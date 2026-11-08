@@ -93,3 +93,53 @@ test('Postgres slot claim commits before external call and uses unique workflow/
  assert.match(queries[1].text,/ON CONFLICT\(workflow,slot_at\) DO NOTHING/);
  assert.deepEqual(queries[1].values,[slot.kind,slot.at]);
 });
+
+test('accepted slots reuse committed results across per-request store instances without repeating SQL',async()=>{
+ const queries:string[]=[];
+ const db:any={query:async({text}:any)=>{queries.push(text);return {rows:text.startsWith('SELECT state')?[{state:'ACCEPTED',run_id:'123'}]:[]};}};
+ const slot:SchedulerSlot={kind:'ratings',at:'2026-10-14T00:17:00.000Z'};
+ let clock=0;const create=()=>new PostgresSchedulerStore(()=>db,()=>clock);
+ assert.equal(await create().claim(slot),false);assert.deepEqual(await create().state(slot),{state:'ACCEPTED',runId:'123'});
+ assert.equal(queries.length,3);
+ for(let n=0;n<60;n++){assert.equal(await create().claim(slot),false);const saved=await create().state(slot);saved.runId='changed';}
+ assert.equal(queries.length,3);assert.equal((await create().state(slot)).runId,'123');
+ clock=(6*60+1)*60*1000;await create().claim(slot);await create().state(slot);
+ assert.equal(queries.length,5);assert.equal(queries.filter(q=>q.startsWith('CREATE TABLE')).length,1);
+ const otherQueries:string[]=[];const otherDb:any={query:async({text}:any)=>{otherQueries.push(text);return {rows:[]};}};
+ await new PostgresSchedulerStore(()=>otherDb).claim(slot);assert.equal(otherQueries.length,2);
+});
+
+test('uncertain or failed finishes are not cached; only persisted acceptance skips later claims',async()=>{
+ const slot:SchedulerSlot={kind:'ratings',at:'2026-10-14T00:17:00.000Z'};
+ for(const state of ['DISPATCHING','UNKNOWN','REJECTED'] as const){
+  let selects=0;const db:any={query:async({text}:any)=>({rows:text.startsWith('SELECT state')?(selects++,[{state,run_id:null}]):[]})};
+  const store=new PostgresSchedulerStore(()=>db);await store.state(slot);await store.state(slot);assert.equal(selects,2);
+ }
+ let fail=true,claims=0;
+ const db:any={query:async({text}:any)=>{if(text.startsWith('UPDATE'))return {rows:fail?[]:[{workflow:'ratings'}]};if(text.startsWith('INSERT'))claims++;return {rows:[]};}};
+ const store=new PostgresSchedulerStore(()=>db);
+ await assert.rejects(store.finish(slot,'ACCEPTED','7'),/SCHEDULER_SAVE_FAILED/);
+ await store.claim(slot);assert.equal(claims,1);fail=false;await store.finish(slot,'ACCEPTED','7');
+ await store.claim(slot);assert.equal(claims,1);assert.deepEqual(await store.state(slot),{state:'ACCEPTED',runId:'7'});
+});
+
+test('schema initialization coalesces concurrent stores, retries failures, and accepted cache stays bounded',async()=>{
+ let creates=0,fail=true;
+ const db:any={query:async({text}:any)=>{if(text.startsWith('CREATE TABLE')){creates++;if(fail)throw Error('temporary');}return {rows:text.startsWith('SELECT state')?[{state:'ACCEPTED',run_id:null}]:[]};}};
+ const slot:SchedulerSlot={kind:'ratings',at:'2026-10-14T00:17:00.000Z'};
+ await assert.rejects(new PostgresSchedulerStore(()=>db).claim(slot),/temporary/);fail=false;
+ await Promise.all(Array.from({length:20},()=>new PostgresSchedulerStore(()=>db).claim(slot)));assert.equal(creates,2);
+ const store=new PostgresSchedulerStore(()=>db);let reads=0;
+ const originalQuery=db.query;db.query=async(q:any)=>{if(q.text.startsWith('SELECT state'))reads++;return originalQuery(q);};
+ for(let n=0;n<65;n++)await store.state({...slot,at:new Date(Date.parse(slot.at)+n*86400000).toISOString()});
+ await store.state(slot);assert.equal(reads,66);
+});
+
+test('one-day repeated accepted scheduler ticks keep the same outcomes with bounded SQL',async()=>{
+ let sql=0,dispatches=0;
+ const db:any={query:async({text}:any)=>{sql++;return {rows:text.startsWith('SELECT state')?[{state:'ACCEPTED',run_id:null}]:[]};}};
+ const day=Date.parse('2026-11-08T00:00:00Z');
+ const remote=github({dispatch:async()=>{dispatches++;return {state:'ACCEPTED',runId:null};}});
+ for(let minute=0;minute<1440;minute++)await runTalabatScheduler(new PostgresSchedulerStore(()=>db,()=>day+minute*60000),remote,day+minute*60000,start);
+ assert.equal(dispatches,0);assert.equal(sql,13);
+});
