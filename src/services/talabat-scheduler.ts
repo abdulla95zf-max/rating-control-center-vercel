@@ -1,4 +1,5 @@
 import {authDatabase} from '../auth.ts';
+import {retryableInitializer} from '../auth-resilience.ts';
 import {watchdogAuthorized} from './collector-watchdog.ts';
 import type {IncomingMessage,ServerResponse} from 'node:http';
 
@@ -26,16 +27,34 @@ export function dueTalabatSlots(now:number,startAt:string):SchedulerSlot[]{
   .sort((a,b)=>dates[a]-dates[b]).map(kind=>({kind,at:new Date(dates[kind]).toISOString()}));
 }
 
-export class PostgresSchedulerStore implements SchedulerStore{
- private readonly getDatabase:()=>SchedulerDatabase;
- constructor(getDatabase:()=>SchedulerDatabase=authDatabase){this.getDatabase=getDatabase;}
- private async db(){const db=this.getDatabase();await db.query({text:`CREATE TABLE IF NOT EXISTS dashboard_talabat_scheduler(
+// Only persisted ACCEPTED outcomes are reusable. Claims and uncertain outcomes always use PostgreSQL.
+type SchedulerMemory={initialize:()=>Promise<void>;accepted:Map<string,{runId:string|null;until:number}>};
+const schedulerMemories=new WeakMap<SchedulerDatabase,SchedulerMemory>();
+function schedulerMemory(db:SchedulerDatabase){
+ let memory=schedulerMemories.get(db);
+ if(!memory){memory={accepted:new Map(),initialize:retryableInitializer(async()=>{await db.query({text:`CREATE TABLE IF NOT EXISTS dashboard_talabat_scheduler(
   workflow text NOT NULL CHECK(workflow IN('ratings','performance','tstar')),slot_at timestamptz NOT NULL,
   state text NOT NULL CHECK(state IN('DISPATCHING','ACCEPTED','UNKNOWN','REJECTED')),run_id text,
-  created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(workflow,slot_at))`,query_timeout:3000});return db;}
- async claim(slot:SchedulerSlot){const db=await this.db();const result=await db.query({text:"INSERT INTO dashboard_talabat_scheduler(workflow,slot_at,state) VALUES($1,$2,'DISPATCHING') ON CONFLICT(workflow,slot_at) DO NOTHING RETURNING workflow",values:[slot.kind,slot.at],query_timeout:3000});return result.rows.length===1;}
- async state(slot:SchedulerSlot){const db=await this.db();const result=await db.query({text:'SELECT state,run_id FROM dashboard_talabat_scheduler WHERE workflow=$1 AND slot_at=$2',values:[slot.kind,slot.at],query_timeout:3000});const row=result.rows[0];if(!row||!['DISPATCHING','ACCEPTED','UNKNOWN','REJECTED'].includes(row.state))throw Error('SCHEDULER_STATE_INVALID');return {state:row.state as State,runId:row.run_id??null};}
- async finish(slot:SchedulerSlot,state:State,runId:string|null){const db=this.getDatabase();const result=await db.query({text:"UPDATE dashboard_talabat_scheduler SET state=$3,run_id=$4,updated_at=now() WHERE workflow=$1 AND slot_at=$2 AND state='DISPATCHING' RETURNING workflow",values:[slot.kind,slot.at,state,runId],query_timeout:3000});if(result.rows.length!==1)throw Error('SCHEDULER_SAVE_FAILED');}
+  created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(workflow,slot_at))`,query_timeout:3000});})};schedulerMemories.set(db,memory);}
+ return memory;
+}
+export class PostgresSchedulerStore implements SchedulerStore{
+ private readonly getDatabase:()=>SchedulerDatabase;
+ private readonly clock:()=>number;
+ constructor(getDatabase:()=>SchedulerDatabase=authDatabase,clock:()=>number=Date.now){this.getDatabase=getDatabase;this.clock=clock;}
+ private accepted(db:SchedulerDatabase,slot:SchedulerSlot){
+  const memory=schedulerMemory(db),now=this.clock();
+  for(const [key,value] of memory.accepted)if(value.until<=now)memory.accepted.delete(key);
+  return memory.accepted.get(slot.kind+'\0'+slot.at);
+ }
+ private remember(db:SchedulerDatabase,slot:SchedulerSlot,runId:string|null){
+  const memory=schedulerMemory(db);this.accepted(db,slot);
+  while(memory.accepted.size>=64){const oldest=memory.accepted.keys().next().value;if(oldest===undefined)break;memory.accepted.delete(oldest);}
+  memory.accepted.set(slot.kind+'\0'+slot.at,{runId,until:this.clock()+(6*60+1)*MINUTE});
+ }
+ async claim(slot:SchedulerSlot){const db=this.getDatabase();if(this.accepted(db,slot))return false;await schedulerMemory(db).initialize();const result=await db.query({text:"INSERT INTO dashboard_talabat_scheduler(workflow,slot_at,state) VALUES($1,$2,'DISPATCHING') ON CONFLICT(workflow,slot_at) DO NOTHING RETURNING workflow",values:[slot.kind,slot.at],query_timeout:3000});return result.rows.length===1;}
+ async state(slot:SchedulerSlot){const db=this.getDatabase(),saved=this.accepted(db,slot);if(saved)return {state:'ACCEPTED' as const,runId:saved.runId};await schedulerMemory(db).initialize();const result=await db.query({text:'SELECT state,run_id FROM dashboard_talabat_scheduler WHERE workflow=$1 AND slot_at=$2',values:[slot.kind,slot.at],query_timeout:3000});const row=result.rows[0];if(!row||!['DISPATCHING','ACCEPTED','UNKNOWN','REJECTED'].includes(row.state))throw Error('SCHEDULER_STATE_INVALID');if(row.state==='ACCEPTED')this.remember(db,slot,row.run_id??null);return {state:row.state as State,runId:row.run_id??null};}
+ async finish(slot:SchedulerSlot,state:State,runId:string|null){const db=this.getDatabase();const result=await db.query({text:"UPDATE dashboard_talabat_scheduler SET state=$3,run_id=$4,updated_at=now() WHERE workflow=$1 AND slot_at=$2 AND state='DISPATCHING' RETURNING workflow",values:[slot.kind,slot.at,state,runId],query_timeout:3000});if(result.rows.length!==1)throw Error('SCHEDULER_SAVE_FAILED');if(state==='ACCEPTED')this.remember(db,slot,runId);}
 }
 
 type Flags=Record<string,string>;
