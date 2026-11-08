@@ -22,3 +22,5 @@ Validation must use synthetic accounts/branches and mocked writes only; no live 
 - Standards/spec review findings were resolved and rechecked. Final interface audit covered labels, focus, text sizing, error feedback and touch sizing. Fixed the existing username pattern for current browser Unicode regex mode.
 
 Remaining limits: physical Android/iOS keyboard behavior remains unverified; pending locks do not provide cross-tab/server idempotency. No live account or permission writes were used for validation.
+
+Release integration: preserved main's Neon scheduler optimization (baa9262); combined build and all 310 tests passed.
