@@ -1,4 +1,5 @@
 import {hasFeature} from './feature-access.ts';
+import {createCoreRatingsHandler} from './core-ratings-api.ts';
 import {createWatchdogHandler} from './services/collector-watchdog.ts';
 import {createTalabatSchedulerHandler} from './services/talabat-scheduler.ts';
 import {readTalabatReviews} from './services/talabat-reviews.ts';
@@ -23,6 +24,7 @@ import {registerBranchSources} from './services/branch-registry.ts';
 
 /** Cloud-only entry point: never imports local configuration, SQLite or the Windows server. */
 export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance' | 'ratingHistory' | 'performanceHistory' | 'actionHistory', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch,authenticate:typeof requireUser=requireUser, ratingsReaders:Partial<RatingsReaders>={}) {
+  const coreRatings=route==='config'?createCoreRatingsHandler(env,fetcher):null;
   return async (request: IncomingMessage, response: ServerResponse) => {
     const ratingsDeadline = Date.now() + 24_000;
     const scopedRatings = async (user: AuthUser) => {
@@ -35,6 +37,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     response.setHeader('X-Content-Type-Options', 'nosniff');
     const send = (status: number, body: unknown) => {response.statusCode = status; response.end(JSON.stringify(body));};
     const requestUrl=new URL(request.url||'','https://dashboard.invalid');
+    if(coreRatings&&requestUrl.searchParams.has('integration'))return coreRatings(request,response);
     if(route==='config'&&requestUrl.searchParams.has('scheduler'))return createTalabatSchedulerHandler(env,fetcher)(request,response);
     if(route==='config'&&requestUrl.searchParams.get('watchdog')==='1')return createWatchdogHandler(env,fetcher)(request,response);
     if(route==='performance'&&request.method==='POST'&&requestUrl.searchParams.get('dataset')==='keeta'){
