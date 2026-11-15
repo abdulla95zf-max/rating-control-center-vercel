@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import fs from 'node:fs';
-import {createCoreRatingsHandler,projectCoreRatings} from '../src/core-ratings-api.ts';
+import {createCoreRatingsHandler,projectCoreRatings,projectCoreCatalog} from '../src/core-ratings-api.ts';
 import {createCloudHandler} from '../src/cloud-api.ts';
 import type {DashboardRatings} from '../src/services/dashboard-ratings.ts';
 import type {RegistryBranch} from '../src/services/branch-registry.ts';
@@ -87,5 +87,35 @@ test('existing config route retains dashboard auth while machine route fails clo
  assert.equal((await request(route,{url:'/api/config?integration=core-ratings',headers:{}})).status,503);assert.equal(logins,0);
  assert.equal((await request(route,{url:'/api/config',headers:{}})).status,401);assert.equal(logins,1);
  const cfg=JSON.parse(fs.readFileSync('vercel.json','utf8'));
- assert.deepEqual(cfg.rewrites,[{source:'/api/integrations/core/ratings',destination:'/api/config?integration=core-ratings'}]);
+ assert.deepEqual(cfg.rewrites,[{source:'/api/integrations/core/ratings',destination:'/api/config?integration=core-ratings'},{source:'/api/integrations/core/catalog',destination:'/api/config?integration=core-catalog'}]);
+});
+
+test('catalog includes active registered branches without any rating source, groups sources by fixed branch ID',()=>{
+ const rows=[{...branch('branch-a'),sourceType:'rating:keeta',sourceId:'KEETA;ACCOUNT1;SHOP1'},
+  {...branch('branch-a'),sourceType:'rating:talabat',sourceId:'TB_AE;SHOP2'},
+  {...branch('branch-no-rating'),sourceType:null,sourceId:null},
+  {...branch('inactive','FRB Kabab',false),sourceType:null,sourceId:null},
+  {...branch('outside','Leekh'),sourceType:null,sourceId:null}];
+ const result=projectCoreCatalog(rows,['FRB Kabab','Tanoorna Ghyr'],now);
+ assert.equal(result.brands.length,2);assert.equal(result.branches.length,2);assert.equal(result.branches.find(b=>b.id==='branch-a')!.sources.length,2);
+ assert.deepEqual(result.branches.find(b=>b.id==='branch-no-rating')!.sources,[]);
+ assert.equal(result.brands.find(b=>b.name==='Tanoorna Ghyr')!.branchCount,0);
+ assert.equal(new Set(result.branches.map(b=>b.id)).size,2);assert.ok(!JSON.stringify(result).includes('canonicalKey'));
+ const shuffled=projectCoreCatalog([...rows].reverse(),['Tanoorna Ghyr','FRB Kabab'],now);assert.deepEqual(result,shuffled);
+});
+
+test('catalog auth/cache/errors stay independent of ratings and keep unchanged responses small',async()=>{
+ let reads=0,ratingReads=0;const h=handler({}, {read:async()=>{ratingReads++;throw Error();},catalog:async()=>{reads++;return [{...branch('new-branch'),sourceType:null,sourceId:null}];}});
+ const url='/api/config?integration=core-catalog';
+ assert.equal((await request(h,{url,headers:{}})).status,401);assert.equal(reads,0);
+ const r=await request(h,{url});assert.equal(r.status,200);assert.equal(r.json().branches[0].id,'new-branch');
+ const unchanged=await request(h,{url,headers:{authorization:'Bearer '+token,'if-none-match':r.headers.ETag}});assert.equal(unchanged.status,304);assert.equal(reads,1);assert.equal(ratingReads,0);
+ const bad=await request(handler({}, {catalog:async()=>{throw Error('private SQL');}}),{url});assert.equal(bad.status,503);assert.equal(bad.body,'{"error":"CATALOG_UNAVAILABLE"}');
+ assert.equal((await request(h,{url:url+'&brand=Leekh'})).status,400);
+});
+
+test('catalog rejects conflicting source ownership instead of guessing a physical branch merge',()=>{
+ const rows=[{...branch('a'),sourceType:'rating:keeta',sourceId:'same'}, {...branch('b'),sourceType:'rating:keeta',sourceId:'same'}];
+ assert.throws(()=>projectCoreCatalog(rows,['FRB Kabab'],now),/CONFLICT/);
+ const sql=fs.readFileSync('src/services/branch-registry.ts','utf8');assert.match(sql,/LEFT JOIN dashboard_branch_sources/);assert.match(sql,/LIMIT 10001/);
 });

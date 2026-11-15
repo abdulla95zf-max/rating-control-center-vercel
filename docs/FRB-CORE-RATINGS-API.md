@@ -124,3 +124,44 @@ Build and 318 tests passed. Separate standards/spec reviews completed; the regis
 
 
 Production verification: deployment BX1bkZqQEUfnZ4mjBCpHLe2j3kSh Ready, commit 261e937. Authorized request returned HTTP200, schema1, partial=false, 122 source records (Talabat49, Keeta35, Noon22, Deliveroo16), 60,259 bytes in approximately3.1seconds. Conditional request returned304 with empty body; missing key returned401. Counts are time-bound source records, not unique physical branches. No Core Firebase writes or four-hour Core job were executed by RCC. Key handoff is a temporary loopback-only page; the owner must save/share the raw key securely before that process stops.
+
+## Brand and branch catalog — bootstrap Core before ratings
+
+`GET https://frb-rcc.vercel.app/api/integrations/core/catalog`
+
+Use the SAME private bearer key and HTTP/cache/error rules as ratings; no new credential is needed. Poll the catalog every four hours before rating synchronization. No portal or rating source is queried by this endpoint: it reads the saved authorized active branch registry only. Includes active registered branches with no rating record/source. All eight allowed brand definitions are returned even if a brand has zero active branches. Unknown/unregistered company locations are not discoverable here.
+
+Response fields:
+- schemaVersion, asOf, pollIntervalSeconds=14400, scope, inventory=RCC_REGISTERED_ACTIVE_BRANCHES.
+- brands: id (SHA-256 of `brand` + NUL + exact persisted brand name), name (persisted key), displayName, branchCount.
+- branches: id (existing RCC branch UUID, equal to ratings.branchId), brandId, brand, name, displayName, active=true, sources.
+- sources: platform, sourceIdentity (exact composite platform/account/shop identity), ratingId (same stable SHA-256 ID used by the ratings API).
+- ratings now additionally include brandId. This is an additive v1 field; old consumers must continue ignoring unknown fields.
+
+Synthetic shape (abbreviated):
+
+```json
+{
+  "schemaVersion": "1",
+  "inventory": "RCC_REGISTERED_ACTIVE_BRANCHES",
+  "brands": [{"id": "<brand SHA-256>", "name": "FRB Kabab", "displayName": "FRB Kabab", "branchCount": 1}],
+  "branches": [{"id": "<existing RCC branch UUID>", "brandId": "<brand SHA-256>", "brand": "FRB Kabab", "name": "Example", "displayName": "FRB Kabab — Example", "active": true, "sources": []}]
+}
+```
+
+### Important identity limit
+
+This is the RCC registered inventory, **not a newly verified physical-location master for the whole company**. Existing display aliases can group differently named registry records in the dashboard. They do not change persisted IDs or permission keys. Core must preserve external IDs and explicitly review aliases before merging physical locations. Do not create/merge branches using name-only heuristics, and do not assume this export includes every location in the company. A registry branch with no sources must still be importable; it has no rating, not a zero rating.
+
+### First import and later reconciliation
+
+1. Import brands by external `id`; persist exact brand `name` separately from its display name.
+2. Import branch registry records by external `id`, retaining brandId. If Core assigns its own IDs, store the external-to-Core mapping. Where several registry IDs represent one verified physical location, map each external ID explicitly to the same Core location without rewriting RCC identifiers.
+3. Import source mappings using ratingId/sourceIdentity, preserving separate accounts and platforms. Then import ratings by id and branchId. Multiple platform ratings are source records, not independent new branches.
+4. For each complete successful catalog response, update changed rows, add new IDs, and mark previously imported IDs absent from the new authorized active catalog as inactive **for this integration**. Never delete company-owned branch records or let an RCC integration overwrite unrelated Core-managed fields.
+5. On 304 retain the catalog. On network/auth/503 failure do not treat the failure as an empty catalog and do not deactivate all branches. For strict immediate access revocation, hide the integration data until scope can be reconciled. Catalog visibility changes may take five minutes through a warm API cache.
+6. Sync catalog before ratings. If ratings contains a branch ID not in Core's current catalog, refresh catalog once and flag it for review if still missing; do not invent a name-based match. The two endpoints are independent snapshots, not one atomic database transaction.
+
+`initial-catalog.json` in the handoff package is a private, dated bootstrap snapshot, not a key. Refresh from the API before production import. Initial extraction on 2026-11-15: 8 brands, 66 active registry records, 124 registered rating-source mappings; one registry record had no rating source. Counts are time-bound and do not claim 66 verified physical locations. Catalog responses are bounded to 10,000 joined rows/2 MB and a five-second registry query; duplicate conflicting source ownership fails closed with CATALOG_UNAVAILABLE.
+
+Catalog validation: build and321tests passed; independent standards/spec reviews found no actionable findings. Tests cover no-rating branches, multiple source mappings per fixed branch ID, zero-branch brand definitions, scope filtering, deterministic order, cache/304, source-independent failures and conflicting-source rejection. Live initial roster extraction used a read-only database connection. Core physical-location reconciliation remains an explicit import review, not an automated name merge.

@@ -5,7 +5,15 @@ import {branchIdentity} from './branch-identity.ts';
 
 export type BranchSource={sourceType:string;sourceId:string;storeName:string};
 export type RegistryBranch={id:string;canonicalKey:string;brand:string;branch:string;displayName:string;active:boolean};
+export type CatalogBranch=RegistryBranch&{sourceType:string|null;sourceId:string|null};
 const signature=(source:Pick<BranchSource,'sourceType'|'sourceId'>)=>`${source.sourceType}\0${source.sourceId}`;
+
+/** Saved active roster, including branches which have no rating source yet. */
+export async function readIntegrationBranchCatalog(brands:readonly string[]):Promise<CatalogBranch[]>{
+ const query:QueryConfig&{query_timeout:number}={text:`SELECT b.id,b.canonical_key,b.brand,b.branch_name,b.display_name,b.active,s.source_type,s.source_id FROM dashboard_branches b LEFT JOIN dashboard_branch_sources s ON s.branch_id=b.id AND s.source_type=ANY($2::text[]) WHERE b.active=true AND b.brand=ANY($1::text[]) ORDER BY b.id,s.source_type,s.source_id LIMIT 10001`,values:[brands,['rating:talabat','rating:keeta','rating:noon','rating:deliveroo']],query_timeout:5000};
+ const result=await authDatabase().query(query);
+ return result.rows.map(row=>({id:row.id,canonicalKey:row.canonical_key,brand:row.brand,branch:row.branch_name,displayName:row.display_name,active:row.active===true,sourceType:row.source_type,sourceId:row.source_id}));
+}
 
 /** Read existing identities only; external read integrations must not register new branches. */
 export async function readRegisteredBranchSources(sources:BranchSource[],timeoutMs?:number){

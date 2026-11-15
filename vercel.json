@@ -3,7 +3,7 @@
   "framework": null,
   "buildCommand": "npm run build",
   "outputDirectory": "public",
-  "rewrites": [{"source":"/api/integrations/core/ratings","destination":"/api/config?integration=core-ratings"}],
+  "rewrites": [{"source":"/api/integrations/core/ratings","destination":"/api/config?integration=core-ratings"},{"source":"/api/integrations/core/catalog","destination":"/api/config?integration=core-catalog"}],
   "functions": {"api/**/*.ts": {"maxDuration": 30}},
   "headers": [{
     "source": "/(.*)",
