@@ -1,6 +1,6 @@
 # FRB Core — Ratings API v1
 
-Status: implemented; production activation and credential delivery are separate release steps. This document contains no credential. Example data is synthetic.
+Status: RCC production API activated on 2026-11-15 for the owner-approved eight brands. Core-side implementation remains the Core team's responsibility. This document contains no credential. Example data is synthetic.
 
 ## Purpose and architecture
 
@@ -121,3 +121,6 @@ Missing/invalid configuration fails closed before source reads. Do not reuse a p
 
 ## Validation — 2026-11-15
 Build and 318 tests passed. Separate standards/spec reviews completed; the registry timeout finding was resolved with a five-second lookup timeout and an eighteen-second cached-loader deadline. Tests cover authentication, scope/active sources, nulls/precision/provenance, partial failures, cache isolation/coalescing/304, recovery after lookup failure, rate protection and unchanged dashboard config authentication. Core-side scheduling/Firebase behavior still requires the Core team's implementation and validation.
+
+
+Production verification: deployment BX1bkZqQEUfnZ4mjBCpHLe2j3kSh Ready, commit 261e937. Authorized request returned HTTP200, schema1, partial=false, 122 source records (Talabat49, Keeta35, Noon22, Deliveroo16), 60,259 bytes in approximately3.1seconds. Conditional request returned304 with empty body; missing key returned401. Counts are time-bound source records, not unique physical branches. No Core Firebase writes or four-hour Core job were executed by RCC. Key handoff is a temporary loopback-only page; the owner must save/share the raw key securely before that process stops.
