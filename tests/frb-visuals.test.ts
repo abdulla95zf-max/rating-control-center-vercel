@@ -21,7 +21,7 @@ test('meal composition explicitly distinguishes reported denominator and retains
 test('review inbox keeps order identity visible and moves unavailable metadata into a closed disclosure',()=>{
  const c:any={Intl,Date,escapeHtml:(s:any)=>String(s).replaceAll('<','&lt;'),BranchLabels:{full:(s:any)=>s}};vm.createContext(c);vm.runInContext(fs.readFileSync('public/talabat-reviews.js','utf8'),c);
  const html=c.reviewArticle({globalVendorCode:'TB_AE;1',id:'r',rating:3,storeName:'Sample',date:'2026-10-17T12:00:00Z',orderId:'123',text:'Good',orderLinkState:'SOURCE_LINKED'});
- assert.match(html,/<summary>Order 123/);assert.match(html,/Customer history unavailable/);assert.match(html,/details pending/);assert.doesNotMatch(html,/<details[^>]*\bopen\b/);assert.ok(html.indexOf('review-meta-body')<html.indexOf('Customer history unavailable'));
+ assert.match(html,/<summary>Order 123/);assert.match(html,/not present in the saved review data/);assert.match(html,/limited to 1–2-star reviews/);assert.doesNotMatch(html,/<details[^>]*\bopen\b/);assert.ok(html.indexOf('review-meta-body')<html.indexOf('not present in the saved review data'));
 });
 test('Keeta customer bars render under strict CSP without converting missing values to zero',()=>{
  const c:any={Intl,escapeHtml:String};vm.createContext(c);vm.runInContext(fs.readFileSync('public/keeta-performance.js','utf8'),c);

@@ -43,5 +43,13 @@ test('real combined dashboard response deduplicates counts/analysis, merges cove
 });
 test('review cards distinguish verified, pending, unavailable and historical order links',()=>{
  const context:any={};vm.createContext(context);vm.runInContext(fs.readFileSync('public/talabat-reviews.js','utf8'),context);
- assert.match(context.reviewOrderLink('VERIFIED'),/Order details verified/);assert.match(context.reviewOrderLink('SOURCE_LINKED'),/details pending/);assert.match(context.reviewOrderLink('ORDER_ID_UNAVAILABLE'),/ID unavailable/);assert.match(context.reviewOrderLink('LEGACY_UNVERIFIED'),/verification unavailable/);assert.equal(context.reviewOrderLink('<script>'), '');
+ assert.match(context.reviewOrderLink('VERIFIED'),/Order details verified/);assert.match(context.reviewOrderLink('SOURCE_LINKED',1),/not been verified/);assert.match(context.reviewOrderLink('ORDER_ID_UNAVAILABLE'),/ID unavailable/);assert.match(context.reviewOrderLink('LEGACY_UNVERIFIED'),/verification unavailable/);assert.equal(context.reviewOrderLink('<script>'), '');
+});
+
+test('review details explain the low-star policy without promising a high-star order is queued',()=>{
+ const context:any={Intl,Date,escapeHtml:String,BranchLabels:{full:String}};vm.createContext(context);vm.runInContext(fs.readFileSync('public/talabat-reviews.js','utf8'),context);
+ const row={globalVendorCode:'TB_AE;1',id:'synthetic',storeName:'Synthetic branch',date:'2026-11-16T10:00:00Z',orderId:'123',text:'Synthetic',orderLinkState:'SOURCE_LINKED'};
+ for(const rating of [3,4,5]){const html=context.reviewArticle({...row,rating});assert.match(html,/limited to 1–2-star reviews/);assert.doesNotMatch(html,/pending|not collected yet/);assert.match(html,/not present in the saved review data/);}
+ const low=context.reviewArticle({...row,rating:1});assert.match(low,/not been verified/);assert.doesNotMatch(low,/limited to|pending|not collected yet/);
+ const saved=context.reviewArticle({...row,rating:5,orderLinkState:'VERIFIED',orderDetails:{items:[]},customerDetails:{vendorOrdersCount:0,platformOrdersCount:0,customerSegment:null,isProCustomer:false}});assert.match(saved,/Order details verified/);assert.match(saved,/Orders at this store: 0/);assert.match(saved,/Pro: No/);assert.doesNotMatch(saved,/limited to/);
 });

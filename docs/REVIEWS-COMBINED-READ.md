@@ -10,7 +10,7 @@ Current rows take precedence over historical duplicates by vendor + review ID. H
 
 For replies and customer history, an observed key in source_metadata takes precedence, including explicit JSON null. An omitted key falls back to the historical payload. Collector updates merge only observed keys, so older callers cannot erase stored metadata. Zero counts and false Pro flags remain valid values; unknown counts remain null. Customer identity/address/contact fields are excluded from the new history projection.
 
-Review cards show verified, identified/pending, unknown-ID and historical/unverified states. Identical order IDs in different branches cannot supply each other's details. Before display, stored order payload identity is checked against its row keys.
+Review cards show verified, identified/unverified, unknown-ID and historical/unverified states. For an identified order without saved details, 3–5-star cards explain that automatic enrichment is limited to 1–2-star reviews; low-star cards say details have not been verified, without promising an active queue or successful future collection. Existing saved details remain visible at every rating. Missing customer history is labelled as absent from the saved review data, not as a new customer or zero orders. Identical order IDs in different branches cannot supply each other's details. Before display, stored order payload identity is checked against its row keys.
 
 SQL integration tests use disposable PGlite and the actual dashboard service. They exercise role scoping, duplicate counts and analysis, preserved zero/null history, adjacent coverage and gaps, order identity conflicts, missing-table errors and the legacy path. PGlite is a development dependency only.
 
