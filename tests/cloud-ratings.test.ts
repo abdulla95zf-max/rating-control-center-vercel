@@ -108,6 +108,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   vm.runInContext(fs.readFileSync('public/branch-labels.js','utf8'),context);
   vm.runInContext(fs.readFileSync('public/ratings-export.js','utf8'),context);
   vm.runInContext(fs.readFileSync('public/report-cache.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('public/dashboard-refresh.js','utf8'),context);
   const source=fs.readFileSync('public/app.js','utf8').replace(/bootDashboard\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),

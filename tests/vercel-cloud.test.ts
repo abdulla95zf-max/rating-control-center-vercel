@@ -35,7 +35,7 @@ test('Cloud ratings proxy retains names and fields with server-only authorizatio
 });
 test('Cloud mode remains selected without configuration and missing token fails safely',async()=>{
   const never:typeof fetch=async()=>assert.fail('No upstream request');
-  assert.deepEqual((await call('config',never,{})).body,{cloudRatings:true,autoRefreshSeconds:60});
+  assert.deepEqual((await call('config',never,{})).body,{cloudRatings:true,autoRefreshSeconds:900,autoRefreshEnabled:false});
   const missing=await call('ratings',never,{RATINGS_API_URL:env.RATINGS_API_URL});
   assert.equal(missing.status,503);assert.deepEqual(missing.body,{error:'Cloud ratings are not configured.'});
   assert.deepEqual((await call('health',never,{})).body,{ok:true,mode:'cloud'});

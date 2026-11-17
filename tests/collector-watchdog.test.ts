@@ -75,7 +75,7 @@ test('unauthorized/disabled requests never touch database or upstream; existing 
     {method:'POST',headers:{authorization:'Bearer '+env.COLLECTOR_WATCHDOG_SECRET}} as any,disabled as any);assert.equal(disabled.statusCode,503);
   let authenticated=0;const config=createCloudHandler('config',env,async()=>assert.fail(),async()=>{authenticated++;return {} as any;});
   const normal=response();await config({method:'GET',headers:{},url:'/api/config'} as any,normal as any);
-  assert.equal(authenticated,1);assert.deepEqual(JSON.parse(normal.body),{cloudRatings:true,autoRefreshSeconds:60});
+  assert.equal(authenticated,1);assert.deepEqual(JSON.parse(normal.body),{cloudRatings:true,autoRefreshSeconds:900,autoRefreshEnabled:false});
   const bad=response();await config({method:'POST',headers:{},url:'/api/config?watchdog=1'} as any,bad as any);
   assert.equal(bad.statusCode,401);assert.equal(authenticated,1);
 });

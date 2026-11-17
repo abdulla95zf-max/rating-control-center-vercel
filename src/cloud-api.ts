@@ -71,7 +71,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     const dataset=requestUrl.searchParams.get('dataset')||'';
     const feature=route==='performance'?({growth:'growth',lens:'lens',tstar:'talabat.tstar',keeta:'keeta.performance',noon:'noon.performance','deliveroo-operations':'deliveroo.operations','talabat-reviews':'talabat.reviews'} as Record<string,string>)[dataset]||'talabat.performance':route==='performanceHistory'||route==='actionHistory'?'talabat.performance':null;
     if(feature&&!hasFeature(user,feature))return send(403,{error:'Section access denied'});
-    if (route === 'config') return send(200, {cloudRatings: true, autoRefreshSeconds: 60});
+    if (route === 'config') return send(200, {cloudRatings: true, autoRefreshSeconds: 900, autoRefreshEnabled:false});
     if (route === 'health') return send(200, {ok: true, mode: 'cloud'});
     if(route==='performance'&&requestUrl.searchParams.get('dataset')==='talabat-reviews'){try{return send(200,await readTalabatReviews(requestUrl.searchParams,user));}catch(e:any){return send(e.message==='REVIEWS_QUERY_INVALID'?400:e.message==='REVIEWS_FORBIDDEN'?403:503,{error:e.message==='REVIEWS_QUERY_INVALID'?'REVIEWS_QUERY_INVALID':e.message==='REVIEWS_FORBIDDEN'?'Forbidden':'REVIEWS_READ_FAILED'});}}
     if(route==='performance'){

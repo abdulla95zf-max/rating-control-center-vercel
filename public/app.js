@@ -6,7 +6,7 @@ const state = {
   location: '',
   status: '',
   sort: 'name_asc',
-  refreshSeconds: 60,
+  refreshSeconds: 900,
   timer: null,
   busy: false,
   cloudRatings: false,
@@ -23,6 +23,15 @@ const state = {
 const main = document.getElementById('mainContent');
 const tabs = document.getElementById('platformTabs');
 const refreshState = document.getElementById('refreshState');
+const refreshButton=document.getElementById('dashboardRefresh'),refreshMode=document.getElementById('dashboardRefreshMode');
+const dashboardRefresh=RCCRefresh.create({read:()=>renderCurrent(true),allowed:()=>!globalThis.dashboardAuth||!!dashboardAuth.user,visible:()=>document.visibilityState==='visible',changed:({mode,busy,active})=>{
+ if(refreshMode){refreshMode.value=mode;refreshMode.disabled=!active;}
+ if(refreshButton){refreshButton.disabled=!active||busy;refreshButton.setAttribute('aria-busy',String(busy));}
+ if(!active)return;const label=refreshState.querySelector('span:last-child');
+ if(busy)label.textContent='Refreshing saved data…';else if(label.textContent==='Refreshing saved data…')label.textContent='See page for data status';
+}});
+refreshButton?.addEventListener('click',()=>{const generation=apiAuthGeneration;dashboardRefresh.refresh().catch(()=>{if(generation===apiAuthGeneration&&(!globalThis.dashboardAuth||dashboardAuth.user))refreshState.querySelector('span:last-child').textContent='Refresh failed · retry';});});
+refreshMode?.addEventListener('change',event=>dashboardRefresh.setMode(event.target.value));
 const detailPanel = document.getElementById('detailPanel');
 const detailContent = document.getElementById('detailContent');
 const talabatViewTabs = document.getElementById('talabatViewTabs');
@@ -143,13 +152,13 @@ async function initialize() {
     const config = await api('/api/config');
     state.cloudRatings = config.cloudRatings === true;
     state.platforms = state.cloudRatings ? ['talabat','keeta','noon','careem','deliveroo'].map(id => ({id, name: id[0].toUpperCase() + id.slice(1), health: ['talabat','keeta','noon','deliveroo'].includes(id) ? 'UNKNOWN' : 'NOT CONNECTED'})) : (await api('/api/platforms')).platforms;
-    state.refreshSeconds = config.autoRefreshSeconds;
+    state.refreshSeconds = 900;
     updatePlatformTabs();
     await renderCurrent();
 
   } catch (error) {
     renderError(error);
-  } finally { if(!globalThis.dashboardAuth||globalThis.dashboardAuth.user)state.timer = window.setInterval(()=>{if(document.visibilityState==='visible')renderCurrent(false);}, state.refreshSeconds * 1000); }
+  } finally { if(!globalThis.dashboardAuth||globalThis.dashboardAuth.user)dashboardRefresh.start(); }
 }
 
 function updatePlatformTabs() {
@@ -180,12 +189,12 @@ async function renderCurrent(force=false) {
 
   globalThis.FRBDesign?.sync(state.tab);
   updateTalabatViews();
-  if(state.tab==='brief'){await renderBranchBrief();return;}
+  if(state.tab==='brief'){await renderBranchBrief(force);return;}
   if(state.tab==='talabat-reviews'){await renderTalabatReviews(force);return;}
-  if(state.tab==='growth'){await renderGrowth();return;}
-  if(state.tab==='performance'){await renderPerformance();return;}
-  if(state.tab==='keeta-performance'){await renderKeetaPerformance();return;}
-  if(state.tab==='noon-performance'){await renderNoonPerformance();return;}
+  if(state.tab==='growth'){await renderGrowth(force);return;}
+  if(state.tab==='performance'){await renderPerformance(force);return;}
+  if(state.tab==='keeta-performance'){await renderKeetaPerformance(force);return;}
+  if(state.tab==='noon-performance'){await renderNoonPerformance(force);return;}
   if(state.tab==='deliveroo-operations'){await renderDeliverooOperations(force);return;}
   if(state.cloudRatings){
     if(['overview','talabat','keeta','noon','deliveroo'].includes(state.tab))await renderCloudRatings(force);
@@ -203,7 +212,7 @@ async function renderCurrent(force=false) {
     else if (state.tab === 'talabat') await renderTalabat();
     else renderDisconnected(state.tab);
     if (selectedStore && detailPanel.classList.contains('open')) await openStore(selectedStore, selectedRange);
-    refreshState.querySelector('span:last-child').textContent = `Auto-refresh ${state.refreshSeconds}s · checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+    refreshState.querySelector('span:last-child').textContent = `Checked ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
   } catch (error) {
     if(state.tab==='performance')return;
     state.platforms = state.platforms.map(p => ['talabat','keeta','noon','deliveroo'].includes(p.id) ? { ...p, health: 'ERROR' } : p);
@@ -351,7 +360,7 @@ function renderOverviewTrust(){
 function ratingsRefreshLabel(){
  const entry=ratingsReports.peek(ratingsReportPath),label=refreshState.querySelector('span:last-child');
  const checked=entry.checkedAt?new Date(entry.checkedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):null;
- label.textContent=entry.error?`Refresh failed · showing saved view${checked?' · checked '+checked:''}`:entry.pending?`Refreshing…${entry.value?' · showing saved view':''}`:checked?`Auto-refresh ${state.refreshSeconds}s · checked ${checked}`:'Reading saved ratings…';
+ label.textContent=entry.error?`Refresh failed · showing saved view${checked?' · checked '+checked:''}`:entry.pending?`Refreshing…${entry.value?' · showing saved view':''}`:checked?`Checked ${checked}`:'Reading saved ratings…';
 }
 function overviewActionPanel(groups){
  const p=overviewReports.peek(overviewPerformancePath),h=overviewReports.peek(overviewHistoryPath);
@@ -716,6 +725,7 @@ if (['overview', 'brief', 'growth', 'talabat', 'keeta', 'noon', 'careem', 'deliv
 }
 document.addEventListener('rcc-theme-change',()=>{redrawCharts();globalThis.redrawPerformanceHistory?.();});
 document.addEventListener('rcc-auth-reset',()=>{
+ dashboardRefresh.stop();
  ++apiAuthGeneration;
  if(typeof reviewsState!=='undefined'){reviewsState.request++;reviewsState.cache=null;reviewsState.pending=false;reviewsState.pendingKey=null;reviewsState.key='';reviewsState.checkedAt=0;reviewsState.store='';}
  ++cloudViewEpoch;ratingsReports.clear();overviewReports.clear();state.cloudResponse=null;state.busy=false;
