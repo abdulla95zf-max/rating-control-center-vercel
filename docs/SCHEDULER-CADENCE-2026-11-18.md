@@ -24,7 +24,13 @@ Rollback: restore job 8644387 to every minute. No application or database migrat
 
 ## Applied configuration and measurement baseline
 
-- November 18: cron-job.org confirmed `Cronjob saved successfully` for enabled relay 8644387 at `*/15 * * * *` (Asia/Tehran), with the next automatic execution at 10:45 Tehran. Watchdog 8638496 remained at 15 minutes; its 10:30 check was successful. The prior relay's last recorded minute-based execution was 10:32. The first quarter-hour execution still needs independent confirmation.
+- November 18: cron-job.org confirmed `Cronjob saved successfully` for enabled relay 8644387 at `*/15 * * * *` (Asia/Tehran), with the next automatic execution at 10:45 Tehran. Watchdog 8638496 remained at 15 minutes; its 10:30 check was successful. The prior relay's last recorded minute-based execution was 10:32.
 - Build and all 334 tests passed, including 15 scheduler tests. Separate standards/specification reviews reported no actionable findings. No application runtime code or database schema changed.
 - Owner-supplied production Neon screenshot at November 18, 10:36 Tehran: 59.14 CU-hours since November 1; storage 131.94 MB; history 4.49 MB; network transfer 252.32 MB; Free plan; default compute 0.25–2 CU. Against the November 17 sample of 57.01 CU-hours, the increase is 2.13 CU-hours over an interval shorter than a full day; it is not a daily rate.
 - Compare a later provider sample after 24–48 hours of comparable use. Provider metrics may lag. Configured request-count reduction is confirmed; actual CU-hour savings are not yet measured. The empty alternate Neon account observed during login is not the production project's quota.
+
+## Verified first quarter-hour execution
+
+- Relay executed automatically at 10:45:12 Tehran, returned HTTP 200 in 4.56 seconds and `CHECKED` with `issues:[]` for today's Performance, tStar and 06:17 Ratings slots. The next execution was 11:00. No manual test or extra collection was triggered.
+- Watchdog executed automatically at 10:45:19 Tehran, returned HTTP 200 in 3.62 seconds. A bounded read-only DB check at 07:16 UTC confirmed its persisted 07:15 checkpoint and OK health for both Talabat and Keeta.
+- The same DB check confirmed ACCEPTED ledger entries for today's 00:17 and 06:17 Ratings, 05:30 Performance and 05:45 tStar slots. The CHECKED response reused already accepted work; a new collection slot under the new cadence has not yet been observed live. Busy/catch-up behavior remains covered by the tests, not misrepresented as a new live dispatch.

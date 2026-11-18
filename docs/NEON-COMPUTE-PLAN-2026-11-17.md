@@ -16,7 +16,7 @@ Status: initial read-only assessment, followed by the authorized browser-refresh
 - Automatic ticks skip hidden tabs and unauthenticated sessions. Auth reset cancels the timer; overlapping refresh clicks coalesce. Normal navigation, explicit queued-report progress checks and collector schedules are preserved.
 - Refresh reads saved data for the current page, bypassing its browser report cache while retaining bounded server cache policy. It never starts portal collection. Branch Lens preserves its open brand/branch selection on forced refresh.
 - Cloud config reports autoRefreshEnabled=false and autoRefreshSeconds=900. The browser control owns the opt-in policy; legacy local config intervals do not enable polling.
-- This reduces idle browser requests; actual Neon CU-hour savings remain unmeasured. Background watchdog/relay review, shared cache and precomputation remain pending, not claimed complete.
+- This reduces idle browser requests; actual Neon CU-hour savings remain unmeasured. The November 18 external relay cadence phase is recorded in `SCHEDULER-CADENCE-2026-11-18.md`. Shared cache and precomputation remain pending, not claimed complete.
 - Shared server caches are per process/pool/fetch identity, not shared across Vercel instances. Source/source-account scope and server-side permissions must remain intact.
 - Existing October 19 isolated load tests passed the 10-client stage and failed parts of the 50-client stage. They are neither current production capacity measurements nor acceptable evidence to advertise a 50-user guarantee.
 
