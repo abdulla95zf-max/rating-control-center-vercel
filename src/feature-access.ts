@@ -1,5 +1,6 @@
 export const featureCatalog=[
  {id:'overview',group:'Workspace',label:'Overview'},
+ {id:'overview.emergencies',group:'Overview details',label:'Emergency order drops (requires Overview + source Performance)'},
  {id:'overview.confidence',group:'Overview details',label:'Data confidence (requires Overview)'},
  {id:'overview.actions',group:'Overview details',label:'Action priorities (requires Overview)'},
  {id:'overview.changes',group:'Overview details',label:'Recent Changes (requires Overview)'},

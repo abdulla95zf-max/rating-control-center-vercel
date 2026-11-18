@@ -391,7 +391,7 @@ function loadOverviewReports(force,epoch){
 }
 async function renderCloudRatings(force=false) {
  const requestedTab=state.tab,epoch=cloudViewEpoch;
- if(requestedTab==='overview')loadOverviewReports(force,epoch);
+ if(requestedTab==='overview'){loadOverviewReports(force,epoch);if(force)globalThis.RCCOrderEmergencies?.invalidate?.();}
  const cached=ratingsReports.peek(ratingsReportPath);
  if(cached.value)paintCloudRatings(cached.value);
  const request=ratingsReports.read(ratingsReportPath,()=>api(ratingsReportPath),{force});
@@ -448,6 +448,7 @@ function paintCloudRatings(response) {
   const recentChanges=!selectedPlatform&&overviewSectionAllowed('changes')?renderRecentChanges(allGroups):'';
   const actionCenter=!selectedPlatform&&overviewSectionAllowed('actions')?overviewActionPanel(allGroups):'';
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(title)}</h2><p>Latest saved ratings · ${formatNumber(viewGroups.length)} branches${selectedPlatform ? '' : ' across connected platforms'}</p></div>${selectedPlatform?`<div class="ratings-freshness">${statusHtml(overallHealth)}<span>Last sync <strong>${escapeHtml(formatTime(active[0]?.syncTimestamp))}</strong></span></div>`:''}</div>
+    ${!selectedPlatform&&overviewSectionAllowed('emergencies')?'<div id="orderEmergencyOverview"></div>':''}
     ${!selectedPlatform&&globalThis.FRBDesign?FRBDesign.overview({counts,total:viewGroups.length,platforms:platformResults}):''}
     ${selectedPlatform?noonSessionWarning(active[0]):cloudPlatformCards(platformResults)}
     ${selectedPlatform||overviewSectionAllowed('confidence')?'<div id="dataTrustOverview"></div>':''}
@@ -463,6 +464,7 @@ function paintCloudRatings(response) {
   const exploreGrowth=document.getElementById('frbExploreGrowth');if(exploreGrowth)exploreGrowth.onclick=event=>{event.preventDefault();grNavigate(growthState.platform);};
   if(!selectedPlatform&&typeof renderGrowthOverview==='function')renderGrowthOverview();
   renderOverviewTrust();
+  if(!selectedPlatform&&overviewSectionAllowed('emergencies'))globalThis.RCCOrderEmergencies?.load(document.getElementById('orderEmergencyOverview'),api);
   attachRatingExports(exportGroups,{platform:selectedPlatform,brand:state.brand,location:state.location,status:state.status,search:state.search});
   attachCloudStoreClicks(filteredGroups);
   attachRecentChanges(allGroups);

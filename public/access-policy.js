@@ -1,6 +1,6 @@
 (() => {
  const tabs={overview:'overview',brief:'lens',growth:'growth',talabat:'talabat.ratings',performance:'talabat.performance','talabat-reviews':'talabat.reviews',keeta:'keeta.ratings','keeta-performance':'keeta.performance',noon:'noon.ratings','noon-performance':'noon.performance',deliveroo:'deliveroo.ratings','deliveroo-operations':'deliveroo.operations',careem:'careem.ratings'};
- const ids=[...new Set([...Object.values(tabs),'overview.confidence','overview.actions','overview.changes','talabat.tstar','users.manage'])];
+ const ids=[...new Set([...Object.values(tabs),'overview.emergencies','overview.confidence','overview.actions','overview.changes','talabat.tstar','users.manage'])];
  const allows=(user,key)=>ids.includes(key)&&!!user&&(user.isOwner===true||user.features==null||user.features.includes(key)&&(!key.startsWith('overview.')||user.features.includes('overview')));
  const canTab=(user,tab)=>allows(user,tabs[tab])||(tab==='performance'&&allows(user,'talabat.tstar'));
  const landing=user=>Object.keys(tabs).find(tab=>canTab(user,tab))||'no-access';

@@ -22,6 +22,7 @@ import {fetchActionHistory,fetchPerformanceHistory,fetchRatingHistory,HistoryPro
 import {readJson,sameOrigin,requireUser,type AuthUser} from './auth.ts';
 import {scopePerformance,scopeRatings,scopeKeetaPerformance} from './services/branch-identity.ts';
 import {registerBranchSources} from './services/branch-registry.ts';
+import {readScopedEmergencies} from './services/order-emergency-reader.ts';
 
 /** Cloud-only entry point: never imports local configuration, SQLite or the Windows server. */
 export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'performance' | 'ratingHistory' | 'performanceHistory' | 'actionHistory', env: NodeJS.ProcessEnv = process.env, fetcher: typeof fetch = fetch,authenticate:typeof requireUser=requireUser, ratingsReaders:Partial<RatingsReaders>={}) {
@@ -70,6 +71,11 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
       if(!hasFeature(user,platform+'.ratings'))return send(403,{error:'Section access denied'});
     }
     const dataset=requestUrl.searchParams.get('dataset')||'';
+    if(route==='performance'&&dataset==='order-emergencies'){
+      if(!hasFeature(user,'overview.emergencies'))return send(403,{error:'Section access denied'});
+      if([...requestUrl.searchParams.keys()].some(k=>k!=='dataset')||requestUrl.searchParams.getAll('dataset').length!==1)return send(400,{error:'Invalid request'});
+      try{return send(200,await readScopedEmergencies(user));}catch{return send(503,{error:'Emergency monitor unavailable'});}
+    }
     const feature=route==='performance'?({growth:'growth',lens:'lens',tstar:'talabat.tstar',keeta:'keeta.performance',noon:'noon.performance','deliveroo-operations':'deliveroo.operations','talabat-reviews':'talabat.reviews'} as Record<string,string>)[dataset]||'talabat.performance':route==='performanceHistory'||route==='actionHistory'?'talabat.performance':null;
     if(feature&&!hasFeature(user,feature))return send(403,{error:'Section access denied'});
     if (route === 'config') return send(200, {cloudRatings: true, autoRefreshSeconds: 900, autoRefreshEnabled:false});
