@@ -1,5 +1,8 @@
 export const featureCatalog=[
  {id:'overview',group:'Workspace',label:'Overview'},
+ {id:'overview.confidence',group:'Overview details',label:'Data confidence (requires Overview)'},
+ {id:'overview.actions',group:'Overview details',label:'Action priorities (requires Overview)'},
+ {id:'overview.changes',group:'Overview details',label:'Recent Changes (requires Overview)'},
  {id:'lens',group:'Workspace',label:'Branch Lens'},
  {id:'growth',group:'Workspace',label:'Growth'},
  {id:'talabat.ratings',group:'Talabat',label:'Ratings'},
@@ -25,7 +28,7 @@ export function parseFeatures(value:unknown):Feature[]|null{
  return [...value] as Feature[];
 }
 export function storedFeatures(value:unknown):Feature[]|null{if(value===undefined||value===null)return null;try{return parseFeatures(value);}catch{return [];}}
-export function hasFeature(user:FeatureUser,key:string){return known.has(key)&&(user.isOwner===true||user.features==null||user.features.includes(key as Feature));}
+export function hasFeature(user:FeatureUser,key:string){return known.has(key)&&(user.isOwner===true||user.features==null||user.features.includes(key as Feature)&&(!key.startsWith('overview.')||user.features.includes('overview')));}
 export const ratingFeature=(platform:string)=>`${platform}.ratings`;
 export function rowFeatureUser(row:any):FeatureUser{return {role:row.role,isOwner:row.is_owner===true,features:storedFeatures(row.feature_access)};}
 export function canManageAccount(actor:FeatureUser,target:FeatureUser){

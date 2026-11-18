@@ -63,6 +63,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     }
     if (request.headers['sec-fetch-site'] === 'cross-site') return send(403, {error: 'Forbidden'});
     const user=await authenticate(request,response);if(!user)return;
+    if(route==='actionHistory'&&!hasFeature(user,'overview.actions'))return send(403,{error:'Section access denied'});
     if(route==='ratingHistory'){
       const identity=requestUrl.searchParams.get('storeIdentityKey')||'';
       const platform=identity.startsWith('KEETA;')?'keeta':identity.startsWith('NOON;')?'noon':identity.startsWith('DELIVEROO;')?'deliveroo':'talabat';

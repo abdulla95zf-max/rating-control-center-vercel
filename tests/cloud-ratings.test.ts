@@ -109,6 +109,7 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   vm.runInContext(fs.readFileSync('public/ratings-export.js','utf8'),context);
   vm.runInContext(fs.readFileSync('public/report-cache.js','utf8'),context);
   vm.runInContext(fs.readFileSync('public/dashboard-refresh.js','utf8'),context);
+  vm.runInContext(fs.readFileSync('public/access-policy.js','utf8'),context);
   const source=fs.readFileSync('public/app.js','utf8').replace(/bootDashboard\(\);\s*$/,'');vm.runInContext(source,context);
   assert.equal(vm.runInContext('formatNumber(null)',context),'—');assert.equal(vm.runInContext('formatNumber(0)',context),'0');
   assert.deepEqual(JSON.parse(vm.runInContext('JSON.stringify(storeIdentity({storeName:"KF-Fujairah"}))',context)),
@@ -153,6 +154,19 @@ test('cloud UI groups matching branches, filters brands and keeps counts in the 
   await vm.runInContext('state.tab="talabat";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/keeta.svg'));
   await vm.runInContext('state.tab="keeta";renderCloudRatings()',context);assert.ok(main.innerHTML.includes('Kabab Fareej — Al Warqa'));assert.ok(!main.innerHTML.includes('/platforms/talabat.svg'));
   assert.deepEqual([...urls].sort(),['/api/dashboard/ratings/latest','/api/dashboard/performance/latest','/api/dashboard/performance/action-history?days=30','/api/dashboard/ratings/history?storeIdentityKey=TB_AE%3Bfareej&range=30d'].sort());
+  for(let mask=0;mask<8;mask++){
+    const sections=['confidence','actions','changes'].filter((_,index)=>mask&(1<<index));
+    context.sectionFeatures=['overview','talabat.ratings','keeta.ratings','talabat.performance',...sections.map(key=>'overview.'+key)];
+    vm.runInContext("globalThis.dashboardAuth={user:{features:sectionFeatures},can:key=>RCCAccess.allows(dashboardAuth.user,key)};overviewReports.clear();state.tab='overview';state.brand='';state.location='';state.search='';",context);
+    urls.length=0;await vm.runInContext('renderCloudRatings(true)',context);await new Promise(resolve=>setImmediate(resolve));vm.runInContext('paintCloudRatings(state.cloudResponse)',context);
+    assert.equal(main.innerHTML.includes('id="dataTrustOverview"'),sections.includes('confidence'));
+    assert.equal(main.innerHTML.includes('class="action-center"'),sections.includes('actions'));
+    assert.equal(main.innerHTML.includes('class="recent-changes"'),sections.includes('changes'));
+    assert.equal(urls.some(url=>url.includes('/performance/')),sections.includes('actions'));
+    assert.ok(main.innerHTML.includes('overview-table'));assert.ok(main.innerHTML.includes('Kabab Fareej'));
+  }
+  vm.runInContext("dashboardAuth.user.features=['overview','overview.actions','talabat.ratings'];paintCloudRatings(state.cloudResponse)",context);
+  assert.ok(main.innerHTML.includes('Rating evidence only'));assert.ok(!main.innerHTML.includes('Loading saved operational reports'));
 });
 
 test('missing token and public assets fail closed without exposing token or upstream URL',async()=>{

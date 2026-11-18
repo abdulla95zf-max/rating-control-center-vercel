@@ -5,3 +5,4 @@
 #featureField .access-tools button{border:1px solid var(--border,#dce5df);background:var(--surface,#f7f9f5);color:var(--text,#18352c);border-radius:8px;padding:8px 12px;min-height:36px;cursor:pointer;font:inherit;font-size:12px}
 #featureField .access-tools button:focus-visible{outline:2px solid #087c58;outline-offset:2px}
 .user-actions button:disabled{opacity:.4;cursor:not-allowed}
+.frb-design .overview-panels.overview-panels-single{grid-template-columns:minmax(0,1fr)}

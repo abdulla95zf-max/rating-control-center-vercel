@@ -8,6 +8,32 @@ import {createCloudHandler} from '../src/cloud-api.ts';
 import {fetchGrowth} from '../src/services/growth.ts';
 import {resetDashboardPassword} from '../src/password-reset.ts';
 import {withAccountAdmin} from '../src/account-admin.ts';
+import {PERFORMANCE_HEADERS} from '../src/services/performance-proxy.ts';
+
+test('Overview detail grants are independent and require their parent on both server and browser',()=>{
+ const context:any=vm.createContext({});vm.runInContext(fs.readFileSync('public/access-policy.js','utf8'),context);
+ for(const key of ['overview.confidence','overview.actions','overview.changes']){
+  for(const [features,expected] of [[['overview'],false],[[key],false],[['overview',key],true]] as const){
+   const user:any={role:'viewer',features:[...features]};assert.equal(hasFeature(user,key),expected);assert.equal(context.RCCAccess.allows(user,key),expected);
+  }
+  assert.equal(hasFeature({role:'admin',isOwner:true,features:[]},key),true);assert.equal(hasFeature({role:'viewer',features:null},key),true);
+ }
+ const user:any={role:'viewer',features:['overview','overview.changes']};assert.equal(hasFeature(user,'overview.actions'),false);assert.equal(hasFeature(user,'overview.confidence'),false);
+ assert.throws(()=>selectFeatureAccess({features:['overview','overview.actions']},{role:'admin',is_owner:false}),/OWNER_REQUIRED/);
+});
+
+test('Overview action history requires its own grant and Performance; normal Performance remains independently accessible',async()=>{
+ const env={RATINGS_API_URL:'https://overview.test/api/ratings/latest',RATINGS_API_TOKEN:'synthetic-overview-token-'.repeat(3)};
+ const performance={ok:true,platform:'talabat',state:'SUCCESS',reportDate:'2026-09-20',expectedDate:'2026-09-20',availableDates:['2026-09-20'],requestedAt:'2026-09-20T09:00:00.000Z',receivedAt:'2026-09-20T09:01:00.000Z',scopeCount:1,observedCount:1,headers:[...PERFORMANCE_HEADERS],rows:[{storeId:'1',storeName:'Kabab Fareej, Test',present:true,values:Object.fromEntries(PERFORMANCE_HEADERS.map(h=>[h,null]))}]};
+ let reads=0;const fetcher:typeof fetch=async url=>{reads++;return Response.json(String(url).includes('action-history')?{ok:true,kind:'actionPerformance',days:30,points:[{reportDate:'2026-09-20',storeId:'1',orders:10,complaints:0,cancellation:0,offline:0,prep:10},{reportDate:'2026-09-20',storeId:'999',orders:10,complaints:0,cancellation:0,offline:0,prep:10}]}:performance);};
+ async function call(features:string[],route:'performance'|'actionHistory'){
+  const user:any={id:'synthetic',role:'admin',isOwner:false,features,scopes:[]};let body:any;const response:any={statusCode:0,setHeader(){},end(value:string){body=JSON.parse(value);}};
+  await createCloudHandler(route,env,fetcher,async()=>user)({method:'GET',url:route==='actionHistory'?'/?days=30':'/',headers:{}} as any,response);return {status:response.statusCode,body};
+ }
+ for(const features of [['overview','talabat.performance'],['overview.actions','talabat.performance'],['overview','overview.actions']]){assert.equal((await call(features,'actionHistory')).status,403);assert.equal(reads,0);}
+ assert.equal((await call(['overview','talabat.performance'],'performance')).status,200);
+ const allowed=await call(['overview','overview.actions','talabat.performance'],'actionHistory');assert.equal(allowed.status,200);assert.deepEqual(allowed.body.points.map((p:any)=>p.storeId),['1']);
+});
 
 test('feature permissions distinguish legacy full access from explicit none and reject malformed grants',()=>{
  assert.equal(hasFeature({role:'viewer'},'lens'),true);
