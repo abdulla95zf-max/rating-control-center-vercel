@@ -57,3 +57,10 @@ test('Telegram health failure cannot block emergency evidence persistence',async
  await runWatchdog(store,async()=>[],async()=>{throw Error('offline');},()=>now.getTime(),{scan:async()=>snapshot(),queue:async()=>{},drain:async()=>({sent:0,pending:false})});
  assert.ok(saved.orderEmergencies.incidents[s.key]);assert.equal(saved.platforms.talabat.health,'UNKNOWN');
 });
+test('initial unknown collector health notification is retried after failed Telegram delivery',async()=>{
+ let saved:any=null,at=now.getTime(),sent=0;const store:WatchdogStore={async locked(action){return action(saved,async next=>{saved=next;});}};
+ const hooks={scan:async()=>snapshot(),queue:async()=>{},drain:async()=>({sent:0,pending:false})};
+ await runWatchdog(store,async()=>[],async()=>{throw Error('offline');},()=>at,hooks);assert.equal(saved.healthNotificationPending,true);
+ at+=900000;await runWatchdog(store,async()=>[],async()=>{sent++;},()=>at,hooks);assert.equal(sent,1);assert.equal(saved.healthNotificationPending,false);
+ at+=900000;await runWatchdog(store,async()=>[],async()=>{sent++;},()=>at,hooks);assert.equal(sent,1);
+});

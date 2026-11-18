@@ -11,7 +11,7 @@ const PLATFORMS=['talabat','keeta'] as const;
 type Platform=typeof PLATFORMS[number];
 type Health='OK'|'DELAYED'|'UNKNOWN';
 type State={health:Health;lastSuccess:string|null};
-type Saved={checkedAt:string;platforms:Partial<Record<Platform,State>>;orderEmergencies?:EmergencySnapshot;emergencyPending?:boolean;emergencyError?:boolean;emergencyDeliveryUncertain?:boolean};
+type Saved={checkedAt:string;platforms:Partial<Record<Platform,State>>;orderEmergencies?:EmergencySnapshot;emergencyPending?:boolean;emergencyError?:boolean;emergencyDeliveryUncertain?:boolean;healthNotificationPending?:boolean};
 type EmergencyHooks={scan:(previous:EmergencySnapshot|undefined,now:Date)=>Promise<EmergencySnapshot>;queue:typeof queueEmergencyEvents;drain:typeof drainEmergencyEvents};
 export interface WatchdogStore {
   locked<T>(action:(previous:Saved|null,save:(next:Saved)=>Promise<void>)=>Promise<T>):Promise<T|null>;
@@ -72,6 +72,7 @@ export async function runWatchdog(store:WatchdogStore,read:()=>Promise<Observati
     let observed:Observation[]=[];
     try{observed=await read();}catch{/* Unknown must never be reported as delayed or recovered. */}
     const plan=evaluateWatchdog(observed,previous,at),next:Saved={...plan.next,...(previous?.orderEmergencies?{orderEmergencies:previous.orderEmergencies}:{}),emergencyPending:previous?.emergencyPending??false,emergencyError:previous?.emergencyError??false,emergencyDeliveryUncertain:previous?.emergencyDeliveryUncertain??false};
+    if(previous?.healthNotificationPending&&!plan.messages.length)plan.messages.push('بررسی قبلیِ سلامت کالکتورها قابل ارسال نبود؛ وضعیت فعلی: '+PLATFORMS.map(p=>p+': '+next.platforms[p]?.health).join(' · '));
     let healthNotifyFailed=false;
     if(plan.messages.length)try{await notify('Rating collector monitor\n\n'+plan.messages.join('\n\n'));}catch(error){
       if(!emergency)throw error;
@@ -79,6 +80,7 @@ export async function runWatchdog(store:WatchdogStore,read:()=>Promise<Observati
       // Keep health transitions pending for retry without blocking emergency evidence persistence.
       next.platforms=previous?.platforms??{talabat:{health:'UNKNOWN',lastSuccess:null},keeta:{health:'UNKNOWN',lastSuccess:null}};
     }
+    next.healthNotificationPending=healthNotifyFailed;
     if(emergency){
       const old=previous?.orderEmergencies;
       if(!old||!validEmergencySnapshot(old)||at-Date.parse(old.checkedAt)>=HOUR){
