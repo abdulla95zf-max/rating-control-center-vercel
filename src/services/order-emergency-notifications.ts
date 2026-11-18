@@ -25,15 +25,16 @@ export async function queueEmergencyEvents(next:EmergencySnapshot,previous?:Emer
  await db.query({text:`CREATE TABLE IF NOT EXISTS dashboard_order_emergency_notifications(id text PRIMARY KEY,body text NOT NULL,status text NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING','CLAIMED','SENT','UNKNOWN')),created_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now())`,query_timeout:4000});
  await queueEvents(next,previous,db);
 }
-export async function drainEmergencyEvents(notify:(text:string)=>Promise<void>,db:EmergencyDatabase=authDatabase()){
+export async function drainEmergencyEvents(notify:(text:string)=>Promise<void>,db:EmergencyDatabase=authDatabase()):Promise<{sent:number;pending:boolean;uncertain?:boolean}>{
  let sent=0;
+ const finish=async(pending:boolean)=>{const r=await db.query({text:"SELECT EXISTS(SELECT 1 FROM dashboard_order_emergency_notifications WHERE status='UNKNOWN' OR status='CLAIMED' AND updated_at<now()-interval '1 minute') AS uncertain",query_timeout:4000});return {sent,pending,uncertain:r.rows[0]?.uncertain===true};};
  for(let i=0;i<1;i++){
   const result=await db.query({text:`UPDATE dashboard_order_emergency_notifications SET status='CLAIMED',updated_at=now() WHERE id IN (SELECT id FROM dashboard_order_emergency_notifications WHERE status='PENDING' ORDER BY created_at,id LIMIT 12 FOR UPDATE SKIP LOCKED) RETURNING id,body`,query_timeout:4000});
-  if(!result.rows.length)return {sent,pending:false};
+  if(!result.rows.length)return finish(false);
   const ids=result.rows.map(r=>r.id);
   try{await notify('FRB · پایش اضطراری سفارش\n\n'+result.rows.map(r=>r.body).join('\n\n'));}
-  catch{await db.query({text:"UPDATE dashboard_order_emergency_notifications SET status='UNKNOWN',updated_at=now() WHERE id=ANY($1::text[])",values:[ids],query_timeout:4000});return {sent,pending:true};}
+  catch{await db.query({text:"UPDATE dashboard_order_emergency_notifications SET status='UNKNOWN',updated_at=now() WHERE id=ANY($1::text[])",values:[ids],query_timeout:4000});return finish(true);}
   await db.query({text:"UPDATE dashboard_order_emergency_notifications SET status='SENT',updated_at=now() WHERE id=ANY($1::text[])",values:[ids],query_timeout:4000});sent+=ids.length;
  }
- return {sent,pending:true};
+ return finish(true);
 }

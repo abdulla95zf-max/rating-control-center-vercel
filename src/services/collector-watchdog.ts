@@ -11,7 +11,7 @@ const PLATFORMS=['talabat','keeta'] as const;
 type Platform=typeof PLATFORMS[number];
 type Health='OK'|'DELAYED'|'UNKNOWN';
 type State={health:Health;lastSuccess:string|null};
-type Saved={checkedAt:string;platforms:Partial<Record<Platform,State>>;orderEmergencies?:EmergencySnapshot;emergencyPending?:boolean;emergencyError?:boolean};
+type Saved={checkedAt:string;platforms:Partial<Record<Platform,State>>;orderEmergencies?:EmergencySnapshot;emergencyPending?:boolean;emergencyError?:boolean;emergencyDeliveryUncertain?:boolean};
 type EmergencyHooks={scan:(previous:EmergencySnapshot|undefined,now:Date)=>Promise<EmergencySnapshot>;queue:typeof queueEmergencyEvents;drain:typeof drainEmergencyEvents};
 export interface WatchdogStore {
   locked<T>(action:(previous:Saved|null,save:(next:Saved)=>Promise<void>)=>Promise<T>):Promise<T|null>;
@@ -71,18 +71,24 @@ export async function runWatchdog(store:WatchdogStore,read:()=>Promise<Observati
     if(previous&&at-Date.parse(previous.checkedAt)>=0&&at-Date.parse(previous.checkedAt)<60_000)return {code:'THROTTLED',alertsSent:false};
     let observed:Observation[]=[];
     try{observed=await read();}catch{/* Unknown must never be reported as delayed or recovered. */}
-    const plan=evaluateWatchdog(observed,previous,at),next:Saved={...plan.next,...(previous?.orderEmergencies?{orderEmergencies:previous.orderEmergencies}:{}),emergencyPending:previous?.emergencyPending??false,emergencyError:previous?.emergencyError??false};
-    if(plan.messages.length)await notify('Rating collector monitor\n\n'+plan.messages.join('\n\n'));
+    const plan=evaluateWatchdog(observed,previous,at),next:Saved={...plan.next,...(previous?.orderEmergencies?{orderEmergencies:previous.orderEmergencies}:{}),emergencyPending:previous?.emergencyPending??false,emergencyError:previous?.emergencyError??false,emergencyDeliveryUncertain:previous?.emergencyDeliveryUncertain??false};
+    let healthNotifyFailed=false;
+    if(plan.messages.length)try{await notify('Rating collector monitor\n\n'+plan.messages.join('\n\n'));}catch(error){
+      if(!emergency)throw error;
+      healthNotifyFailed=true;
+      // Keep health transitions pending for retry without blocking emergency evidence persistence.
+      next.platforms=previous?.platforms??{talabat:{health:'UNKNOWN',lastSuccess:null},keeta:{health:'UNKNOWN',lastSuccess:null}};
+    }
     if(emergency){
       const old=previous?.orderEmergencies;
       if(!old||!validEmergencySnapshot(old)||at-Date.parse(old.checkedAt)>=HOUR){
         try{const snapshot=await emergency.scan(validEmergencySnapshot(old)?old:undefined,new Date(at));await emergency.queue(snapshot,validEmergencySnapshot(old)?old:undefined);next.orderEmergencies=snapshot;next.emergencyPending=true;next.emergencyError=false;}
         catch{next.emergencyError=true;}
       }
-      if(next.emergencyPending)try{const delivery=await emergency.drain(notify);next.emergencyPending=delivery.pending;}catch{next.emergencyError=true;}
+      if(next.emergencyPending)try{const delivery=await emergency.drain(notify);next.emergencyPending=delivery.pending;next.emergencyDeliveryUncertain=delivery.uncertain??next.emergencyDeliveryUncertain??false;}catch{next.emergencyDeliveryUncertain=true;}
     }
     await save(next);
-    return {code:'CHECKED',alertsSent:plan.messages.length>0,checkedAt:next.checkedAt,platforms:next.platforms,...(emergency?{emergencyCheckedAt:next.orderEmergencies?.checkedAt??null,emergencyError:next.emergencyError}: {})};
+    return {code:'CHECKED',alertsSent:plan.messages.length>0&&!healthNotifyFailed,checkedAt:next.checkedAt,platforms:next.platforms,...(emergency?{emergencyCheckedAt:next.orderEmergencies?.checkedAt??null,emergencyError:next.emergencyError,healthNotifyFailed}: {})};
   });
 }
 export function watchdogAuthorized(header:unknown,secret:unknown){

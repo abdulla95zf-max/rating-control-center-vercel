@@ -52,3 +52,8 @@ test('hourly scan preserves incident state across 15-minute watchdog checks and 
  await runWatchdog(store,observed,async()=>{},()=>at,hooks);at+=900000;await runWatchdog(store,observed,async()=>{},()=>at,hooks);assert.equal(scans,1);assert.equal(queues,1);assert.ok(saved.orderEmergencies.incidents[s.key]);
  at+=3600000;await runWatchdog(store,observed,async()=>{},()=>at,{...hooks,scan:async()=>{throw Error('failed');}});assert.equal(saved.emergencyError,true);assert.ok(saved.orderEmergencies.incidents[s.key]);
 });
+test('Telegram health failure cannot block emergency evidence persistence',async()=>{
+ let saved:any=null;const store:WatchdogStore={async locked(action){return action(null,async next=>{saved=next;});}};
+ await runWatchdog(store,async()=>[],async()=>{throw Error('offline');},()=>now.getTime(),{scan:async()=>snapshot(),queue:async()=>{},drain:async()=>({sent:0,pending:false})});
+ assert.ok(saved.orderEmergencies.incidents[s.key]);assert.equal(saved.platforms.talabat.health,'UNKNOWN');
+});

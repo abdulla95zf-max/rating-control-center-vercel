@@ -55,12 +55,12 @@ export async function scanOrderEmergencies(previous:EmergencySnapshot|undefined,
 export async function readScopedEmergencies(user:AuthUser,db:EmergencyDatabase=authDatabase(),now=new Date()){
  if(!hasFeature(user,'overview.emergencies'))throw Error('EMERGENCY_FORBIDDEN');
  const roster=(await emergencyRoster(db)).filter(r=>hasFeature(user,performanceFeature(emergencySourceTypes[r.source_type]))&&canAccess(user,r.brand,r.canonical_key));
- const result=await db.query({text:"SELECT payload->'orderEmergencies' AS snapshot,payload->>'emergencyError' AS monitor_error FROM dashboard_collector_watchdog WHERE id=1",query_timeout:4000});
+ const result=await db.query({text:"SELECT payload->'orderEmergencies' AS snapshot,payload->>'emergencyError' AS monitor_error,payload->>'emergencyDeliveryUncertain' AS delivery_uncertain FROM dashboard_collector_watchdog WHERE id=1",query_timeout:4000});
  const snapshot=result.rows[0]?.snapshot;if(!validEmergencySnapshot(snapshot))return {state:'PENDING',checkedAt:null,expectedDate:null,rows:[]};
  const allowed=new Map(roster.map(r=>[emergencySourceTypes[r.source_type]+':'+r.source_id,r]));
  // Explicit projection prevents internal incident/source revision metadata reaching the browser.
  const stale=now.getTime()-Date.parse(snapshot.checkedAt)>2*3600000||Date.parse(snapshot.checkedAt)>now.getTime()+300000||result.rows[0]?.monitor_error==='true';
  const rows=snapshot.rows.flatMap(r=>{const active=allowed.get(r.key);return !active||active.id!==r.branchId?[]:[{key:r.key,platform:r.platform,brand:active.brand,name:active.display_name,state:stale?'UNKNOWN':r.state,reason:stale?'MONITOR_NOT_CURRENT':r.reason,asOf:r.asOf,expectedDate:r.expectedDate,currentOrders:r.currentOrders,baselineAverage:r.baselineAverage,baselineFrom:r.baselineFrom,baselineTo:r.baselineTo,dropPercent:r.dropPercent,startDate:r.startDate,lastConfirmed:r.lastConfirmed,consecutiveDays:r.consecutiveDays,zeroDays:r.zeroDays,lagDays:r.lagDays}];});
- return {state:'READY',checkedAt:snapshot.checkedAt,expectedDate:snapshot.expectedDate,rows};
+ return {state:'READY',checkedAt:snapshot.checkedAt,expectedDate:snapshot.expectedDate,rows,...(user.isOwner?{telegramNeedsReview:result.rows[0]?.delivery_uncertain==='true'}:{})};
 }
 
