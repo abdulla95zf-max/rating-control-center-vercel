@@ -17,6 +17,41 @@ function memory(){const rows=new Map<string,any>();const store:SchedulerStore={
 };return {rows,store};}
 function github(overrides:Partial<SchedulerGithub>={}){return {flags:async()=>flags,busy:async()=>false,dispatch:async()=>({state:'ACCEPTED' as const,runId:'123'}),...overrides};}
 
+test('fifteen-minute relay preserves all six daily slots and defers busy work without duplicate dispatch',async()=>{
+ const db=memory(),sent:SchedulerSlot[]=[];let at=Date.parse(start),busyUntil=0;
+ const remote=github({busy:async()=>at<busyUntil,dispatch:async slot=>{sent.push(slot);busyUntil=at+(slot.kind==='ratings'?5:20)*60000;return {state:'ACCEPTED',runId:String(sent.length)};}});
+ for(let minute=0;minute<1440;minute+=15){at=Date.parse(start)+minute*60000;await runTalabatScheduler(db.store,remote,at,start);}
+ assert.equal(sent.length,6);assert.equal(new Set(sent.map(sig)).size,6);
+ assert.equal(sent.filter(s=>s.kind==='ratings').length,4);
+ assert.equal(sent.filter(s=>s.kind==='performance').length,1);assert.equal(sent.filter(s=>s.kind==='tstar').length,1);
+});
+
+test('fifteen-minute relay catches up after a missed daily window and never replays unknown delivery',async()=>{
+ const db=memory(),sent:SchedulerSlot[]=[];
+ const remote=github({dispatch:async slot=>{sent.push(slot);return {state:slot.kind==='tstar'?'UNKNOWN':'ACCEPTED',runId:null};}});
+ for(const time of ['06:30','06:45','07:00','07:15','07:30'])await runTalabatScheduler(db.store,remote,Date.parse('2026-10-14T'+time+':00Z'),start);
+ assert.deepEqual(sent.map(s=>s.kind),['performance','tstar','ratings']);assert.equal(new Set(sent.map(sig)).size,3);
+});
+
+test('cold-instance fifteen-minute relay reduces repeated ledger SQL while retaining the same dispatches',async t=>{
+ async function replay(step:number){
+  const rows=new Map<string,any>(),sent:string[]=[];let queries=0;
+  for(let minute=0;minute<1440;minute+=step){
+   const db={async query(q:any){queries++;const key=q.values?.slice(0,2).join(';');
+    if(q.text.startsWith('INSERT')){if(rows.has(key))return {rows:[]};rows.set(key,{state:'DISPATCHING',run_id:null});return {rows:[{workflow:q.values[0]}]};}
+    if(q.text.startsWith('SELECT state'))return {rows:rows.has(key)?[rows.get(key)]:[]};
+    if(q.text.startsWith('UPDATE')){rows.set(key,{state:q.values[2],run_id:q.values[3]});return {rows:[{workflow:q.values[0]}]};}
+    return {rows:[]};}};
+   const at=Date.parse(start)+minute*60000;
+   await runTalabatScheduler(new PostgresSchedulerStore(()=>db,()=>at),github({dispatch:async slot=>{sent.push(sig(slot));return {state:'ACCEPTED',runId:null};}}),at,start);
+  }
+  return {queries,sent};
+ }
+ const before=await replay(1),after=await replay(15);
+ assert.deepEqual(after.sent,before.sent);assert.equal(after.sent.length,6);assert.ok(after.queries<before.queries);
+ t.diagnostic(`Synthetic cold-instance day: ${before.queries} -> ${after.queries} ledger SQL calls; not measured Neon CU-hours.`);
+});
+
 test('UTC schedule, midnight, exact boundary and activation exclude previous slots',()=>{
  assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T00:16:59Z'),start),[]);
  assert.deepEqual(dueTalabatSlots(Date.parse('2026-10-14T00:17:00Z'),start),[{kind:'ratings',at:'2026-10-14T00:17:00.000Z'}]);
