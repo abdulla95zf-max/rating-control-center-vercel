@@ -356,7 +356,9 @@ function renderOverviewTrust(){
  const growthAllowed=!selected&&(!globalThis.dashboardAuth?.user||dashboardAuth.can('growth'));
  const comparisons=growthAllowed&&typeof growthState!=='undefined'?DataTrust.comparisonRows(growthState.cache):[];
  const focusId=host.contains(document.activeElement)?document.activeElement.id:null;
+ if(!selected)globalThis.RCCDataAudit?.capture(host);
  host.innerHTML=DataTrust.render([...ratings,...comparisons],{key:'overview',scope:'Authorized source scope · branch-table filters do not change these counts',unavailable:growthAllowed&&growthState.lastReadFailed===true});
+ if(!selected)globalThis.RCCDataAudit?.attach(host,api);
  if(focusId)document.getElementById(focusId)?.focus({preventScroll:true});
 }
 function ratingsRefreshLabel(){
@@ -391,7 +393,7 @@ function loadOverviewReports(force,epoch){
 }
 async function renderCloudRatings(force=false) {
  const requestedTab=state.tab,epoch=cloudViewEpoch;
- if(requestedTab==='overview'){loadOverviewReports(force,epoch);if(force)globalThis.RCCOrderEmergencies?.invalidate?.();}
+ if(requestedTab==='overview'){loadOverviewReports(force,epoch);if(force){globalThis.RCCOrderEmergencies?.invalidate?.();globalThis.RCCDataAudit?.invalidate?.();}}
  const cached=ratingsReports.peek(ratingsReportPath);
  if(cached.value)paintCloudRatings(cached.value);
  const request=ratingsReports.read(ratingsReportPath,()=>api(ratingsReportPath),{force});

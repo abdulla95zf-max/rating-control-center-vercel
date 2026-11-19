@@ -2,17 +2,28 @@ import {diagnoseOrderEmergency,type EmergencyContext,type EmergencyDiagnosis} fr
 export const emergencyPolicy={version:1,baselineDays:7,minAverage:4.5,minDropPercent:80,timezone:'Asia/Dubai',maxReportLagDays:1} as const;
 export type EmergencyPlatform='talabat'|'keeta'|'noon'|'deliveroo';
 export type EmergencyBranch={key:string;platform:EmergencyPlatform;sourceId:string;branchId:string;brand:string;name:string};
-export type DailyOrders={date:string;orders:number|null;complete:boolean;observedAt:string;revision:string;context?:EmergencyContext};
+export type DailyOrders={date:string;orders:number|null;sales?:number|null;complete:boolean;observedAt:string;revision:string;context?:EmergencyContext};
 export type OrderSeries=EmergencyBranch&{lineage:string;asOf:string|null;points:DailyOrders[];error?:string};
 export type OrderIncident={branchId:string;lineage:string;startDate:string;lastConfirmed:string;baselineFrom:string;baselineTo:string;baselineTotal:number;consecutiveDays:number;zeroDays:number};
 export type OrderAssessment=EmergencyBranch&{state:'EMERGENCY'|'NORMAL'|'LOW_VOLUME'|'INSUFFICIENT'|'UNKNOWN';reason:string|null;asOf:string|null;expectedDate:string;currentOrders:number|null;baselineAverage:number|null;baselineTotal:number|null;baselineFrom:string|null;baselineTo:string|null;dropPercent:number|null;startDate:string|null;lastConfirmed:string|null;consecutiveDays:number;zeroDays:number;lagDays:number|null};
-export type EmergencySnapshot={version:1;checkedAt:string;expectedDate:string;rows:(OrderAssessment&{diagnosis?:EmergencyDiagnosis})[];incidents:Record<string,OrderIncident>;sourceErrors:Partial<Record<EmergencyPlatform,string>>};
+export type DailyAudit={accountKey:string|null;latestComplete:string|null;from:string;to:string;missing:string[];weeks:{from:string;to:string;orderDays:number;salesDays:number;orders:number|null;sales:number|null}[]};
+export type EmergencySnapshot={version:1;checkedAt:string;expectedDate:string;rows:(OrderAssessment&{diagnosis?:EmergencyDiagnosis;audit?:DailyAudit})[];incidents:Record<string,OrderIncident>;sourceErrors:Partial<Record<EmergencyPlatform,string>>};
 export const calendarDay=(date:string,offset:number)=>new Date(Date.parse(date+'T00:00:00Z')+offset*86400000).toISOString().slice(0,10);
 export const dubaiDay=(now:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 export const validDay=(value:unknown):value is string=>typeof value==='string'&&/^\d{4}-\d\d-\d\d$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 const count=(v:unknown):v is number=>Number.isSafeInteger(v)&&Number(v)>=0;
 const severe=(orders:number,total:number)=>orders*35<=total; // Exact >=80% drop against total/7; no rounded averages.
 function pointValid(point:DailyOrders,date:string,now:Date){return point.date===date&&point.complete===true&&count(point.orders)&&typeof point.revision==='string'&&!!point.revision&&Number.isFinite(Date.parse(point.observedAt))&&Date.parse(point.observedAt)>=Date.parse(date+'T20:00:00Z')&&Date.parse(point.observedAt)<=now.getTime()+300000;}
+/** Summaries reuse the monitor's already-read daily rows; missing/duplicate/invalid days never become zero. */
+export function dailyAudit(series:OrderSeries,now:Date):DailyAudit{
+ const to=calendarDay(dubaiDay(now),-1),from=calendarDay(to,-27),days=new Map<string,DailyOrders[]>();
+ for(const p of series.points){if(!validDay(p.date)||p.date>to)continue;const values=days.get(p.date)||[];values.push(p);days.set(p.date,values);}
+ const read=(date:string)=>{const p=days.get(date);return !series.error&&p?.length===1&&pointValid(p[0]!,date,now)?p[0]!:null;};
+ const salesValid=(p:DailyOrders|null)=>!!p&&typeof p.sales==='number'&&Number.isFinite(p.sales)&&p.sales>=0&&(p.orders!==0||p.sales===0);
+ const anchor=validDay(series.asOf)&&series.asOf<=to?series.asOf:to;
+ const weeks=[3,2,1,0].map(i=>{const end=calendarDay(anchor,-7*i),start=calendarDay(end,-6),points=Array.from({length:7},(_,n)=>read(calendarDay(start,n))),orderDays=points.filter(Boolean).length,salesDays=points.filter(salesValid).length;return {from:start,to:end,orderDays,salesDays,orders:orderDays===7?points.reduce((sum,p)=>sum+p!.orders!,0):null,sales:salesDays===7?points.reduce((sum,p)=>sum+p!.sales!,0):null};});
+ return {accountKey:series.platform==='keeta'?series.lineage:null,from,to,latestComplete:[...days.keys()].filter(d=>read(d)).sort().at(-1)??null,missing:Array.from({length:28},(_,n)=>calendarDay(from,n)).filter(d=>!read(d)),weeks};
+}
 function incidentValid(value:OrderIncident){return value&&typeof value.branchId==='string'&&typeof value.lineage==='string'&&[value.startDate,value.lastConfirmed,value.baselineFrom,value.baselineTo].every(validDay)&&calendarDay(value.baselineTo,1)===value.startDate&&calendarDay(value.baselineFrom,6)===value.baselineTo&&value.lastConfirmed>=value.startDate&&count(value.baselineTotal)&&value.baselineTotal>=31.5&&count(value.consecutiveDays)&&value.consecutiveDays>0&&count(value.zeroDays)&&value.zeroDays<=value.consecutiveDays;}
 
 export function assessOrderSeries(series:OrderSeries,now:Date,previous?:OrderIncident):{row:OrderAssessment;incident?:OrderIncident}{
@@ -56,8 +67,11 @@ export function assessOrderSeries(series:OrderSeries,now:Date,previous?:OrderInc
 export function evaluateEmergencySnapshot(series:OrderSeries[],now:Date,previous?:EmergencySnapshot,sourceErrors:EmergencySnapshot['sourceErrors']={}):EmergencySnapshot{
  if(series.length>500||new Set(series.map(s=>s.key)).size!==series.length)throw Error('EMERGENCY_SCOPE_INVALID');
  const rows:EmergencySnapshot['rows']=[],incidents:Record<string,OrderIncident>={};
- for(const s of series){const result=assessOrderSeries(s,now,previous?.incidents[s.key]);const diagnosis=diagnoseOrderEmergency(result.row,s.points.filter(p=>pointValid(p,p.date,now)));rows.push({...result.row,...(diagnosis?{diagnosis}:{})});if(result.incident)incidents[s.key]=result.incident;}
- return {version:1,checkedAt:now.toISOString(),expectedDate:calendarDay(dubaiDay(now),-1),rows,incidents,sourceErrors};
+ for(const s of series){const result=assessOrderSeries(s,now,previous?.incidents[s.key]);const diagnosis=diagnoseOrderEmergency(result.row,s.points.filter(p=>pointValid(p,p.date,now)));rows.push({...result.row,audit:dailyAudit(s,now),...(diagnosis?{diagnosis}:{})});if(result.incident)incidents[s.key]=result.incident;}
+ const snapshot:EmergencySnapshot={version:1,checkedAt:now.toISOString(),expectedDate:calendarDay(dubaiDay(now),-1),rows,incidents,sourceErrors};
+ // Optional audit must never displace the established emergency snapshot byte budget.
+ if(Buffer.byteLength(JSON.stringify(snapshot))>500000)for(const row of rows)delete row.audit;
+ return snapshot;
 }
 
 export function validEmergencySnapshot(value:any):value is EmergencySnapshot{

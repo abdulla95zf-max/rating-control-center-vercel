@@ -68,7 +68,7 @@ export async function readEmergencySeries(db:EmergencyDatabase,now:Date,env:Node
    series.push({key:platform+':'+r.source_id,platform,sourceId:r.source_id,branchId:r.id,brand:r.brand,name:r.display_name,lineage,asOf,points:history.map(x=>{
     const zero=platform==='talabat'&&talabatZeroOrderDay({...x,store_id:x.source_id,report_date:x.date});
     const orders=zero?0:growthNumber(x.orders),sales=zero?0:growthNumber(x.sales);
-    return {date:x.date,orders,complete:x.complete===true&&!(orders===0&&sales!==null&&sales>0),observedAt:x.observed_at instanceof Date?x.observed_at.toISOString():String(x.observed_at),revision:String(x.revision),context:emergencyContext(platform,x.context)};
+    return {date:x.date,orders,sales,complete:x.complete===true&&!(orders===0&&sales!==null&&sales>0),observedAt:x.observed_at instanceof Date?x.observed_at.toISOString():String(x.observed_at),revision:String(x.revision),context:emergencyContext(platform,x.context)};
    }),...(failure?{error:failure}:{})});
   }
  }));

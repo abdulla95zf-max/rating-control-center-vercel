@@ -1,3 +1,4 @@
+import {readDataAudit} from './services/data-audit.ts';
 import {hasFeature} from './feature-access.ts';
 import {createCoreRatingsHandler} from './core-ratings-api.ts';
 import {createCoreWebhookSetupHandler} from './core-webhook-api.ts';
@@ -71,6 +72,11 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
       if(!hasFeature(user,platform+'.ratings'))return send(403,{error:'Section access denied'});
     }
     const dataset=requestUrl.searchParams.get('dataset')||'';
+    if(route==='performance'&&dataset==='data-audit'){
+      if(!hasFeature(user,'overview.confidence'))return send(403,{error:'Section access denied'});
+      if([...requestUrl.searchParams.keys()].some(k=>k!=='dataset')||requestUrl.searchParams.getAll('dataset').length!==1)return send(400,{error:'Invalid request'});
+      try{return send(200,await readDataAudit(user,env,fetcher));}catch{return send(503,{error:'Data audit unavailable'});}
+    }
     if(route==='performance'&&dataset==='order-emergencies'){
       if(!hasFeature(user,'overview.emergencies'))return send(403,{error:'Section access denied'});
       if([...requestUrl.searchParams.keys()].some(k=>k!=='dataset')||requestUrl.searchParams.getAll('dataset').length!==1)return send(400,{error:'Invalid request'});
