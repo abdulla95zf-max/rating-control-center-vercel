@@ -37,6 +37,8 @@ Investigation screening, not a vendor SLA or causal model:
 
 Ranking prioritizes availability, then cancellation/rejection, then the larger relative funnel decline. The ranking is a review heuristic, not an estimate of sales explained. One leading check appears inline, up to two additional signals and the matched measurements stay under the existing disclosure. No strong signal and missing evidence are distinct states; neither establishes a cause. The server returns bounded derived fields only after existing section/platform/active-branch scope checks; stale or unknown emergencies carry no diagnosis. Old saved snapshots remain readable while awaiting the next hourly scan.
 
+After this release, an existing emergency without a diagnosis receives one upgrade at the next watchdog check; a persisted insufficient-context diagnosis does not trigger repeated sub-hour scans. Ordinary hourly cadence resumes thereafter. A negative screening result requires at least one actual screen to be evaluable; unrelated cart-only measurements cannot imply that meaningful checks were completed.
+
 ## Verification
 
 Targeted tests cover exact threshold/volume boundaries, incomplete/duplicate/future data, frozen baselines, stale evidence, scope/grants, durable outbox deduplication and ambiguous delivery, and hourly throttling inside the existing watchdog. Browser preview uses clearly synthetic data, never production evidence. Read-only production source dry-run on Nov 19 confirmed all four SQL readers work; one bounded four-source scan took about 5.3 seconds (network/cold-start dependent), not a measurement of monthly compute savings.

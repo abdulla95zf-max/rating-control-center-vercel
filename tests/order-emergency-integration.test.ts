@@ -64,3 +64,11 @@ test('initial unknown collector health notification is retried after failed Tele
  at+=900000;await runWatchdog(store,async()=>[],async()=>{sent++;},()=>at,hooks);assert.equal(sent,1);assert.equal(saved.healthNotificationPending,false);
  at+=900000;await runWatchdog(store,async()=>[],async()=>{sent++;},()=>at,hooks);assert.equal(sent,1);
 });
+test('old emergencies get one diagnosis upgrade without waiting an hour or repeating scans',async()=>{
+ const legacy=snapshot();delete legacy.rows[0]!.diagnosis;
+ let saved:any={checkedAt:new Date(now.getTime()-900000).toISOString(),platforms:{talabat:{health:'UNKNOWN',lastSuccess:null},keeta:{health:'UNKNOWN',lastSuccess:null}},orderEmergencies:legacy},at=now.getTime(),scans=0;
+ const store:WatchdogStore={async locked(action){return action(saved,async next=>{saved=next;});}};
+ const hooks={scan:async()=>{scans++;return snapshot();},queue:async()=>{},drain:async()=>({sent:0,pending:false})};
+ await runWatchdog(store,async()=>[],async()=>{},()=>at,hooks);assert.equal(scans,1);assert.ok(saved.orderEmergencies.rows[0].diagnosis);
+ at+=900000;await runWatchdog(store,async()=>[],async()=>{},()=>at,hooks);assert.equal(scans,1);
+});

@@ -15,6 +15,14 @@ test('availability uses ratio of summed minutes, not average daily percentages',
  const s=input({offlineMinutes:120,scheduledMinutes:600});s.points[0]!.context=context({offlineMinutes:60,scheduledMinutes:60});
  const result=diagnose(s);assert.equal(result.primary?.code,'OFFLINE');assert.equal(result.primary?.baseline,60/3660*100);assert.equal(result.primary?.current,20);
 });
+test('category priority is fixed and incomplete screening is not a negative result',()=>{
+ const combined=diagnose(input({offlineMinutes:60,scheduledMinutes:600,cancelled:2}));assert.equal(combined.primary?.code,'OFFLINE');assert.equal(combined.supporting[0]?.code,'CANCELLATIONS');
+ const cartOnly=input();cartOnly.points.forEach(p=>{p.context=context({impressions:null,visits:null,placed:null,cancelled:null,offlineMinutes:null,scheduledMinutes:null});});
+ assert.equal(diagnose(cartOnly).measurements.length,1);assert.equal(diagnose(cartOnly).state,'INSUFFICIENT');
+ const mixed=input();mixed.points.forEach((p,i)=>{p.context=context({visits:i===7?600:1000,placed:i===7?35:100});});
+ // The larger relative decline wins within the funnel category, without a visits-only bonus.
+ assert.equal(diagnose(mixed).primary?.code,'ORDERING');
+});
 test('cancellation denominator and rejected daily counts stay distinct',()=>{
  const result=diagnose(input({cancelled:2}));assert.equal(result.primary?.code,'CANCELLATIONS');assert.equal(result.primary?.current,2/3*100);
  const s=input({rejected:3});s.platform='deliveroo';s.points.forEach((p,i)=>{p.context=context({impressions:null,visits:null,cart:null,placed:null,cancelled:null,offlineMinutes:null,scheduledMinutes:null,rejected:i===7?3:0});});

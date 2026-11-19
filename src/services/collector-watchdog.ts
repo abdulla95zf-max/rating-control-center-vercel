@@ -83,7 +83,7 @@ export async function runWatchdog(store:WatchdogStore,read:()=>Promise<Observati
     next.healthNotificationPending=healthNotifyFailed;
     if(emergency){
       const old=previous?.orderEmergencies;
-      if(!old||!validEmergencySnapshot(old)||at-Date.parse(old.checkedAt)>=HOUR){
+      if(!old||!validEmergencySnapshot(old)||at-Date.parse(old.checkedAt)>=HOUR||old.rows.some(row=>row.state==='EMERGENCY'&&!row.diagnosis)){
         try{const snapshot=await emergency.scan(validEmergencySnapshot(old)?old:undefined,new Date(at));await emergency.queue(snapshot,validEmergencySnapshot(old)?old:undefined);next.orderEmergencies=snapshot;next.emergencyPending=true;next.emergencyError=false;}
         catch{next.emergencyError=true;}
       }
