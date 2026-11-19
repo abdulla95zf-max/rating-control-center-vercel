@@ -29,9 +29,15 @@ test('conflicting source or canonical identities cannot duplicate reference memb
 });
 test('medians and rendered gaps retain negative signs, percentage points and escaped names',()=>{
  assert.equal(peers.median([-25,-3,-1]),-3);assert.equal(peers.median([-5,-3,-1,10]),-2);assert.equal(peers.median([]),null);assert.equal(peers.median([NaN]),null);
- const groups=book();groups[1]!.name='<Branch>';const html=peers.render(groups[0],groups,assess,'en');assert.match(html,/22 percentage points below/);assert.match(html,/−25%/);assert.match(html,/&lt;Branch&gt;/);assert.match(html,/reference branches also had lower sales/);
+ const groups=book();groups[1]!.name='<Branch>';const html=peers.render(groups[0],groups,assess,'en');assert.match(html,/22 percentage points below/);assert.match(html,/−25%/);assert.match(html,/&lt;Branch&gt;/);assert.match(html,/reference branches had lower sales/);
  const fa=peers.render(groups[0],groups,assess,'fa');assert.match(fa,/مقایسه با شعب هم‌برند/);assert.match(fa,/dir="ltr"/);assert.match(fa,/واحد درصد پایین‌تر/);
  const precise=[group('Selected',101004.9,undefined,undefined,100000),...['A','B','C'].map(id=>group(id,101005.1,undefined,undefined,100000))];assert.match(peers.render(precise[0],precise,assess,'en'),/Less than 0.01 percentage point/);
+});
+test('missing-report catalog placeholders remain unavailable, not conflicting identities',()=>{
+ const missing:any=group('Missing');missing.entries=[{platform:'talabat',state:'ERROR',row:{name:'Missing',eligible:false,reason:'BRANCH_COMPARISON_UNAVAILABLE',current:{sales:null,orders:null},previous:{sales:null,orders:null},period:null}}];
+ const groups=book();groups.push(missing);const result=peers.compare(groups[0],groups,'talabat',assess);assert.equal(result.state,'READY');assert.equal(result.excluded.INVALID,1);assert.equal(result.excluded.CONFLICT,0);
+ const subject=peers.compare(missing,groups,'talabat',assess);assert.equal(subject.reason,'INVALID');assert.doesNotMatch(peers.render(missing,groups,assess,'en'),/>Source identity conflict</);
+ const growing=book();growing[0]!.entries[0]!.row.current.sales=120;const html=peers.render(growing[0],growing,assess,'en');assert.match(html,/reference branches had lower sales/);assert.doesNotMatch(html,/also had lower/);
 });
 test('zero current sales stays a measured decline; zero prior sales never creates a percentage',()=>{
  const groups=book();groups[0]!.entries[0]!.row.current.sales=0;assert.equal(peers.compare(groups[0],groups,'talabat',assess).subject.sales,-100);
