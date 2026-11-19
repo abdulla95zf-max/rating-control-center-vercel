@@ -5,6 +5,11 @@ import vm from 'node:vm';
 import {branchIdentity,allowedStore} from '../src/services/branch-identity.ts';
 const context=vm.createContext({TextEncoder,Uint8Array,DataView,Date,Number});vm.runInContext(fs.readFileSync('public/ratings-export.js','utf8'),context);const api=context.RatingExports;
 const groups=[{displayName:'Morwarid — Al Barsha',rows:[{platform:'talabat',rating:3.4,status:'CRITICAL',timestamp:'2026-10-06T06:00:00Z'},{platform:'keeta',rating:null,status:'UNKNOWN',timestamp:'2026-10-06T05:00:00Z'}]},{displayName:'Kabab Fareej — RAK',rows:[{platform:'talabat',rating:4.5,status:'HEALTHY',timestamp:'2026-10-06T06:00:00Z'},{platform:'keeta',rating:4.2,status:'WARNING',timestamp:'2026-10-06T05:00:00Z'}]}];
+test('Excel and print formatter retain source rating precision without rounding across status boundaries',()=>{
+ assert.equal(api.formatRating(4.39),'4.39');assert.equal(api.formatRating(4.4),'4.4');assert.equal(api.formatRating(null),'—');
+ const files=entries(api.excel(api.fromGroups([{displayName:'Test — Branch',rows:[{platform:'deliveroo',rating:4.39,status:'ACCEPTABLE'}]}],{platform:'deliveroo'})));
+ assert.match(files.get('xl/styles.xml')!,/formatCode="0\.0#+"/);assert.match(files.get('xl/worksheets/sheet1.xml')!,/<v>4\.39<\/v>/);
+});
 test('Shawarma aliases join authorized platform ratings in exports without changing access keys or dropping same-platform stores',()=>{
  const source=fs.readFileSync('public/app.js','utf8'),c=vm.createContext({});
  vm.runInContext(fs.readFileSync('public/branch-labels.js','utf8'),c);
