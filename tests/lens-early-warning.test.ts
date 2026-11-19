@@ -17,6 +17,7 @@ test('tiny fluctuations, recovery and sales/orders divergence stay distinct',()=
  assert.equal(api.screen(entry([1200,1100,1000,1200],[100,90,80,100]),assess()).item,undefined);
  const demand=api.screen(entry([1000,1100,1200,1300],[100,90,80,65]),assess()).item;assert.equal(demand.loss,0);assert.ok(demand.salesDrop<0);assert.ok(demand.orderDrop>0);
  const html=api.render([group('Demand',entry([1000,1100,1200,1300],[100,90,80,65]))],assess,'en');assert.match(html,/No latest-week sales decline/);assert.match(html,/\+30%/);
+ const mixed=api.render([group('Mixed',entry([500,1000,900,800],[100,90,80,70]))],assess,'en');assert.match(mixed,/Orders · 3 consecutive weekly declines/);assert.match(mixed,/Across 4 displayed weeks/);assert.match(mixed,/\+60%/);
 });
 test('ranking uses the same latest-week span; weekly components reconcile exactly',()=>{
  const a=entry(),b=entry([5000,4000,3000,2900]);const d=api.collect([group('A',a),group('B',b)],assess);assert.equal(d.periods[0].rows[0].id,'A');
