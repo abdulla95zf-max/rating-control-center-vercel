@@ -1,11 +1,12 @@
+import {diagnoseOrderEmergency,type EmergencyContext,type EmergencyDiagnosis} from './order-emergency-diagnostics.ts';
 export const emergencyPolicy={version:1,baselineDays:7,minAverage:4.5,minDropPercent:80,timezone:'Asia/Dubai',maxReportLagDays:1} as const;
 export type EmergencyPlatform='talabat'|'keeta'|'noon'|'deliveroo';
 export type EmergencyBranch={key:string;platform:EmergencyPlatform;sourceId:string;branchId:string;brand:string;name:string};
-export type DailyOrders={date:string;orders:number|null;complete:boolean;observedAt:string;revision:string};
+export type DailyOrders={date:string;orders:number|null;complete:boolean;observedAt:string;revision:string;context?:EmergencyContext};
 export type OrderSeries=EmergencyBranch&{lineage:string;asOf:string|null;points:DailyOrders[];error?:string};
 export type OrderIncident={branchId:string;lineage:string;startDate:string;lastConfirmed:string;baselineFrom:string;baselineTo:string;baselineTotal:number;consecutiveDays:number;zeroDays:number};
 export type OrderAssessment=EmergencyBranch&{state:'EMERGENCY'|'NORMAL'|'LOW_VOLUME'|'INSUFFICIENT'|'UNKNOWN';reason:string|null;asOf:string|null;expectedDate:string;currentOrders:number|null;baselineAverage:number|null;baselineTotal:number|null;baselineFrom:string|null;baselineTo:string|null;dropPercent:number|null;startDate:string|null;lastConfirmed:string|null;consecutiveDays:number;zeroDays:number;lagDays:number|null};
-export type EmergencySnapshot={version:1;checkedAt:string;expectedDate:string;rows:OrderAssessment[];incidents:Record<string,OrderIncident>;sourceErrors:Partial<Record<EmergencyPlatform,string>>};
+export type EmergencySnapshot={version:1;checkedAt:string;expectedDate:string;rows:(OrderAssessment&{diagnosis?:EmergencyDiagnosis})[];incidents:Record<string,OrderIncident>;sourceErrors:Partial<Record<EmergencyPlatform,string>>};
 export const calendarDay=(date:string,offset:number)=>new Date(Date.parse(date+'T00:00:00Z')+offset*86400000).toISOString().slice(0,10);
 export const dubaiDay=(now:Date)=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Dubai',year:'numeric',month:'2-digit',day:'2-digit'}).format(now);
 export const validDay=(value:unknown):value is string=>typeof value==='string'&&/^\d{4}-\d\d-\d\d$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
@@ -54,8 +55,8 @@ export function assessOrderSeries(series:OrderSeries,now:Date,previous?:OrderInc
 
 export function evaluateEmergencySnapshot(series:OrderSeries[],now:Date,previous?:EmergencySnapshot,sourceErrors:EmergencySnapshot['sourceErrors']={}):EmergencySnapshot{
  if(series.length>500||new Set(series.map(s=>s.key)).size!==series.length)throw Error('EMERGENCY_SCOPE_INVALID');
- const rows:OrderAssessment[]=[],incidents:Record<string,OrderIncident>={};
- for(const s of series){const result=assessOrderSeries(s,now,previous?.incidents[s.key]);rows.push(result.row);if(result.incident)incidents[s.key]=result.incident;}
+ const rows:EmergencySnapshot['rows']=[],incidents:Record<string,OrderIncident>={};
+ for(const s of series){const result=assessOrderSeries(s,now,previous?.incidents[s.key]);const diagnosis=diagnoseOrderEmergency(result.row,s.points.filter(p=>pointValid(p,p.date,now)));rows.push({...result.row,...(diagnosis?{diagnosis}:{})});if(result.incident)incidents[s.key]=result.incident;}
  return {version:1,checkedAt:now.toISOString(),expectedDate:calendarDay(dubaiDay(now),-1),rows,incidents,sourceErrors};
 }
 

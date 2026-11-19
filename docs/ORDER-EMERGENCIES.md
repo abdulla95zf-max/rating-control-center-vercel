@@ -22,6 +22,21 @@ The watchdog JSON gains optional `orderEmergencies`, `emergencyPending`, `emerge
 
 **Delivery ambiguity:** Telegram cannot provide exactly-once delivery across a process crash. A timed-out/failed request is recorded UNKNOWN and is not automatically retried; a crash after claiming may leave CLAIMED. These states produce an owner-only Telegram review notice on the next delivery check. Inspect outbox state before any deliberate resend. This favors avoiding duplicate notifications; dashboard detection persists even if a health Telegram message fails. A detected incident is not proof that menu problems caused the decline. No real Telegram test messages belong in validation.
 
+## Investigation evidence (next checks)
+
+For each confirmed emergency, an optional version-1 `diagnosis` enriches the saved row. It compares the incident report day with **daily means or ratios of summed denominators across the frozen seven-day baseline**, never with a different week. Published source revisions/account lineage must match the initial order read. No additional portal collection, schedule, notification recipient or business-policy threshold changes. Existing Telegram event identities stay unchanged; enriching an old incident does not resend it.
+
+Only emergency sources are enriched. Context reads are bounded (3-second query timeout, 18,000-row limit) and failures leave the order emergency intact with insufficient context. Talabat uses published field projection; Keeta uses exact shop conversion/opening cards (hours converted to minutes); Noon uses exact-day funnel and operating hours; Deliveroo uses dated rejected-order series, not 30-day service totals. Nulls, missing days, duplicate shop metrics and invalid denominators remain unavailable. Each measurement requires the current day and all seven baseline days; there is no partial mean.
+
+Investigation screening, not a vendor SLA or causal model:
+
+- Visits decline at least 30%, with baseline mean at least 20; exposure decline at least 30%, with baseline at least 50.
+- Reported ordering/visit ratio declines at least 30%, with baseline and current visits at least 20. This is a ratio of reported stages, not a traced customer cohort. If visits also fell, the wording explicitly says so.
+- Unavailable share of scheduled time reaches at least 10%, rises at least 5 percentage points, and at least 20 unavailable minutes are observed. Baseline availability uses summed minutes, not mean percentages.
+- Cancelled/lost share of reported successful-plus-cancelled/lost orders reaches at least 10%, increases at least 5 points and includes at least 2 affected current orders. Deliveroo rejection counts are kept distinct: at least 2 observed rejections and an increase of at least 2 against the daily baseline; no invented denominator.
+
+Ranking prioritizes availability, then cancellation/rejection, then the larger relative funnel decline. The ranking is a review heuristic, not an estimate of sales explained. One leading check appears inline, up to two additional signals and the matched measurements stay under the existing disclosure. No strong signal and missing evidence are distinct states; neither establishes a cause. The server returns bounded derived fields only after existing section/platform/active-branch scope checks; stale or unknown emergencies carry no diagnosis. Old saved snapshots remain readable while awaiting the next hourly scan.
+
 ## Verification
 
 Targeted tests cover exact threshold/volume boundaries, incomplete/duplicate/future data, frozen baselines, stale evidence, scope/grants, durable outbox deduplication and ambiguous delivery, and hourly throttling inside the existing watchdog. Browser preview uses clearly synthetic data, never production evidence. Read-only production source dry-run on Nov 19 confirmed all four SQL readers work; one bounded four-source scan took about 5.3 seconds (network/cold-start dependent), not a measurement of monthly compute savings.
