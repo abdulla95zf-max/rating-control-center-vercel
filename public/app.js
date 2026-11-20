@@ -596,6 +596,8 @@ async function openCloudStore(group,range='30d',historyPlatform=state.tab) {
 
 function renderDisconnected(platformId) {
   const platform = state.platforms.find(item => item.id === platformId);
+  refreshState.querySelector('.live-dot').dataset.health = 'EMPTY';
+  refreshState.querySelector('span:last-child').textContent = `${platform?.name || platformId} · Not connected`;
   main.innerHTML = `<div class="page-heading"><div><h2>${escapeHtml(platform?.name || platformId)}</h2><p>Platform adapter</p></div></div><section class="not-connected"><strong>Not Connected</strong><p>The adapter boundary is ready. No database has been configured for this platform.</p></section>`;
 }
 
