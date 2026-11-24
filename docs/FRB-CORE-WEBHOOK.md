@@ -1,6 +1,26 @@
 # FRB Core webhook contract — receiver preparation v1
 
-Status: contract, HMAC helpers, synthetic test vector and owner-only dashboard reference are implemented. **No production receiver URL, webhook signing secret, durable outbox, retry worker or automatic webhook sender is activated/implemented by this preparation.** The existing pull APIs remain active. Do not tell Core that automatic delivery already exists.
+Status: the original preparation below is historical. The owner approved automatic production delivery on 2026-11-24. See **Production sender (2026-11-24)** for the current minimal payload and activation requirements. The existing pull APIs and synthetic setup/verifier page remain unchanged; that page is a preparation example, not live sender status.
+
+## Production sender (2026-11-24)
+
+Requirement: after ratings are saved on our side, automatically send the updated ratings to Core. Preserve the owner's five-field data scope, nulls and branch IDs; keep collection independent of Core availability. Production receiver: `https://me-central1-frb-core-production.cloudfunctions.net/receiveRccRatings`.
+
+The 2026-11-22 manual event (sequence 3) received `ratingUpdate: {status: "applied", updates: 122, unmapped: 0}`. Automatic sequence allocation starts above 3. No claim is made here about subsequent production activation until the release receipt exists.
+
+Implementation: `src/services/core-rating-delivery.ts`, protected POST `/api/config?core-dispatch=1`. The four collector repositories' `core-ratings-notify.yml` workflows notify after completion of their existing rating workflows (including failed runs, which may have persisted some accounts). They do not change collector schedules, source credentials or collector execution. Notification is after workflow completion, not a database-trigger guarantee; GitHub queue delays and remaining steps can add latency. Direct/local collection outside these listed workflows must explicitly notify this endpoint.
+
+Each request durably increments a generation before scanning. A 90-second fenced database lease excludes concurrent workers; notifications received while busy stay pending. Fresh saved-data readers bypass dashboard caches and require all four platforms to succeed. Rows are scoped through the existing active branch registry and eight approved brands. Missing prior branch/platform rows, ambiguous branch/platform identities and read errors block a new event rather than invent removals. Operational review is required for intentional branch removal/identity changes. Source SUCCESS is not proof of fresh or complete branch/day coverage.
+
+Only these fields are transmitted per rating: `branchId`, `brand`, `branch`, `platform`, `rating`. The envelope retains `schemaVersion`, `type`, `eventId`, `sequence`, `emittedAt`, `mode: "snapshot"`. A semantic change sends a full minimal snapshot; no separate brands, branches, source IDs, counts, review data or observation timestamps are sent. Timestamps and review-count-only changes do not trigger delivery. Null remains unavailable, never zero.
+
+`dashboard_core_delivery` stores a single durable pending event, acknowledged baseline, generation, monotonic sequence, attempts, backoff, last success/error and fenced lease. The event commits before network I/O. Ambiguous/failed delivery retries the identical event/body/sequence with a fresh signature. Newer notifications wait behind it. Attempts back off from one minute up to one hour; a separate RCC Actions workflow checks pending work every 30 minutes, subject to GitHub scheduling delays. Idle retries read only queue state, never source ratings. There is no silent discard/dead-letter cutoff; persistent failures stay visible in `lastError`, attempts and failed workflow runs. If notification never reaches RCC, its notifier workflow must be rerun; the retry worker cannot recover a notification it never received.
+
+Only an HTTP 200 with matching eventId, `ratingUpdate.status` applied/duplicate, bounded nonnegative updates and `unmapped: 0` advances the baseline. A 200 alone is insufficient. Receiver idempotency/order protection remains required for ambiguous retries. HTTPS has certificate verification, no redirect following, a fixed approved receiver, a six-second wall-clock timeout and a bounded response. No arbitrary destination can be configured.
+
+Server configuration (never commit values): `CORE_WEBHOOK_ENABLED=1`, `CORE_WEBHOOK_SIGNING_SECRET` (existing production receiver key), `CORE_WEBHOOK_NOTIFY_SECRET` (new dedicated random machine credential). Set the latter as `RCC_CORE_NOTIFY_SECRET` in RCC and all four collector GitHub repositories. The Core read API key and dashboard sessions grant no sender access. Retry-only POST adds `&retry=1`; it does not create a generation or scan when idle.
+
+Pause by setting `CORE_WEBHOOK_ENABLED=0` and redeploying. Pending data stays durable. Do not reset the row/sequence or replay older manual scripts after activation; manual sends must share this stream. Inspect only bounded delivery status, counts and timestamps when diagnosing; never log credentials, signatures or private bodies.
 
 Owner dashboard: `/core-integration.html` (link Core in the owner account menu). Template API: authenticated GET `/api/config?integration=core-webhook`; owner session only. Ordinary admins and the Core read API key do not grant setup access. The downloadable verifier is generic public code and contains no production credential.
 

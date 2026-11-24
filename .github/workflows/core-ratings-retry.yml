@@ -1,0 +1,29 @@
+name: Retry pending Core rating delivery
+on:
+  schedule:
+    - cron: '13,43 * * * *'
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: core-ratings-retry
+  cancel-in-progress: false
+jobs:
+  retry:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Drain durable delivery only
+        env:
+          RCC_CORE_NOTIFY_SECRET: ${{ secrets.RCC_CORE_NOTIFY_SECRET }}
+        run: |
+          node --input-type=module <<'NODE'
+          try{
+            const secret=process.env.RCC_CORE_NOTIFY_SECRET;
+            if(!secret||!/^[-_A-Za-z0-9]{43,512}$/.test(secret))throw Error();
+            const r=await fetch('https://frb-rcc.vercel.app/api/config?core-dispatch=1&retry=1',{method:'POST',headers:{authorization:'Bearer '+secret},redirect:'error',signal:AbortSignal.timeout(29000)});
+            const v=await r.json();
+            console.log(JSON.stringify({httpStatus:r.status,code:v.code||v.error||'UNKNOWN',ratings:v.ratings??null}));
+            if(!r.ok)process.exitCode=1;
+          }catch{console.error('Core retry failed; check protected sender health.');process.exitCode=1;}
+          NODE

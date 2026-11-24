@@ -2,6 +2,7 @@ import {readDataAudit} from './services/data-audit.ts';
 import {hasFeature} from './feature-access.ts';
 import {createCoreRatingsHandler} from './core-ratings-api.ts';
 import {createCoreWebhookSetupHandler} from './core-webhook-api.ts';
+import {createCoreDeliveryHandler} from './services/core-rating-delivery.ts';
 import {createWatchdogHandler} from './services/collector-watchdog.ts';
 import {createTalabatSchedulerHandler} from './services/talabat-scheduler.ts';
 import {readTalabatReviews} from './services/talabat-reviews.ts';
@@ -41,6 +42,7 @@ export function createCloudHandler(route: 'config' | 'health' | 'ratings' | 'per
     response.setHeader('X-Content-Type-Options', 'nosniff');
     const send = (status: number, body: unknown) => {response.statusCode = status; response.end(JSON.stringify(body));};
     const requestUrl=new URL(request.url||'','https://dashboard.invalid');
+    if(route==='config'&&requestUrl.searchParams.has('core-dispatch'))return createCoreDeliveryHandler(env,fetcher)(request,response);
     if(webhookSetup&&requestUrl.searchParams.get('integration')==='core-webhook')return webhookSetup(request,response);
     if(coreRatings&&requestUrl.searchParams.has('integration'))return coreRatings(request,response);
     if(route==='config'&&requestUrl.searchParams.has('scheduler'))return createTalabatSchedulerHandler(env,fetcher)(request,response);
