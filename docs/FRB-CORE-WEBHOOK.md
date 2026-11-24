@@ -8,6 +8,8 @@ Requirement: after ratings are saved on our side, automatically send the updated
 
 The 2026-11-22 manual event (sequence 3) received `ratingUpdate: {status: "applied", updates: 122, unmapped: 0}`. Automatic sequence allocation starts above 3. No claim is made here about subsequent production activation until the release receipt exists.
 
+Production activation and verification: [CORE-AUTOMATIC-DELIVERY-2026-11-24.md](CORE-AUTOMATIC-DELIVERY-2026-11-24.md).
+
 Implementation: `src/services/core-rating-delivery.ts`, protected POST `/api/config?core-dispatch=1`. The four collector repositories' `core-ratings-notify.yml` workflows notify after completion of their existing rating workflows (including failed runs, which may have persisted some accounts). They do not change collector schedules, source credentials or collector execution. Notification is after workflow completion, not a database-trigger guarantee; GitHub queue delays and remaining steps can add latency. Direct/local collection outside these listed workflows must explicitly notify this endpoint.
 
 Each request durably increments a generation before scanning. A 90-second fenced database lease excludes concurrent workers; notifications received while busy stay pending. Fresh saved-data readers bypass dashboard caches and require all four platforms to succeed. Rows are scoped through the existing active branch registry and eight approved brands. Missing prior branch/platform rows, ambiguous branch/platform identities and read errors block a new event rather than invent removals. Operational review is required for intentional branch removal/identity changes. Source SUCCESS is not proof of fresh or complete branch/day coverage.
