@@ -41,6 +41,12 @@ const deliverooViewTabs = document.getElementById('deliverooViewTabs');
 
 const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
 const formatRating = value => value === null ? '—' : new Intl.NumberFormat('en-US',{minimumFractionDigits:1,maximumFractionDigits:20,useGrouping:false}).format(Number(value));
+const deliverooDisplayRating = new Intl.NumberFormat('en-US',{minimumFractionDigits:1,maximumFractionDigits:1,useGrouping:false});
+function ratingCellHtml(row) {
+  const exact = formatRating(row.rating);
+  if (row.platform !== 'deliveroo' || row.rating === null) return `<strong>${exact}</strong>`;
+  return `<strong title="Exact rating: ${escapeHtml(exact)}">${deliverooDisplayRating.format(row.rating)}</strong>`;
+}
 const formatRatingChange = value => new Intl.NumberFormat('en-US',{maximumFractionDigits:20,useGrouping:false}).format(Number(value.toPrecision(12)));
 const formatNumber = value => value === null || value === undefined ? '—' : new Intl.NumberFormat('en-US').format(value);
 const timestamp = value => { const v = String(value || '').trim().replace(' ', 'T'); return Date.parse(/(?:Z|[+-]\d{2}:?\d{2})$/i.test(v) ? v : v + 'Z'); };
@@ -537,11 +543,11 @@ function buildDataChecks(performance,actionHistory){
 function renderPlatformTable(groups) {
   const rows=groups.flatMap(group=>group.rows.map(row=>({group,row})));
   return `<div class="table-wrap"><table class="compact-table"><thead><tr><th>${ratingSortHeader('Brand / branch','name')}</th><th>${ratingSortHeader('Rating','rating')}</th><th>${ratingSortHeader('Status','severity')}</th><th>${ratingSortHeader('Observed','observed')}</th></tr></thead>
-    <tbody>${rows.length?rows.map(({group,row})=>`<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Rating"><strong>${formatRating(row.rating)}</strong></td><td data-label="Status">${statusHtml(row.status)}</td><td data-label="Observed"><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward?'<span class="carried-forward">Carried forward</span>':''}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
+    <tbody>${rows.length?rows.map(({group,row})=>`<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Rating">${ratingCellHtml(row)}</td><td data-label="Status">${statusHtml(row.status)}</td><td data-label="Observed"><time datetime="${escapeHtml(row.timestamp)}">${escapeHtml(formatTime(row.timestamp))}</time>${row.carriedForward?'<span class="carried-forward">Carried forward</span>':''}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 function renderOverviewTable(groups) {
   return `<div class="table-wrap"><table class="overview-table"><thead><tr><th>${ratingSortHeader('Brand / branch','name')}</th><th>${ratingSortHeader('Platform ratings','rating')}</th><th>${ratingSortHeader('Overall status','severity')}</th><th>${ratingSortHeader('Latest observation','observed')}</th></tr></thead>
-    <tbody>${groups.length?groups.map(group=>{const latest=group.rows.map(row=>row.timestamp).sort().at(-1);return `<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Ratings"><div class="platform-rating-list">${group.rows.map(row=>`<span class="platform-rating">${platformLogoHtml(row.platform)}<strong>${formatRating(row.rating)}</strong>${inlineStatusHtml(row.status)}</span>`).join('')}</div></td><td data-label="Overall">${statusHtml(groupStatus(group))}</td><td data-label="Observed">${escapeHtml(formatTime(latest))}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
+    <tbody>${groups.length?groups.map(group=>{const latest=group.rows.map(row=>row.timestamp).sort().at(-1);return `<tr data-branch-key="${escapeHtml(group.key)}"><td data-label="Branch"><div class="store-name">${escapeHtml(group.displayName)}</div></td><td data-label="Ratings"><div class="platform-rating-list">${group.rows.map(row=>`<span class="platform-rating">${platformLogoHtml(row.platform)}${ratingCellHtml(row)}${inlineStatusHtml(row.status)}</span>`).join('')}</div></td><td data-label="Overall">${statusHtml(groupStatus(group))}</td><td data-label="Observed">${escapeHtml(formatTime(latest))}</td></tr>`;}).join(''):'<tr><td colspan="4" class="empty">No branches match this view</td></tr>'}</tbody></table></div>`;
 }
 
 function attachTalabatControls() {
